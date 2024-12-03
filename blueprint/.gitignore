@@ -1,4 +1,4 @@
 /print
 /web
 /lean_decls
-/src/*.paux
+./src/web.paux
