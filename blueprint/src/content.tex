@@ -6,9 +6,27 @@
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
 
+\begin{definition}[$\mathcal{L}_T$]
+    \label{def:LT}
+    We define the langauge $\mathcal{L}_T$ as the language resulting from adding the predicate symbol $T$ to the language $\mathcal{L}$ of \texttt{PA}. 
+\end{definition}
+
+\begin{definition}[\texttt{PAT}]
+    \label{def:PAT}
+    \uses{def:LT}
+    We define the system \texttt{PAT} as the system of Peano arithmetic formulated in $\mathcal{L}_T$ including the induction schema for each formula of the language $\mathcal{L}_T$.
+\end{definition}
+
 \begin{definition}[\texttt{TB}]
     \label{def:TB}
-    The theory \texttt{TB} comprises all axioms of \texttt{PAT}, that is, of Peano arithmetic formulated in $\mathcal{L}_T$ including all instances of the induction schema with the truth predicate. Moreover all sentences of the form $T\ulcorner\varphi\urcorner$ are axioms of the theory where $\varphi$ is a sentence of the language of $\mathcal{L}$.
+    \uses{def:PAT}
+    The system \texttt{TB} comprises all axioms of \texttt{PAT}. Moreover all sentences of the form $T\ulcorner\varphi\urcorner$ are axioms of the system where $\varphi$ is a sentence of the language of $\mathcal{L}$.
+\end{definition}
+
+\begin{definition}[conservativity]
+    \label{def:cons}
+    \uses{def:LT}
+    A truth theory $...$ [\textcolor{red}{how do you get this symbol?}] in the language $\mathcal{L}_T$ is conservative over a theory $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all $...$-theorems $\varphi$ in the language $\mathcal{L}$ are also theorems of $\mathcal{S}$.
 \end{definition}
 
 \begin{theorem}
@@ -17,6 +35,6 @@
     \texttt{TB} is conservative over \texttt{PA}.
 \end{theorem}
 
-\begin{proof} \uses{def:TB} We show how to transform any given \texttt{TB}-proof of an arithmetical formula into a \texttt{PA}-proof of the same formula. 
+\begin{proof} \uses{def:TB} \uses{def:cons}  We show how to transform any given \texttt{TB}-proof of an arithmetical formula into a \texttt{PA}-proof of the same formula. 
 
 \end{proof}
