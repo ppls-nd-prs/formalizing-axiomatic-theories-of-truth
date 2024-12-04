@@ -6,10 +6,17 @@
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
 
+\begin{definition}[\texttt{TB}]
+    \label{def:TB}
+    The theory \texttt{TB} comprises all axioms of \texttt{PAT}, that is, of Peano arithmetic formulated in $\mathcal{L}_T$ including all instances of the induction schema with the truth predicate. Moreover all sentences of the form $T\ulcorner\varphi\urcorner$ are axioms of the theory where $\varphi$ is a sentence of the language of $\mathcal{L}$.
+\end{definition}
+
 \begin{theorem}
-    \label{tb-utb-cons}
+    \label{thm:tb-cons}
     % \lean{[the right reference]}
-    \texttt{UTB} and \texttt{TB} are conservative over \texttt{PA}.
+    \texttt{TB} is conservative over \texttt{PA}.
 \end{theorem}
 
-\begin{proof} \end{proof}
+\begin{proof} \uses{def:TB} We show how to transform any given \texttt{TB}-proof of an arithmetical formula into a \texttt{PA}-proof of the same formula. 
+
+\end{proof}
