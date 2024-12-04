@@ -29,12 +29,25 @@
     A truth theory $...$ [\textcolor{red}{how do you get this symbol?}] in the language $\mathcal{L}_T$ is conservative over a theory $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all $...$-theorems $\varphi$ in the language $\mathcal{L}$ are also theorems of $\mathcal{S}$.
 \end{definition}
 
+\begin{lemma}[finite axioms in TB]
+    \label{lem:finit-ax-tb}
+    \uses{def:TB}
+    In a proof in \texttt{TB} only finitely many axioms can occur.
+\end{lemma}
+
+\begin{proof}
+    I guess because proofs are finite (?).
+\end{proof}
+
 \begin{theorem}
     \label{thm:tb-cons}
     % \lean{[the right reference]}
     \texttt{TB} is conservative over \texttt{PA}.
 \end{theorem}
 
-\begin{proof} \uses{def:cons, def:TB}  We show how to transform any given \texttt{TB}-proof of an arithmetical formula into a \texttt{PA}-proof of the same formula. 
-
+\begin{proof} \uses{def:cons, def:TB}  We show how to transform any given \texttt{TB}-proof of an arithmetical formula into a \texttt{PA}-proof of the same formula. Let a proof of a formula in $\mathcal{L}$ in TB be given and let $n$ be the number of disquotation sentences occuring as axioms in the proof. Hence every axiom in the proof is either an axiom of \texttt{PA} or an instance of the induction schema. Let the formula $\tau(x)$ be the formula: 
+\begin{align*}
+    (x = \ulcorner \varphi_1 \urcorner \land \varphi_1) \lor ... \lor (x = \ulcorner \varphi_n \urcorner \land \varphi_n).
+\end{align*}
+Then we replace all occurences of the truth predicate $T$ in the given \texttt{TB}-proof with $\tau$. Then the disquotation ...
 \end{proof}
