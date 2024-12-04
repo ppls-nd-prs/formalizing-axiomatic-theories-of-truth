@@ -6,9 +6,16 @@
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
 
+Halbach says: ``I will not clearly distinguish between theories and the systems that generate them,'' but perhaps we should. The problem is that for Halbach's purposes only a system's axioms matter, but perhaps we need the system's inference rules as well; I'm not sure. My preference goes out to the word 'system' as we should explicitly discuss proofs when talking about conservativity. Theorems, being ``a set of formulae closed under first-order logical consequence,'' (Halbach, p. 29) do not contain any information what rules govern sentence generation in proofs. Or are we allowed to define a formal proof simply as ``a finite sequence of sentences, each of which is an axiom of $\mathcal{S}$ or from the preceding sentences according to the rules of first-order inference''? I don't know, but something feels imprecise about the phrase 'first-order inference'.
+
 \begin{definition}[$\mathcal{L}_T$]
     \label{def:LT}
-    We define the langauge $\mathcal{L}_T$ as the language resulting from adding the predicate symbol $T$ to the language $\mathcal{L}$ of \texttt{PA}. 
+    We define the language $\mathcal{L}_T$ as the language resulting from adding the predicate symbol $T$ to the language $\mathcal{L}$ of \texttt{PA}. 
+\end{definition}
+
+\begin{definition}[formal proof]
+    \label{def:formal-proof}
+    We define a formal proof in a logical system $\mathcal{S}$ as a finite sequence of sentences, each of which is an axiom of $\mathcal{S}$ or follows from the preceding sentences according to $\mathcal{S}$'s rules of inference (Wikipedia: Formal proof).
 \end{definition}
 
 \begin{definition}[\texttt{PAT}]
@@ -26,7 +33,7 @@
 \begin{definition}[conservativity]
     \label{def:cons}
     \uses{def:LT}
-    A truth theory $...$ [\textcolor{red}{how do you get this symbol?}] in the language $\mathcal{L}_T$ is conservative over a theory $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all $...$-theorems $\varphi$ in the language $\mathcal{L}$ are also theorems of $\mathcal{S}$.
+    A truth system $...$ [\textcolor{red}{how do you get this symbol?}] in the language $\mathcal{L}_T$ is conservative over a system $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all $...$-theorems $\varphi$ in the language $\mathcal{L}$ are also theorems of $\mathcal{S}$.
 \end{definition}
 
 \begin{lemma}[finite axioms in TB]
@@ -36,7 +43,11 @@
 \end{lemma}
 
 \begin{proof}
-    I guess because proofs are finite (?).
+    \uses{def:formal-proof} 
+    Let $p$ be a proof in \texttt{TB}. Then, by Definition \ref{def:formal-proof}, $p$ is a finite sequence of sentences each of which is an axiom of \texttt{TB} or follows from the preceding sentences according to first-order rules of inference. 
+    By Definition \ref{def:formal-proof} we have that 
+    
+    As TB is a proof system we have this immediately by Definition \ref{def:formal-proof}.
 \end{proof}
 
 \begin{theorem}
@@ -45,7 +56,7 @@
     \texttt{TB} is conservative over \texttt{PA}.
 \end{theorem}
 
-\begin{proof} \uses{def:cons, def:TB}  We show how to transform any given \texttt{TB}-proof of an arithmetical formula into a \texttt{PA}-proof of the same formula. Let a proof of a formula in $\mathcal{L}$ in TB be given and let $n$ be the number of disquotation sentences occuring as axioms in the proof. Hence every axiom in the proof is either an axiom of \texttt{PA} or an instance of the induction schema. Let the formula $\tau(x)$ be the formula: 
+\begin{proof} \uses{def:cons, def:TB}  We show how to transform any given \texttt{TB}-proof of a formula in $\mathcal{L}$ into a \texttt{PA}-proof of the same formula. Let a proof of a formula in $\mathcal{L}$ in TB be given. By Lemma \ref{lem:finit-ax-tb} we have that there are finitely many sentences occuring as axioms in the proof. Let  . Hence every axiom in the proof is either an axiom of \texttt{PA} or an instance of the induction schema. Let the formula $\tau(x)$ be the formula: 
 \begin{align*}
     (x = \ulcorner \varphi_1 \urcorner \land \varphi_1) \lor ... \lor (x = \ulcorner \varphi_n \urcorner \land \varphi_n).
 \end{align*}
