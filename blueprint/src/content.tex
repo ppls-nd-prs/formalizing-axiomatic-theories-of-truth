@@ -79,17 +79,4 @@ As axioms of type (i) and (ii) are sentences of $\mathcal{L}$, we need only show
 \end{align*}
 By Lemma \ref{lem:Tphi-eq-tau}, we have that $T\ulcorner \varphi \urcorner \iff \tau(\ulcorner \varphi \urcorner)$. Hence, we can replace all occurences of the truth predicate $T$ in the given \texttt{TB}-proof with $\tau$. Then the disquotation ...
 \end{proof}
-
-\begin{proof} \uses{def:cons, def:TB} 
-    %We show how to transform any given \texttt{TB}-proof of a formula in $\mathcal{L}$ into a \texttt{PA}-proof of the same formula. 
-    Let $\psi$ be a formula in $\mathcal{L}$ that is provable in TB by a proof $p$. Then, by Lemma \ref{lem:finit-ax-tb}, we have that $p$ contains finitely many sentences as axioms. Let $n$ be the number of disquotation sentences occurring as axioms in the proof. Then, every axiom $p$ is either (i) an axiom of \texttt{PA}, or (ii) an instance of the induction schema, or (iii) for some $i \leq n$, a sentence of the form: 
-    \begin{align*}
-        T\ulcorner \varphi_i \urcorner \leftrightarrow \varphi_i.
-    \end{align*}
-    As axioms of type (i) and (ii) are sentences of $\mathcal{L}$, we need only show how to transform any given disquotation axiom into a logically equivalent sentence of $\mathcal{L}$. Now, let $\tau(x)$ be the formula: 
-    \begin{align*}
-        (x = \ulcorner \varphi_1 \urcorner \land \varphi_1) \lor ... \lor (x = \ulcorner \varphi_k \urcorner \land \varphi_k).
-    \end{align*}
-    By Lemma \ref{lem:Tphi-eq-tau}, we have that $T\ulcorner \varphi \urcorner \iff \tau(\ulcorner \varphi \urcorner)$. Hence, we can replace all occurences of the truth predicate $T$ in the given \texttt{TB}-proof with $\tau$. Then the disquotation ...
-\end{proof}
     
