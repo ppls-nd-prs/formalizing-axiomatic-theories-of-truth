@@ -69,16 +69,27 @@
     The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language corresponding to the signature $(\{0\},\{S,+,\cdot\},\emptyset)$.
 \end{definition}
 
+\begin{definition}[natural deduction inference rules]
+    Let $\mathcal{L}$ be a first order language. Then, the set of inference rules of natural deduction is the set $\mathcal{R}_{nd}$ containing the functions 
+    \begin{enumerate}
+        \item $r_{\land I} : \mathcal{L}^2 \to \mathcal{L}$ defined by $r_{\land I}(\phi,\psi) = \phi \land \psi$,
+        \item $r_{\land E_1} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\land E_1}(\phi \land \psi) = \phi$,
+        \item $r_{\land E_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\land E_2}(\phi \land \psi) = \psi$,
+        \item $r_{\lor I_1} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_1}(\phi) = \phi \lor \psi$,
+        \item $r_{\lor I_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_2}{\psi} = \phi \lor \psi$
+    \end{enumerate}
+\end{definition}
+
 \begin{definition}[\texttt{PA}: the formal system of Peano arithmetic]
-    The formal system of Peano arithmetic \texttt{PA} is defined as $\texttt{PA} = (\mathcal{L}_{PA},\mathcal{A},\mathcal{R})$ such that:
+    The formal system of Peano arithmetic \texttt{PA} is defined as $\texttt{PA} = (\mathcal{L}_{PA},\mathcal{A},\mathcal{R}_{nd})$, where $\mathcal{A}$ is the smallest set $X$ such that
     \begin{enumerate}
         \item $\forall x (0 \not = S(x)) \in \mathcal{A}$, 
         \item $\forall x,y (S(x) = S(y) \rightarrow x = y) \in \mathcal{A}$,
-        \item $\forall x(x + 0 = x)$ PROCEED HERE,
-        \item $\forall x,y(x + S(y) = S(x+y))$,
-        \item $\forall x(x \cdot 0 = 0)$,
-        \item $\forall x,y(x \cdot S(y) = x \cdot y + x)\} \cup$
-        \item $\{\forall \bar y \Bigl( \bigl(\varphi(0,\bar y) \land \forall x (\varphi(x,\bar y) \to \varphi(S(x),\bar y))\bigr)\Bigr) \to \forall x \varphi(x, \bar y)\ | \varphi(x,y_1,...y_k) \in \mathcal{L}_{PA}$ and $\bar y = y_1,...,y_k\}$.
+        \item $\forall x(x + 0 = x) \in \mathcal{A}$,
+        \item $\forall x,y(x + S(y) = S(x+y)) \in \mathcal{A}$,
+        \item $\forall x(x \cdot 0 = 0) \in \mathcal{A}$,
+        \item $\forall x,y(x \cdot S(y) = x \cdot y + x) \in \mathcal{A}$ and
+        \item if $\varphi(x,y_1,...,y_k) \in \mathcal{L}_{PA}$, then $\bar y \Bigl( \bigl(\varphi(0,\bar y) \land \forall x (\varphi(x,\bar y) \to \varphi(S(x),\bar y))\bigr)\Bigr) \to \forall x \varphi(x, \bar y)$, where $\bar y = y_1,...,y_k$
     \end{enumerate}
 \end{definition}
 
