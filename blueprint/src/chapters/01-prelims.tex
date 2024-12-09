@@ -70,12 +70,15 @@
 \end{definition}
 
 \begin{definition}[\texttt{PA}: the formal system of Peano arithmetic]
-    The formal system of Peano arithmetic \texttt{PA} is defined as $\texttt{PA} = (\mathcal{L}_{PA},\mathcal{A},\mathcal{R})$, where
+    The formal system of Peano arithmetic \texttt{PA} is defined as $\texttt{PA} = (\mathcal{L}_{PA},\mathcal{A},\mathcal{R})$ such that:
     \begin{enumerate}
-        \item $\mathcal{A} = \{$ \begin{enumerate}
-            \item $\forall x (0 \not = S(x))$
-            \item $\forall x,y (S(x) = S(y) \rightarrow x = y)$
-        \end{enumerate}
+        \item $\forall x (0 \not = S(x)) \in \mathcal{A}$, 
+        \item $\forall x,y (S(x) = S(y) \rightarrow x = y) \in \mathcal{A}$,
+        \item $\forall x(x + 0 = x)$ PROCEED HERE,
+        \item $\forall x,y(x + S(y) = S(x+y))$,
+        \item $\forall x(x \cdot 0 = 0)$,
+        \item $\forall x,y(x \cdot S(y) = x \cdot y + x)\} \cup$
+        \item $\{\forall \bar y \Bigl( \bigl(\varphi(0,\bar y) \land \forall x (\varphi(x,\bar y) \to \varphi(S(x),\bar y))\bigr)\Bigr) \to \forall x \varphi(x, \bar y)\ | \varphi(x,y_1,...y_k) \in \mathcal{L}_{PA}$ and $\bar y = y_1,...,y_k\}$.
     \end{enumerate}
 \end{definition}
 
