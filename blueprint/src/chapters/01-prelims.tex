@@ -1,11 +1,82 @@
 \chapter{Preliminaries}
 
+\begin{definition}[formal language]
+    Let $\Sigma$ be a set of symbols. Then a formal language $\mathcal{L}$ is a subset of $\Sigma^*$.
+\end{definition}
+
+\begin{definition}[first-order signature]
+    A first-order signature is a structure $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ such that:
+    \begin{enumerate}
+        \item $\mathcal{C}$ is a set of \textit{constant symbols},
+        \item $\mathcal{F}$ is a set of \textit{function symbols},
+        \item $\mathcal{R}$ is a set of \textit{predicate symbols} and
+        \item $ar : \mathcal{F} \cup \mathcal{R} \to \mathbb{N}$ is a function that maps each function and predicate symbol to a natural number, it \textit{arity}.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[first-order logical vocabulary]
+    The \textit{first-order logical vocabulary}, is a structure $\mathcal{S} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P})$ where
+    \begin{enumerate}
+        \item $\mathcal{V} = \{x,y,z,...\}$ is the \textit{set of variables},
+        \item $\neg$ is the \textit{negation operator},
+        \item $\mathcal{B} = \{\land,\lor,\to,\leftrightarrow\}$ is the \textit{set of binary sentential operators},
+        \item $=$ is the \textit{identity predicate},
+        \item $\mathcal{Q} = \{\forall, \exists\}$ is the \textit{set of quantifiers} and
+        \item $\mathcal{P} = \{(,)\}$ is the \textit{set of parentheses}.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[first-order term]
+    Let $\mathcal{W} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P})$ be the first-order logical vocabulary and $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, the set $\mathcal{T}$ of \textit{terms} corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
+    \begin{enumerate}
+        \item \begin{enumerate}
+            \item $\mathcal{V} \subseteq X$,
+            \item $\mathcal{C} \subseteq X$,
+        \end{enumerate}
+        \item If $t_1,...,t_n \in X$, $f \in \mathcal{F}$ and $ar(f) = n$, then $f(t_1,...,t_n) \in X$.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[first-order language]
+    Let $\mathcal{W} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P})$ be the first-order logical vocabulary, $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature and $\mathcal{T}$ the corresponding set of terms. Then the first-order formal language $\mathcal{L}$ corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
+    \begin{enumerate}
+        \item \begin{enumerate}
+            \item if $R \in \mathcal{R}$, $ar(R) = n$ and $t_1,...,t_n \in \mathcal{T}$, then $R(t_1,...t_n) \in X$,
+            \item if $t_1,t_2 \in \mathcal{T}$, then $t_1 = t_2 \in X$, 
+        \end{enumerate}
+        \item \begin{enumerate}
+            \item if $\phi \in X$, then $\neg \phi \in X$,
+            \item if $\phi, \psi \in X$ and $\circ \in \mathcal{B}$, then $(\phi \circ \psi) \in X$ and
+            \item if $Q \in \mathcal{Q}$, $x \in \mathcal{V}$ and $\phi \in X$, then $Qx\phi \in X$.
+        \end{enumerate}
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[inference rule]
+    Let $\mathcal{L}$ be a formal language. Then an inference rule defined over $\mathcal{L}$ is a function $r : \mathcal{L}^n \to \mathcal{L}$, where $n \in \mathbb{N}$.
+\end{definition}
+
 \begin{definition}[formal system]
-    A formal system $\mathcal{S}$ in a language $\mathcal{L}$ is a tuple $\mathcal{S} = \langle \mathcal{A}, \mathcal{R} \rangle$, where 
-    \begin{itemize}
-        \item $\mathcal{A}$ is a set of axioms, i.e. sentences in $\mathcal{L}$ and 
-        \item $\mathcal{R}$ is a set of rules (functions?) for generating sentences from other sentences.
-    \end{itemize}
+    A formal system $\mathcal{S}$ is a structure $\mathcal{S} = (\mathcal{L}, \mathcal{A}, \mathcal{R})$, where 
+    \begin{enumerate}
+        \item $\mathcal{L}$ is a formal language,
+        \item $\mathcal{A} \subseteq \mathcal{L}$ is a \textit{set of axioms} and 
+        \item $\mathcal{R}$ is a \textit{set of inference rules defined over $\mathcal{L}$}.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]
+    The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language corresponding to the signature $(\{0\},\{S,+,\cdot\},\emptyset)$.
+\end{definition}
+
+\begin{definition}[\texttt{PA}: the formal system of Peano arithmetic]
+    The formal system of Peano arithmetic \texttt{PA} is defined as $\texttt{PA} = (\mathcal{L}_{PA},\mathcal{A},\mathcal{R})$, where
+    \begin{enumerate}
+        \item $\mathcal{A} = \{$ \begin{enumerate}
+            \item $\forall x (0 \not = S(x))$
+            \item $\forall x,y (S(x) = S(y) \rightarrow x = y)$
+        \end{enumerate}
+    \end{enumerate}
 \end{definition}
 
 \begin{definition}[formal proof]
