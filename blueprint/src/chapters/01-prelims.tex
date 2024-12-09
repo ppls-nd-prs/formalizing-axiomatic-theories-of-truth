@@ -1,0 +1,31 @@
+\chapter{Preliminaries}
+
+\begin{definition}[formal system]
+    A formal system $\mathcal{S}$ in a language $\mathcal{L}$ is a tuple $\mathcal{S} = \langle \mathcal{A}, \mathcal{R} \rangle$, where 
+    \begin{itemize}
+        \item $\mathcal{A}$ is a set of axioms, i.e. sentences in $\mathcal{L}$ and 
+        \item $\mathcal{R}$ is a set of rules (functions?) for generating sentences from other sentences.
+    \end{itemize}
+\end{definition}
+
+\begin{definition}[formal proof]
+    \label{def:formal-proof}
+    A formal proof in a logical system $\mathcal{S}$ is a finite sequence of sentences, where each sentence is an axiom of $\mathcal{S}$, an assumption, or follows from the application of one of $\mathcal{S}$'s rules of inference to previous sentences in the sequence (Wikipedia: Formal proof).
+\end{definition}
+
+\begin{definition}[provability]
+    \label{def:provable-pa}
+    \uses{def:formal-proof, def:PA}
+    A formula $\varphi$ is provable in a proof system $\mathcal{S}$ if and only if there exists a formal proof $\mathcal{P}$ in $\mathcal{S}$, such that $\mathcal{P}$ contains no assumptions and $\varphi$ is the last sentence of $\mathcal{P}$.
+\end{definition}
+
+\begin{definition}[$\mathcal{L}_T$]
+    \label{def:LT}
+    We define the language $\mathcal{L}_T$ as the language resulting from adding the predicate symbol $T$ to the language $\mathcal{L}$ of \texttt{PA}. 
+\end{definition}
+
+\begin{definition}[\texttt{PAT}]
+    \label{def:PAT}
+    \uses{def:LT}
+    We define the system \texttt{PAT} as the system of Peano arithmetic formulated in $\mathcal{L}_T$ including the induction schema for each formula of the language $\mathcal{L}_T$.
+\end{definition}
