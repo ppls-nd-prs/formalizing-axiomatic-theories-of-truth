@@ -15,14 +15,16 @@
 \end{definition}
 
 \begin{definition}[first-order logical vocabulary]
-    The \textit{first-order logical vocabulary}, is a structure $\mathcal{S} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P})$ where
+    The \textit{first-order logical vocabulary}, is a structure $\mathcal{S} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P}, \top, \bot)$ where
     \begin{enumerate}
         \item $\mathcal{V} = \{x,y,z,...\}$ is the \textit{set of variables},
         \item $\neg$ is the \textit{negation operator},
         \item $\mathcal{B} = \{\land,\lor,\to,\leftrightarrow\}$ is the \textit{set of binary sentential operators},
         \item $=$ is the \textit{identity predicate},
-        \item $\mathcal{Q} = \{\forall, \exists\}$ is the \textit{set of quantifiers} and
-        \item $\mathcal{P} = \{(,)\}$ is the \textit{set of parentheses}.
+        \item $\mathcal{Q} = \{\forall, \exists\}$ is the \textit{set of quantifiers},
+        \item $\mathcal{P} = \{(,)\}$ is the \textit{set of parentheses},
+        \item $\top$ is called \textit{top} and
+        \item $\bot$ is called \textit{bottom}.
     \end{enumerate}
 \end{definition}
 
@@ -41,6 +43,7 @@
     Let $\mathcal{W} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P})$ be the first-order logical vocabulary, $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature and $\mathcal{T}$ the corresponding set of terms. Then the first-order formal language $\mathcal{L}$ corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
     \begin{enumerate}
         \item \begin{enumerate}
+            \item $\top,\bot \in \mathcal{L}$,
             \item if $R \in \mathcal{R}$, $ar(R) = n$ and $t_1,...,t_n \in \mathcal{T}$, then $R(t_1,...t_n) \in X$,
             \item if $t_1,t_2 \in \mathcal{T}$, then $t_1 = t_2 \in X$, 
         \end{enumerate}
@@ -69,15 +72,20 @@
     The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language corresponding to the signature $(\{0\},\{S,+,\cdot\},\emptyset)$.
 \end{definition}
 
-\begin{definition}[natural deduction inference rules]
+\begin{definition}[natural deduction inference rules (MUST BECOME SOME FORM OF SEQUENT CALCULUS)]
     Let $\mathcal{L}$ be a first order language. Then, the set of inference rules of natural deduction is the set $\mathcal{R}_{nd}$ containing the functions 
     \begin{enumerate}
         \item $r_{\land I} : \mathcal{L}^2 \to \mathcal{L}$ defined by $r_{\land I}(\phi,\psi) = \phi \land \psi$,
         \item $r_{\land E_1} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\land E_1}(\phi \land \psi) = \phi$,
         \item $r_{\land E_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\land E_2}(\phi \land \psi) = \psi$,
         \item $r_{\lor I_1} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_1}(\phi) = \phi \lor \psi$,
-        \item $r_{\lor I_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_2}{\psi} = \phi \lor \psi$,
-        PROCEED HERE
+        \item $r_{\lor I_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_2}(\psi) = \phi \lor \psi$,
+        \item $r_{\lor E} : \mathcal{L}^3 \to \mathcal{L}$ defined by $r_{\lor E}(\phi \lor \psi, \phi \to \omega, \psi \to \omega)=\omega$,
+        \item $r_{\to E} : \mathcal{L}^2 \to \mathcal{L}$ defined by $r_{\to E}(\phi \to \psi, \phi)=\psi$,
+        \item $r_{\neg I} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg I}(\phi \to \bot) = \neg \phi$,
+        \item $r_{\neg E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg E}(\phi, \neg \phi)= \bot$,
+        \item $r_{\bot E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\bot E}(\bot)=\phi$ and
+        \item $r_{\neg \neg E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg \neg E}(\neg \phi \to \bot)=\phi$.
     \end{enumerate}
 \end{definition}
 
