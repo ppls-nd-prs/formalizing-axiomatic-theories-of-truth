@@ -80,7 +80,9 @@
     Let $\mathcal{L}$ be a formal language and $\mathcal{S}$ the sequent set for $\mathcal{L}$. Then the set of inference rules of sequent calculus is the set $\mathcal{R}_{sc}$ containing the functions
     \begin{enumerate}
         \item $r_{ax} : \mathcal{S} \to \mathcal{S}$ defined by $r_{ax}((\emptyset,\emptyset)) = (\{\phi\},\{\phi\})$,
-        \item $r_{cut} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{cut}((\Gamma,\Delta \cup \{\phi\}),(\phi \cup \Sigma,\Pi))=(\Gamma \cup \Sigma, \Delta \cup \Pi)$,
+        \item $r_{cut} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{cut}((\Gamma,\Delta \cup \{\phi\}),(\{\phi\} \cup \Sigma,\Pi))=(\Gamma \cup \Sigma, \Delta \cup \Pi)$,
+        \item $r_{\land L_1} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\land L_1}((\Gamma \cup \{\phi\}, \Delta))=(\Gamma \cup \{\phi \land \psi\}, \Delta)$,
+        \item $r_{\land L_2} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\land L_2}((\Gamma \cup \{\psi\}, \Delta))=(\Gamma \cup \{\phi \land \psi\}, \Delta)$,
         \item PROCEED HERE
     \end{enumerate}
 \end{definition}
