@@ -4,18 +4,22 @@
     Let $\Sigma$ be a set of symbols. Then a formal language $\mathcal{L}$ is a subset of $\Sigma^*$.
 \end{definition}
 
-\begin{definition}[first-order logical vocabulary]\label{def:FO-logical-vocab}
-    The \textit{first-order logical vocabulary}, is a structure $\mathcal{S} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P}, \top, \bot)$ where
-    \begin{enumerate}
-        \item $\mathcal{V} = \{x,y,z,...\}$ is the \textit{set of variables},
-        \item $\neg$ is the \textit{negation operator},
-        \item $\mathcal{B} = \{\land,\lor,\to,\leftrightarrow\}$ is the \textit{set of binary sentential operators},
-        \item $=$ is the \textit{identity predicate},
-        \item $\mathcal{Q} = \{\forall, \exists\}$ is the \textit{set of quantifiers},
-        \item $\mathcal{P} = \{(,)\}$ is the \textit{set of parentheses},
-        \item $\top$ is called \textit{top} and
-        \item $\bot$ is called \textit{bottom}.
-    \end{enumerate}
+% \begin{definition}[first-order logical vocabulary]\label{def:FO-logical-vocab}
+%     The \textit{first-order logical vocabulary}, is a structure $\mathcal{S} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P}, \top, \bot)$ where
+%     \begin{enumerate}
+%         \item $\mathcal{V} = \{x,y,z,...\}$ is the \textit{set of variables},
+%         \item $\neg$ is the \textit{negation operator},
+%         \item $\mathcal{B} = \{\land,\lor,\to,\leftrightarrow\}$ is the \textit{set of binary sentential operators},
+%         \item $=$ is the \textit{identity predicate},
+%         \item $\mathcal{Q} = \{\forall, \exists\}$ is the \textit{set of quantifiers},
+%         \item $\mathcal{P} = \{(,)\}$ is the \textit{set of parentheses},
+%         \item $\top$ is called \textit{top} and
+%         \item $\bot$ is called \textit{bottom}.
+%     \end{enumerate}
+% \end{definition}
+
+\begin{definition}[variables]\label{def:FO-variables}
+    We define the set of variables for a first order language as the finite set $\mathcal{V} = \{x,y,z,...\}$.
 \end{definition}
 
 \begin{definition}[first-order signature]\label{def:FO-signature}
@@ -28,44 +32,90 @@
     \end{enumerate}
 \end{definition}
 
+\begin{definition}[primitive term]\label{def:primitive-term}
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
+\end{definition}
+
 \begin{definition}[first-order term]\label{def:FO-term}
     \uses{def:FO-logical-vocab, def:FO-signature}
-    Let $\mathcal{W} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P})$ be the first-order logical vocabulary and $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, the set $\mathcal{T}$ of \textit{terms} corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first-order signature. Then, the set $\mathcal{T}_{\mathcal{S}}$ of \textit{terms} corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
     \begin{enumerate}
-        \item \begin{enumerate}
-            \item $\mathcal{V} \subseteq X$,
-            \item $\mathcal{C} \subseteq X$,
-        \end{enumerate}
-        \item If $t_1,...,t_n \in X$, $f \in \mathcal{F}$ and $ar(f) = n$, then $f(t_1,...,t_n) \in X$.
+        \item $\mathcal{P}_{\mathcal{S}} \subseteq X$ and
+        \item if $t_1,...,t_n \in X$, $f \in \mathcal{F}$ and $ar(f) = n$, then $f(t_1,...,t_n) \in X$.
     \end{enumerate}
 \end{definition}
 
 \begin{definition}[first-order language]\label{def:FO-language}
     \uses{def:FO-logical-vocab, def:FO-signature, def:FO-term}
-    Let $\mathcal{W} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P})$ be the first-order logical vocabulary, $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature and $\mathcal{T}$ the corresponding set of terms. Then the first-order formal language $\mathcal{L}$ corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first-order signature. Then the first order language $\mathcal{L}_{\mathcal{S}}$ is recursively defined as the smallest set $X$ such that:
     \begin{enumerate}
         \item \begin{enumerate}
-            \item $\top,\bot \in \mathcal{L}$,
-            \item if $R \in \mathcal{R}$, $ar(R) = n$ and $t_1,...,t_n \in \mathcal{T}$, then $R(t_1,...t_n) \in X$,
-            \item if $t_1,t_2 \in \mathcal{T}$, then $t_1 = t_2 \in X$, 
+            \item $\top,\bot \in X$,
+            \item if $R \in \mathcal{R}$, $ar(R) = n$ and $t_1,...,t_n \in \mathcal{T}_{\mathcal{S}}$, then $R(t_1,...t_n) \in X$,
+            \item if $t_1,t_2 \in \mathcal{T}_{\mathcal{S}}$, then $t_1 = t_2 \in X$, 
         \end{enumerate}
         \item \begin{enumerate}
             \item if $\phi \in X$, then $\neg \phi \in X$,
-            \item if $\phi, \psi \in X$ and $\circ \in \mathcal{B}$, then $(\phi \circ \psi) \in X$ and
-            \item if $Q \in \mathcal{Q}$, $x \in \mathcal{V}$ and $\phi \in X$, then $Qx\phi \in X$.
+            \item if $\phi, \psi \in X$ then $(\phi \circ \psi) \in X$ for $\circ \in \{\land,\lor,\to,\leftrightarrow\}$ and
+            \item if $x \in \mathcal{V}$ and $\phi \in X$, then $Qx\phi \in X$ for $Q \in \{\forall,\exists\}$.
+        \end{enumerate}
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[term's primitive term set]\label{def:terms-pt-set}
+    Let $\mathcal{S}$ be a first order signature. Then we define the function $tpts_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \to \mathcal{P}(\mathcal{P}_{\mathcal{S}})$ mapping terms to the set of primitive terms they contain as
+    \begin{enumerate}
+        \item $tpts_{\mathcal{S}}(s) = \{s\}$ if $s \in \mathcal{P}_{\mathcal{S}}$ and
+        \item $tpts_{\mathcal{S}}(f(t_1,...,t_n)) = tpts_{\mathcal{S}}(t_1)\cup ... \cup tpts_{\mathcal{S}}(t_n)$.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[formula's primitive term set]\label{FO-term-set}
+    Let $\mathcal{S}$ be a first order signature. We then define the primitive term set function $pts_{\mathcal{S}} : \mathcal{L}_{\mathcal{S}} \to \mathcal{P}_{\mathcal{S}}$ as 
+    \begin{enumerate}
+        \item \begin{enumerate}
+            \item $pts_{\mathcal{S}}(R(t_1,...,t_n)) = tpts_{\mathcal{S}}(t_1) \cup ... \cup tpts_{\mathcal{S}}(t_n)$,
+            \item $pts_{\mathcal{S}}(t_1 = t_2) = tpts_{\mathcal{S}}(t_1) \cup tpts_{\mathcal{S}}(t_2)$,
+        \end{enumerate}
+        \item \begin{enumerate}
+            \item $pts_{\mathcal{S}}(\neg \phi) = pts_{\mathcal{S}}(\phi)$,
+            \item $pts_{\mathcal{S}}((\phi \circ \psi)) = pts_{\mathcal{S}}(\phi) \cup pts_{\mathcal{S}}(\psi)$ for $\circ \in \{\land, \lor, \to, \leftrightarrow\}$,
+            \item $pts_{\mathcal{S}}(Qx\phi) = pts_{\mathcal{S}}(\phi) - \{x\}$ for $Q \in \{\forall, \exists\}$.
         \end{enumerate}
     \end{enumerate}
 \end{definition}
 
 \begin{definition}[substitution function over terms]\label{def:sub-term}
-    \uses{def:FO-logical-vocab, def:FO-signature, def:FO-term}
-    Let $\mathcal{W} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P}, \top, \bot)$ be the first order logical vocabulary, $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first order signature, and $\mathcal{T}$ the set of terms corresponding to $\mathcal{S}$. Then, we define the substitution function over terms $sub_t : \mathcal{T} \times \mathcal{V} \times \mathcal{T} \to \mathcal{T}$ recursively such that
+    \uses{def:FO-signature, def:FO-term}
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first order signature. Then, we define the substitution function over terms $subt_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{T}_{\mathcal{S}} \to \mathcal{T}_{\mathcal{S}}$ recursively such that
     \begin{enumerate}
-        \item if $s \in \mathcal{C}\cup \mathcal{V}$, then $sub_t(s,x,t) = \begin{cases}
+        \item if $s \in \mathcal{P}_{\mathcal{S}}$, then $subt_{\mathcal{S}}(s,x,t) = \begin{cases}
                         s, &\text{if }s \not = x \\
                         t, &\text{if }s = x
                         \end{cases}$
-        \item $sub_t(f(t_1,...,t_n),x,t) = f(sub_t(t_1,x,t),...,sub_t(t_n,x,t))$.
+        \item $subt_{\mathcal{S}}(f(t_1,...,t_n),x,t) = f(subt_{\mathcal{S}}(t_1,x,t),...,subt_{\mathcal{S}}(t_n,x,t))$.
+    \end{enumerate}
+\end{definition}
+
+% TODO: Proceed here with removing explicit references to the logical vocabulary and indexing the functions on signatures.
+
+\begin{definition}[substitution function over formulas]\label{def:sub-f}
+    \uses{def:FO-signature, def:FO-term, def:FO-language, def:sub-term}
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first order signature. Then, we define the substitution function over $\mathcal{L}_{\mathcal{S}}$ as $subf_{\mathcal{S}} : \mathcal{L}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{L}_{\mathcal{S}} \to \mathcal{L}_{\mathcal{S}}$ such that
+    \begin{enumerate}
+        \item \begin{enumerate} 
+            \item $subf_{\mathcal{S}}(R(t_1,...,t_n),x,t) = R(subt_{\mathcal{S}}(t_1,x,t),...,subt_{\mathcal{S}}(t_n,x,t))$,
+            \item $subf_{\mathcal{S}}(t_1 = t_2,x,t) = subt_{\mathcal{S}}(t_1,x,t) = subt_{\mathcal{S}}(t_2,x,t)$
+        \end{enumerate}
+        % TODO : replace sub
+        \item \begin{enumerate}
+            \item $subf_{\mathcal{S}}(\neg \phi,x,t) = \neg subf_{\mathcal{S}}(\phi,x,t)$,
+            \item $subf_{\mathcal{S}}((\phi \circ \psi),x,t) = (subf_{\mathcal{S}}(\phi,x,t) \circ subf_{\mathcal{S}}(\psi,x,t))$, for $\circ \in \{\land,\lor,\to,\leftrightarrow\}$ 
+            \item $subf_{\mathcal{S}}(Qy\phi,x,t)= \begin{cases}
+                Qy(subf_{\mathcal{S}}(\phi,x,t)) &\text{if } y \not = x \\
+                Qy\phi &\text{if } y = x
+            \end{cases}$ for $Q \in \{\forall, \exists\}$.
+        \end{enumerate}
     \end{enumerate}
 \end{definition}
 
