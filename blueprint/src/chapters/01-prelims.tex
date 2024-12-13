@@ -32,6 +32,11 @@
     \end{enumerate}
 \end{definition}
 
+\begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:LPA}
+    \uses{def:FO-language, FO-signature}
+    The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language corresponding to the signature $(\{0\},\{S,+,\cdot\},\{=\})$.
+\end{definition} 
+
 \begin{definition}[primitive term]\label{def:primitive-term}
     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
 \end{definition}
@@ -133,11 +138,6 @@
         \item $\mathcal{R}$ is a \textit{set of inference rules defined over $\mathcal{L}$}.
     \end{enumerate}
 \end{definition}
-
-\begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:LPA}
-    \uses{def:FO-language, FO-signature}
-    The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language corresponding to the signature $(\{0\},\{S,+,\cdot\},\emptyset)$.
-\end{definition} 
 
 \begin{definition}[sequent set]\label{def:sequent-set}
     \uses{def:formal-language}
