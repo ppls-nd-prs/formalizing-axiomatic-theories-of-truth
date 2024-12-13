@@ -13,6 +13,6 @@ inductive PA_Func : ℕ → Type where
 inductive PA_Rel : ℕ → Type where
   | eq : PA_Rel 2
 
-def lpa : Language where
+def LPA : Language where
   Func := PA_Func
   Rel := PA_Rel
