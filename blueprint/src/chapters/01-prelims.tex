@@ -24,6 +24,7 @@
 
 \begin{definition}[first-order signature]\label{def:FO-signature}
     \lean{LO.FirstOrder.Language}
+    \leanok
     A first-order signature is a structure $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ such that:
     \begin{enumerate}
         \item $\mathcal{C}$ is a set of \textit{constant symbols},
@@ -36,6 +37,7 @@
 \begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:LPA}
     \uses{def:FO-language, FO-signature}
     \lean{LPA}
+    \leanok
     The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language corresponding to the signature $(\{0\},\{S,+,\cdot\},\{=\})$.
 \end{definition} 
 
