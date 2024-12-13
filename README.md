@@ -1,1 +1,0 @@
-# Formalizing Axiomatic Theories of Truth
