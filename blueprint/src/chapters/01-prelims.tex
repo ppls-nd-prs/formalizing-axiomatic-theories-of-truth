@@ -25,12 +25,10 @@
 \begin{definition}[first-order signature]\label{def:FO-signature}
     \lean{LO.FirstOrder.Language}
     \leanok
-    A first-order signature is a structure $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ such that:
+    A first-order language is a structure $\mathcal{S} = (\mathcal{F},\mathcal{R})$ such that:
     \begin{enumerate}
-        \item $\mathcal{C}$ is a set of \textit{constant symbols},
-        \item $\mathcal{F}$ is a set of \textit{function symbols},
-        \item $\mathcal{R}$ is a set of \textit{predicate symbols} and
-        \item $ar : \mathcal{F} \cup \mathcal{R} \to \mathbb{N}$ is a function that maps each function and predicate symbol to a natural number, it \textit{arity}.
+        \item $\mathcal{F}$ is of type \textit{$\mathbb{N} \to \mathcal{S}$} and
+        \item $\mathcal{R}$ is of type \textit{$\mathbb{N} \to \mathcal{S}$}.
     \end{enumerate}
 \end{definition}
 
@@ -38,7 +36,10 @@
     \uses{def:FO-language, FO-signature}
     \lean{LPA}
     \leanok
-    The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language corresponding to the signature $(\{0\},\{S,+,\cdot\},\{=\})$.
+    The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language $\mathcal{L}_{PA} = (\mathcal{F}, \mathcal{R})$, where
+    \begin{enumerate}
+        \item $\mathcal
+    \end{enumerate}
 \end{definition} 
 
 \begin{definition}[primitive term]\label{def:primitive-term}
