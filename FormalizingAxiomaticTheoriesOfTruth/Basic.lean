@@ -101,6 +101,8 @@ inductive var where
 
 variable (S : Signature)
 
+
+
 def get_terms : Signature → var → term
   | .Const => .Const
   | .Const => var
@@ -128,3 +130,7 @@ example : Inhabited (PA_Signature.Func → Nat) := Inhabited.mk PA_Signature.ArF
 -- #print Inhabited
 
 -- example : Inhabited Nat := Inhabited.mk 1
+#check Fin 10
+#check Fin.isLt
+
+def add_n_times (n : Nat) : ∀ i : Fin n, Nat → Nat → Nat := ∀ i ≤ n, Fin i + (Fin (i + 1))
