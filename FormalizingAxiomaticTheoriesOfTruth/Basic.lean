@@ -31,6 +31,9 @@ Inhabited.mk (Semiterm.fvar 1)
 example : Inhabited (SyntacticTerm LPA) :=
 Inhabited.mk (Semiterm.fvar 1)
 example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.fvar 2)
+example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1))
+example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.succ (fun _ : Fin 1 => Semiterm.func PA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)))
+example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.mult (fun _ : Fin 2 => Semiterm.fvar 1))
 
 -- Inhabited.mk (fun h₁ : LPA.Func 0 => (fun h₂ : Fin 0 → Semiterm LPA ℕ 0 => h₁)) PA_Func.zero
 
