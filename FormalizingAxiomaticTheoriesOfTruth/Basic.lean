@@ -5,6 +5,7 @@ import Foundation.FirstOrder.Arith.PeanoMinus
 open LO
 open FirstOrder
 open Language
+open Semiterm
 
 inductive PA_Func : ℕ → Type where
   | zero : PA_Func 0
@@ -34,6 +35,11 @@ example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.fvar 2)
 example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1))
 example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.succ (fun _ : Fin 1 => Semiterm.func PA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)))
 example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.mult (fun _ : Fin 2 => Semiterm.fvar 1))
+
+def fvar_term : Term LPA ℕ := Semiterm.fvar 0
+#eval freeVariables fvar_term
+def not_fvar_term : Semiterm LPA ℕ 1 := Semiterm.bvar 6
+#eval freeVariables not_fvar_term
 
 -- Inhabited.mk (fun h₁ : LPA.Func 0 => (fun h₂ : Fin 0 → Semiterm LPA ℕ 0 => h₁)) PA_Func.zero
 
