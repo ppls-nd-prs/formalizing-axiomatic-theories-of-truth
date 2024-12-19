@@ -21,4 +21,4 @@ meta if get_config? env = some "dev" then
 require «doc-gen4» from git
   "https://github.com/leanprover/doc-gen4" @ "main"
 
-require foundation from git "https://github.com/FormalizedFormalLogic/Foundation.git"
+require foundation from git "https://github.com/FormalizedFormalLogic/Foundation.git" @ "d5a5b566c4bbc8d91a509979ae5091e750e67059"
