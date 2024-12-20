@@ -24,6 +24,10 @@ variable (ξ : ℕ) (n : ℕ)
 
 #check (fun h : Nat => h + h) 2
 
+-- #check Semiterm.bvar
+
+-- def null : Term LPA ℕ := Semiterm.func PA_Func.zero (fun _ : h => Empty)
+
 example : Inhabited (Semiterm LPA ℕ 1) := Inhabited.mk (Semiterm.bvar 0)
 example : Inhabited (Semiterm LPA ℕ 1) :=
 Inhabited.mk (Semiterm.bvar 2)
