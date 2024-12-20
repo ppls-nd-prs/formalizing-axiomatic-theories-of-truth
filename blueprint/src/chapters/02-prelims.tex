@@ -1,8 +1,9 @@
 \chapter{Preliminaries}
+The ordinary definition of a first-order language $\mathcal{L}$ proceeds from the specification of a signature $\mathcal{S}$ and then an inductive definition of the way formulas can be build with elements from $\mathcal{S}$, the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature. For practical reasons (which?) that is the approach \cite{ffl} have used for the specification of a language.
 
-\begin{definition}[formal language] \label{def:formal-language}
-    Let $\Sigma$ be a set of symbols. Then a formal language $\mathcal{L}$ is a subset of $\Sigma^*$.
-\end{definition}
+% \begin{definition}[formal language] \label{def:formal-language}
+%     Let $\Sigma$ be a set of symbols. Then a formal language $\mathcal{L}$ is a subset of $\Sigma^*$.
+% \end{definition}
 
 % \begin{definition}[first-order logical vocabulary]\label{def:FO-logical-vocab}
 %     The \textit{first-order logical vocabulary}, is a structure $\mathcal{S} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P}, \top, \bot)$ where
@@ -18,36 +19,28 @@
 %     \end{enumerate}
 % \end{definition}
 
-\begin{definition}[variables]\label{def:FO-variables}
-    We define the set of variables for a first order language as the finite set $\mathcal{V} = \{x,y,z,...\}$.
-\end{definition}
+% \begin{definition}[variables]\label{def:FO-variables}
+%     We define the set of variables for a first order language as the finite set $\mathcal{V} = \{x,y,z,...\}$.
+% \end{definition}
 
-\begin{definition}[first-order signature]\label{def:FO-signature}
+\begin{definition}[first-order language]\label{def:FO-signature}
     \lean{LO.FirstOrder.Language}
     \leanok
-    A language is a structure $((F_i)_{i\in N}, (R_i)_{i\in N})$, where $F_i$ is a set (/type) of $i$-ary function symbols, etc.
-
-
-    A first-order language is a structure $\mathcal{S} = (\mathcal{F},\mathcal{R})$ such that:
-    \begin{enumerate}
-        \item $\mathcal{F}$ is of type \textit{$\mathbb{N} \to \mathcal{S}$} and
-        \item $\mathcal{R}$ is of type \textit{$\mathbb{N} \to \mathcal{S}$}.
-    \end{enumerate}
+    A language is a structure $((F_i)_{i\in N}, (R_i)_{i\in N})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
 \end{definition}
+
+By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language.
 
 \begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:LPA}
     \uses{def:FO-language, FO-signature}
     \lean{LPA}
     \leanok
-    $L_PA$ is defined by setting:
- 
-    $F_0 = {0}$
-    $F_1 = {S}$
-    $F_2 = {+,x}$
-    and $R_2 = { =}$
-    The language of Peano arithmetic $\mathcal{L}_{PA}$ is the first-order language $\mathcal{L}_{PA} = (\mathcal{F}, \mathcal{R})$, where
+    The language of peano arithmetic $\mathcal{L}_{PA}$ is defined by setting
     \begin{enumerate}
-        \item 
+        \item $F_0 = \{0\}$
+        \item $F_1 = \{S\}$
+        \item $F_2 = \{+,\times\}$ and
+        \item $R_2 = \{=\}$
     \end{enumerate}
 \end{definition} 
 
