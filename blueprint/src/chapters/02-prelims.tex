@@ -32,17 +32,31 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
 By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language.
 
 \begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:LPA}
-    \uses{def:FO-language, FO-signature}
+    \uses{def:FO-language}
     \lean{LPA}
     \leanok
     The language of peano arithmetic $\mathcal{L}_{PA}$ is defined by setting
     \begin{enumerate}
-        \item $F_0 = \{0\}$
-        \item $F_1 = \{S\}$
+        \item $F_0 = \{0\}$,
+        \item $F_1 = \{S\}$,
         \item $F_2 = \{+,\times\}$ and
-        \item $R_2 = \{=\}$
+        \item $R_2 = \{=\}$.
     \end{enumerate}
 \end{definition} 
+
+\begin{definition}[$\mathcal{L}_{T}$: the language of peano arithmetic including the truth predicate symbol]
+    \uses{def:FO-language}
+    \lean{LTr}
+    \leanok
+    The language of Peano arithmetic including the truth predicate symbol $T$ is defined by setting
+    \begin{enumerate}
+        \item $F_0 = \{0\}$,
+        \item $F_1 = \{S\}$,
+        \item $F_2 = \{\times, +\}$,
+        \item $R_1 = \{T\}$ and
+        \item $R_2 = \{=\}$.
+    \end{enumerate}
+\end{definition}
 
 \begin{definition}[primitive term]\label{def:primitive-term}
     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
