@@ -7,18 +7,31 @@ open FirstOrder
 open Language
 open Semiterm
 
-inductive PA_Func : ℕ → Type where
-  | zero : PA_Func 0
-  | succ : PA_Func 1
-  | add : PA_Func 2
-  | mult : PA_Func 2
+-- Definition of the language of arithmetic
+inductive LPA_Func : ℕ → Type where
+  | zero : LPA_Func 0
+  | succ : LPA_Func 1
+  | add : LPA_Func 2
+  | mult : LPA_Func 2
 
-inductive PA_Rel : ℕ → Type where
-  | eq : PA_Rel 2
+inductive LPA_Rel : ℕ → Type where
+  | eq : LPA_Rel 2
 
 def LPA : Language where
-  Func := PA_Func
-  Rel := PA_Rel
+  Func := LPA_Func
+  Rel := LPA_Rel
+
+-- Definition of the language of arithmetic including the truth
+-- predicate
+def LTr_Func := LPA_Func
+
+inductive LTr_Rel : ℕ → Type where
+  | eq : LTr_Rel 2
+  | tr : LTr_Rel 1
+
+def LTr : Language where
+  Func := LTr_Func
+  Rel := LTr_Rel
 
 variable (ξ : ℕ) (n : ℕ)
 
@@ -36,9 +49,9 @@ Inhabited.mk (Semiterm.fvar 1)
 example : Inhabited (SyntacticTerm LPA) :=
 Inhabited.mk (Semiterm.fvar 1)
 example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.fvar 2)
-example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1))
-example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.succ (fun _ : Fin 1 => Semiterm.func PA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)))
-example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func PA_Func.mult (fun _ : Fin 2 => Semiterm.fvar 1))
+example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1))
+example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func LPA_Func.succ (fun _ : Fin 1 => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)))
+example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func LPA_Func.mult (fun _ : Fin 2 => Semiterm.fvar 1))
 
 def fvar_term : Term LPA ℕ := Semiterm.fvar 0
 #eval freeVariables fvar_term
