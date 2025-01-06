@@ -23,10 +23,10 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
 %     We define the set of variables for a first order language as the finite set $\mathcal{V} = \{x,y,z,...\}$.
 % \end{definition}
 
-\begin{definition}[first-order language]\label{def:FO-signature}
+\begin{definition}[first-order language]\label{def:FO-language}
     \lean{LO.FirstOrder.Language}
     \leanok
-    A language is a structure $((F_i)_{i\in N}, (R_i)_{i\in N})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
+    A language is a structure $((F_i)_{i\in \mathbb{N}}, (R_i)_{i\in \mathbb{N}})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
 \end{definition}
 
 Note that this defines a language as consisting only of functions and relations, whereas traditionally a language also contains a set of constants. Observe, however, that constants can be modelled as $0$-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language.
@@ -37,10 +37,10 @@ Note that this defines a language as consisting only of functions and relations,
     \leanok
     The language of peano arithmetic $\mathcal{L}_{PA}$ is defined by setting
     \begin{enumerate}
-        \item $F_0 = \{$zero$\}$,
-        \item $F_1 = \{$succ$\}$,
-        \item $F_2 = \{$add$,$mult$\}$ and
-        \item $R_2 = \{$eq$\}$.
+        \item $F_0 = \{\texttt{zero}\}$,
+        \item $F_1 = \{\texttt{succ}\}$,
+        \item $F_2 = \{\texttt{add},\texttt{mult}\}$ and
+        \item $R_2 = \{\texttt{eq}\}$.
     \end{enumerate}
 \end{definition} 
 
@@ -50,13 +50,38 @@ Note that this defines a language as consisting only of functions and relations,
     \leanok
     The language of Peano arithmetic including the truth predicate symbol $T$ is defined by setting
     \begin{enumerate}
-        \item $F_0 = \{$zero$\}$,
-        \item $F_1 = \{$succ$\}$,
-        \item $F_2 = \{$add$, $mult$\}$,
-        \item $R_1 = \{$tr$\}$ and
-        \item $R_2 = \{$eq$\}$.
+        \item $F_0 = \{\texttt{zero}\}$,
+        \item $F_1 = \{\texttt{succ}\}$,
+        \item $F_2 = \{\texttt{add}, \texttt{mult}\}$,
+        \item $R_1 = \{\texttt{tr}\}$ and
+        \item $R_2 = \{\texttt{eq}\}$.
     \end{enumerate}
 \end{definition}
+
+We can then work our way up to the level of formulas constructed using our specified languages. First we then need the definition of a term. We make use of the definitions provided by \cite{ffl}. For higher possibility of abstraction they use the concept of a semi-term, from which a full syntactic term can be derived. What constitutes that set of semi-terms is dependent on the provided language, the set of free variables and the number of bound variables.
+
+\begin{definition}[semi-term]\label{def:semi-term}
+    \uses{def:FO-language}
+    \lean{LO.FirstOrder.semi-term}
+    \leanok
+    Let $\mathcal{L} = ((F_i)_{i \in \mathbb{N}},(R_i)_{i \in \mathbb{N}})$ be a first-order language, $\xi$ a set of free variables and $n$ a natural number. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
+    \begin{enumerate}
+        \item for every $i$ such that $0 \leq i \leq n$, there is a bound variable $x_i \in A_{\mathcal{L},\xi,n}$,
+        \item if $x \in \xi$, then $x \in A_{\mathcal{L},\xi,n}$ and
+        \item for all $i \in \mathbb{N}$, if $f \in F_i$ and $x_1,...,x_i \in A_{\mathcal{L},\xi,n}$, then $f(x_1,...,x_i) \in A_{\mathcal{L},\xi,n}$.
+    \end{enumerate}
+\end{definition}
+
+Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb{N}$, as we are using de Bruijn indexing to index our free variables, and $n = 0$, as syntactic terms do not contain bound variables.
+
+\begin{definition}[syntactic term]\label{def:syntacticterm}
+    \uses{def:FO-language,def:semi-term}
+    \lean{LO.FirstOrder.SyntacticTerm}
+    \leanok
+    Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $T_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
+\end{definition}
+
+\verb|___________________________________________________________|
 
 \begin{definition}[primitive term]\label{def:primitive-term}
     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
