@@ -35,7 +35,7 @@ Note that this defines a language as consisting only of functions and relations,
     \uses{def:FO-language}
     \lean{LPA}
     \leanok
-    The language of peano arithmetic $\mathcal{L}_{PA}$ is defined by setting
+    The language of peano arithmetic is the first-order language $\mathcal{L}_{PA} = ((F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}})$, where
     \begin{enumerate}
         \item $F_0 = \{\texttt{zero}\}$,
         \item $F_1 = \{\texttt{succ}\}$,
@@ -44,17 +44,17 @@ Note that this defines a language as consisting only of functions and relations,
     \end{enumerate}
 \end{definition} 
 
-\begin{definition}[$\mathcal{L}_{T}$: the language of peano arithmetic including the truth predicate symbol]
+\begin{definition}[$\mathcal{L}_{T}$: the language of peano arithmetic including the truth predicate symbol]\label{def:LTr}
     \uses{def:FO-language}
     \lean{LTr}
     \leanok
-    The language of Peano arithmetic including the truth predicate symbol $T$ is defined by setting
+    Let $\mathcal{L}_{PA} = (\{F_{PA,0}, F_{PA,1}, F_{PA,2}\} \cup (F_{PA,i})_{i \in \mathbb{N}}, \{R_{PA,1}, R_{PA,2}\} \cup (R_{PA,i})_{i \in \mathbb{N}})$ be the language of Peano arithmetic. Then, the language of Peano arithmetic including the truth predicate symbol $T$ is the first-order language $\mathcal{L}_T = ((F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}})$, where
     \begin{enumerate}
-        \item $F_0 = \{\texttt{zero}\}$,
-        \item $F_1 = \{\texttt{succ}\}$,
-        \item $F_2 = \{\texttt{add}, \texttt{mult}\}$,
-        \item $R_1 = \{\texttt{tr}\}$ and
-        \item $R_2 = \{\texttt{eq}\}$.
+        \item $F_0 = F_{PA,0}$,
+        \item $F_1 = F_{PA,1}$,
+        \item $F_2 = F_{PA,2}$,
+        \item $R_1 = \{\texttt{Tr}\}$ and
+        \item $R_2 = R_{PA,2}$.
     \end{enumerate}
 \end{definition}
 
@@ -75,7 +75,7 @@ We can then work our way up to the level of formulas constructed using our speci
 Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb{N}$, as we are using de Bruijn indexing to index our free variables, and $n = 0$, as syntactic terms do not contain bound variables.
 
 \begin{definition}[syntactic term]\label{def:syntacticterm}
-    \uses{def:FO-language,def:semi-term}
+    \uses{def:FO-language, def:semi-term}
     \lean{LO.FirstOrder.SyntacticTerm}
     \leanok
     Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $T_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
