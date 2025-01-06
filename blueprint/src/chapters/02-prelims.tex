@@ -83,12 +83,12 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
 
 \verb|___________________________________________________________|
 
-\begin{definition}[primitive term]\label{def:primitive-term}
+\begin{definition}[primitive term]%\label{def:primitive-term}
     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
 \end{definition}
 
-\begin{definition}[first-order term]\label{def:FO-term}
-    \uses{def:FO-logical-vocab, def:FO-signature}
+\begin{definition}[first-order term]%\label{def:FO-term}
+    %\uses{def:FO-logical-vocab, def:FO-signature}
     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first-order signature. Then, the set $\mathcal{T}_{\mathcal{S}}$ of \textit{terms} corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
     \begin{enumerate}
         \item $\mathcal{P}_{\mathcal{S}} \subseteq X$ and
@@ -96,8 +96,8 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[first-order language]\label{def:FO-language}
-    \uses{def:FO-logical-vocab, def:FO-signature, def:FO-term}
+\begin{definition}[first-order language]%\label{def:FO-language}
+    %\uses{def:FO-logical-vocab, def:FO-signature, def:FO-term}
     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first-order signature. Then the first order language $\mathcal{L}_{\mathcal{S}}$ is recursively defined as the smallest set $X$ such that:
     \begin{enumerate}
         \item \begin{enumerate}
@@ -113,7 +113,7 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[term's primitive term set]\label{def:terms-pt-set}
+\begin{definition}[term's primitive term set]%\label{def:terms-pt-set}
     Let $\mathcal{S}$ be a first order signature. Then we define the function $tpts_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \to \mathcal{P}(\mathcal{P}_{\mathcal{S}})$ mapping terms to the set of primitive terms they contain as
     \begin{enumerate}
         \item $tpts_{\mathcal{S}}(s) = \{s\}$ if $s \in \mathcal{P}_{\mathcal{S}}$ and
@@ -121,7 +121,7 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[formula's primitive term set]\label{FO-term-set}
+\begin{definition}[formula's primitive term set]%\label{FO-term-set}
     Let $\mathcal{S}$ be a first order signature. We then define the primitive term set function $pts_{\mathcal{S}} : \mathcal{L}_{\mathcal{S}} \to \mathcal{P}_{\mathcal{S}}$ as 
     \begin{enumerate}
         \item \begin{enumerate}
@@ -136,8 +136,8 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[substitution function over terms]\label{def:sub-term}
-    \uses{def:FO-signature, def:FO-term}
+\begin{definition}[substitution function over terms]%\label{def:sub-term}
+    %\uses{def:FO-signature, def:FO-term}
     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first order signature. Then, we define the substitution function over terms $subt_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{T}_{\mathcal{S}} \to \mathcal{T}_{\mathcal{S}}$ recursively such that
     \begin{enumerate}
         \item if $s \in \mathcal{P}_{\mathcal{S}}$, then $subt_{\mathcal{S}}(s,x,t) = \begin{cases}
@@ -150,8 +150,8 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
 
 % TODO: Proceed here with removing explicit references to the logical vocabulary and indexing the functions on signatures.
 
-\begin{definition}[substitution function over formulas]\label{def:sub-f}
-    \uses{def:FO-signature, def:FO-term, def:FO-language, def:sub-term}
+\begin{definition}[substitution function over formulas]%\label{def:sub-f}
+    %\uses{def:FO-signature, def:FO-term, def:FO-language, def:sub-term}
     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first order signature. Then, we define the substitution function over $\mathcal{L}_{\mathcal{S}}$ as $subf_{\mathcal{S}} : \mathcal{L}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{L}_{\mathcal{S}} \to \mathcal{L}_{\mathcal{S}}$ such that
     \begin{enumerate}
         \item \begin{enumerate} 
@@ -170,13 +170,13 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[inference rule]\label{def:inf-rule}
-    \uses{def:formal-language}
+\begin{definition}[inference rule]%\label{def:inf-rule}
+    %\uses{def:formal-language}
     Let $\mathcal{L}$ be a formal language. Then an inference rule defined over $\mathcal{L}$ is a function $r : \mathcal{L}^n \to \mathcal{L}$, where $n \in \mathbb{N}$.
 \end{definition}
 
-\begin{definition}[formal system]\label{def:formal-system}
-    \uses{def:formal-language, def:inf-rule}
+\begin{definition}[formal system]%\label{def:formal-system}
+    %\uses{def:formal-language, def:inf-rule}
     A formal system $\mathcal{S}$ is a structure $\mathcal{S} = (\mathcal{L}, \mathcal{A}, \mathcal{R})$, where 
     \begin{enumerate}
         \item $\mathcal{L}$ is a formal language,
@@ -185,13 +185,13 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[sequent set]\label{def:sequent-set}
-    \uses{def:formal-language}
+\begin{definition}[sequent set]%\label{def:sequent-set}
+    %\uses{def:formal-language}
     Let $\mathcal{L}$ be a formal language. Then the set of sequents for that language $\mathcal{S} = \mathcal{P}(\mathcal{L}) \times \mathcal{P}(\mathcal{L})$.
 \end{definition}
 
-\begin{definition}[sequent calculus inference rules]\label{def:Rsc}
-    \uses{def:formal-language, def:sequent-set}
+\begin{definition}[sequent calculus inference rules]%\label{def:Rsc}
+    %\uses{def:formal-language, def:sequent-set}
     Let $\mathcal{L}$ be a formal language and $\mathcal{S}$ the sequent set for $\mathcal{L}$. Then the set of inference rules of sequent calculus is the set $\mathcal{R}_{sc}$ containing the functions
     \begin{enumerate}
         \item $r_{ax} : \mathcal{S} \to \mathcal{S}$ defined by $r_{ax}((\emptyset,\emptyset)) = (\{\phi\},\{\phi\})$,
@@ -206,8 +206,8 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[natural deduction inference rules]\label{def:Rnd}
-    \uses{def:FO-language}
+\begin{definition}[natural deduction inference rules]%\label{def:Rnd}
+    %\uses{def:FO-language}
     Let $\mathcal{L}$ be a first order language. Then, the set of inference rules of natural deduction is the set $\mathcal{R}_{nd}$ containing the functions 
     \begin{enumerate}
         \item $r_{\land I} : \mathcal{L}^2 \to \mathcal{L}$ defined by $r_{\land I}(\phi,\psi) = \phi \land \psi$,
@@ -225,8 +225,8 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[\texttt{PA}: the formal system of Peano arithmetic]\label{def:PA}
-    \uses{def:LPA, def:formal-system, def:Rnd}
+\begin{definition}[\texttt{PA}: the formal system of Peano arithmetic]%\label{def:PA}
+    %\uses{def:LPA, def:formal-system, def:Rnd}
     The formal system of Peano arithmetic \texttt{PA} is defined as $\texttt{PA} = (\mathcal{L}_{PA},\mathcal{A},\mathcal{R}_{nd})$, where $\mathcal{A}$ is the smallest set $X$ such that
     \begin{enumerate}
         \item $\forall x (0 \not = S(x)) \in \mathcal{A}$, 
@@ -239,23 +239,23 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[formal proof]\label{def:formal-proof}
+\begin{definition}[formal proof]%\label{def:formal-proof}
     A formal proof in a logical system $\mathcal{S}$ is a finite sequence of sentences, where each sentence is an axiom of $\mathcal{S}$, an assumption, or follows from the application of one of $\mathcal{S}$'s rules of inference to previous sentences in the sequence (Wikipedia: Formal proof).
 \end{definition}
 
 \begin{definition}[provability]
-    \label{def:provable-pa}
-    \uses{def:formal-proof, def:PA}
+    %\label{def:provable-pa}
+    %\uses{def:formal-proof, def:PA}
     A formula $\varphi$ is provable in a proof system $\mathcal{S}$ if and only if there exists a formal proof $\mathcal{P}$ in $\mathcal{S}$, such that $\mathcal{P}$ contains no assumptions and $\varphi$ is the last sentence of $\mathcal{P}$.
 \end{definition}
 
 \begin{definition}[$\mathcal{L}_T$]
-    \label{def:LT}
+    %\label{def:LT}
     We define the language $\mathcal{L}_T$ as the language resulting from adding the predicate symbol $T$ to the language $\mathcal{L}$ of \texttt{PA}. 
 \end{definition}
 
 \begin{definition}[\texttt{PAT}]
-    \label{def:PAT}
-    \uses{def:LT}
+    %\label{def:PAT}
+    %\uses{def:LT}
     We define the system \texttt{PAT} as the system of Peano arithmetic formulated in $\mathcal{L}_T$ including the induction schema for each formula of the language $\mathcal{L}_T$.
 \end{definition}
