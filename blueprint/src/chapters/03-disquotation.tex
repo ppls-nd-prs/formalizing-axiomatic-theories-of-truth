@@ -1,35 +1,35 @@
 \chapter{Disquotation}
 
 \begin{definition}[\texttt{TB}]
-    \label{def:TB}
-    \uses{def:PAT}
+    %\label{def:TB}
+    %\uses{def:PAT}
     The system \texttt{TB} comprises all axioms of \texttt{PAT}. Moreover all sentences of the form $T\ulcorner\varphi\urcorner \leftrightarrow \varphi$ are axioms of the system where $\varphi$ is a sentence of the language of $\mathcal{L}$ and $\ulcorner \varphi \urcorner$ is the numeral of $\varphi$'s Gödel code.
 \end{definition}
 
 \begin{definition}[conservativity]
-    \label{def:cons}
-    \uses{def:LT}
+    %\label{def:cons}
+    %\uses{def:LT}
     A truth system $...$ [\textcolor{red}{how do you get this symbol?}] in the language $\mathcal{L}_T$ is conservative over a system $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all sentences $s \in \mathcal{L}$ provable by $...$ are also provable by $\mathcal{S}$.
 \end{definition}
 
 \begin{lemma}[finite axioms in TB]
-    \label{lem:finit-ax-tb}
-    \uses{def:TB}
+    %\label{lem:finit-ax-tb}
+    %\uses{def:TB}
     In a proof in \texttt{TB} only finitely many axioms can occur.
 \end{lemma}
 
 \begin{proof}
-    \uses{def:formal-proof, def:TB} 
+    %\uses{def:formal-proof, def:TB} 
     Let $p$ be a proof in \texttt{TB}. Then, by Definition \ref{def:formal-proof}, $p$ is a finite sequence of sentences each of which is an axiom of \texttt{TB} or follows from the preceding sentences according to first-order rules of inference. The amount of axioms the proof contains is less or equal to the total number of sentences. Hence, the number of axioms in the proof should also be finite. 
 \end{proof}
 
 \begin{theorem}
-    \label{thm:tb-cons}
+    %\label{thm:tb-cons}
     % \lean{[the right reference]}
     \texttt{TB} is conservative over \texttt{PA}.
 \end{theorem}
 
-\begin{proof} \uses{def:cons, def:TB} 
+\begin{proof} %\uses{def:cons, def:TB} 
 %We show how to transform any given \texttt{TB}-proof of a formula in $\mathcal{L}$ into a \texttt{PA}-proof of the same formula. 
 Let $\psi$ be a formula in $\mathcal{L}$ that is provable in TB by a proof $p$. Then, by Lemma \ref{lem:finit-ax-tb}, we have that $p$ contains finitely many sentences as axioms. Let $n$ be the number of disquotation sentences occurring as axioms in the proof. Then, every axiom $p$ is either (i) an axiom of \texttt{PA}, or (ii) an instance of the induction schema, or (iii) for some $i \leq n$, a sentence of the form: 
 \begin{align*}
