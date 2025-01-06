@@ -26,7 +26,13 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
 \begin{definition}[first-order language]\label{def:FO-language}
     \lean{LO.FirstOrder.Language}
     \leanok
-    A language is a structure $((F_i)_{i\in \mathbb{N}}, (R_i)_{i\in \mathbb{N}})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
+    Let $A$ be a set of function symbols and $B$ a set of predicate symbols. Then, a first-order language is a structure $\langle F, R \rangle$, where 
+        \begin{enumerate}
+            \item $F : \mathbb{N} \to A$ and
+            \item $R : \mathbb{N} \to B$.
+        \end{enumerate}
+
+    % A language is a structure $((F_i)_{i\in \mathbb{N}}, (R_i)_{i\in \mathbb{N}})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
 \end{definition}
 
 Note that this defines a language as consisting only of functions and relations, whereas traditionally a language also contains a set of constants. Observe, however, that constants can be modelled as $0$-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language.
@@ -35,12 +41,15 @@ Note that this defines a language as consisting only of functions and relations,
     \uses{def:FO-language}
     \lean{LPA}
     \leanok
-    The language of peano arithmetic is the first-order language $\mathcal{L}_{PA} = ((F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}})$, where
+    The language of peano arithmetic is the first-order language $\mathcal{L}_{PA} = \langle F, R \rangle$, where
     \begin{enumerate}
-        \item $F_0 = \{\texttt{zero}\}$,
-        \item $F_1 = \{\texttt{succ}\}$,
-        \item $F_2 = \{\texttt{add},\texttt{mult}\}$ and
-        \item $R_2 = \{\texttt{eq}\}$.
+        \item $F$ is defined by
+        \begin{enumerate}
+            \item $F(0) = \{\texttt{zero}\}$,
+            \item $F(1) = \{\texttt{succ}\}$ and
+            \item $F(2) = \{\texttt{add},\texttt{mult}\}$ and    
+        \end{enumerate}
+        \item $R$ is defined by $R(2) = \{\texttt{eq}\}$.
     \end{enumerate}
 \end{definition} 
 
@@ -48,13 +57,19 @@ Note that this defines a language as consisting only of functions and relations,
     \uses{def:FO-language, def:LPA}
     \lean{LTr}
     \leanok
-    Let $\mathcal{L}_{PA} = (\{F_{PA,0}, F_{PA,1}, F_{PA,2}\} \cup (F_{PA,i})_{i \in \mathbb{N}}, \{R_{PA,1}, R_{PA,2}\} \cup (R_{PA,i})_{i \in \mathbb{N}})$ be the language of Peano arithmetic. Then, the language of Peano arithmetic including the truth predicate symbol $T$ is the first-order language $\mathcal{L}_T = ((F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}})$, where
+    Let $\mathcal{L}_{PA} = \langle F_{PA},R_{PA}\rangle$ be the language of Peano arithmetic. Then, the language of Peano arithmetic including the truth predicate symbol $T$ is the first-order language $\mathcal{L}_T = \langle F, R \rangle$, where
     \begin{enumerate}
-        \item $F_0 = F_{PA,0}$,
-        \item $F_1 = F_{PA,1}$,
-        \item $F_2 = F_{PA,2}$,
-        \item $R_1 = \{\texttt{Tr}\}$ and
-        \item $R_2 = R_{PA,2}$.
+        \item $F = F_{PA}$ and
+        \item $R$ is defined by
+        \begin{enumerate}
+            \item $R(1) = \{\texttt{Tr}\}$ and
+            \item $R(2) = R_{PA}(2)$.
+        \end{enumerate}
+        % \item $F(0) = F_{PA}(0)$,
+        % \item $F_1 = F_{PA,1}$,
+        % \item $F_2 = F_{PA,2}$,
+        % \item $R_1 = \{\texttt{Tr}\}$ and
+        % \item $R_2 = R_{PA,2}$.
     \end{enumerate}
 \end{definition}
 
