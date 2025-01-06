@@ -29,7 +29,7 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
     A language is a structure $((F_i)_{i\in N}, (R_i)_{i\in N})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
 \end{definition}
 
-By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language.
+Note that this defines a language as consisting only of functions and relations, whereas traditionally a language also contains a set of constants. Observe, however, that constants can be modelled as $0$-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language.
 
 \begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:LPA}
     \uses{def:FO-language}
@@ -37,10 +37,10 @@ By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ w
     \leanok
     The language of peano arithmetic $\mathcal{L}_{PA}$ is defined by setting
     \begin{enumerate}
-        \item $F_0 = \{0\}$,
-        \item $F_1 = \{S\}$,
-        \item $F_2 = \{+,\times\}$ and
-        \item $R_2 = \{=\}$.
+        \item $F_0 = \{$zero$\}$,
+        \item $F_1 = \{$succ$\}$,
+        \item $F_2 = \{$add$,$mult$\}$ and
+        \item $R_2 = \{$eq$\}$.
     \end{enumerate}
 \end{definition} 
 
@@ -50,11 +50,11 @@ By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ w
     \leanok
     The language of Peano arithmetic including the truth predicate symbol $T$ is defined by setting
     \begin{enumerate}
-        \item $F_0 = \{0\}$,
-        \item $F_1 = \{S\}$,
-        \item $F_2 = \{\times, +\}$,
-        \item $R_1 = \{T\}$ and
-        \item $R_2 = \{=\}$.
+        \item $F_0 = \{$zero$\}$,
+        \item $F_1 = \{$succ$\}$,
+        \item $F_2 = \{$add$, $mult$\}$,
+        \item $R_1 = \{$tr$\}$ and
+        \item $R_2 = \{$eq$\}$.
     \end{enumerate}
 \end{definition}
 
