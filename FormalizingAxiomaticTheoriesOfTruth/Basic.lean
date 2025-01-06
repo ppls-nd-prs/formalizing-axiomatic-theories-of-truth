@@ -33,13 +33,15 @@ def LTr : Language where
   Func := LTr_Func
   Rel := LTr_Rel
 
-variable (ξ : ℕ) (n : ℕ)
+-- GOAL: Something of type Semiterm LPA ℕ 0
+universe u
 
-#check (fun h : Nat => h + h) 2
+def null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
 
--- #check Semiterm.bvar
+-- def null : SyntacticTerm LPA := Semiterm.fvar ℕ
 
--- def null : Term LPA ℕ := Semiterm.func PA_Func.zero (fun _ : h => Empty)
+
+-- Semiterm.func LPA_Func.zero (fun h : a => Empty)
 
 example : Inhabited (Semiterm LPA ℕ 1) := Inhabited.mk (Semiterm.bvar 0)
 example : Inhabited (Semiterm LPA ℕ 1) :=
