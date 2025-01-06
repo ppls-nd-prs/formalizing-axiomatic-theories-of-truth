@@ -36,15 +36,15 @@ def LTr : Language where
 universe u
 
 -- Definition of useful LPA terms
-def null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+def PA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
 
-def numeral : ℕ → SyntacticTerm LPA
+def PA_numeral : ℕ → SyntacticTerm LPA
   | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
-  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => numeral n)
+  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => PA_numeral n)
 
 -- SCRATCH WORK FROM HERE ON OUT
 
-def one : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => null)
+def one : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => PA_null)
 def two : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => one)
 
 
