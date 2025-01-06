@@ -79,11 +79,11 @@ We can then work our way up to the level of formulas constructed using our speci
     \uses{def:FO-language}
     \lean{LO.FirstOrder.Semiterm}
     \leanok
-    Let $\mathcal{L} = ((F_i)_{i \in \mathbb{N}},(R_i)_{i \in \mathbb{N}})$ be a first-order language, $\xi$ a set of free variables and $n$ a natural number. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
+    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set of free variables and $n$ a natural number. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
     \begin{enumerate}
         \item for every $i$ such that $0 \leq i \leq n$, there is a bound variable $x_i \in A_{\mathcal{L},\xi,n}$,
         \item if $x \in \xi$, then $x \in A_{\mathcal{L},\xi,n}$ and
-        \item for all $i \in \mathbb{N}$, if $f \in F_i$ and $x_1,...,x_i \in A_{\mathcal{L},\xi,n}$, then $f(x_1,...,x_i) \in A_{\mathcal{L},\xi,n}$.
+        \item for all $i \in \mathbb{N}$, if $f \in F(i)$ and $x_1,...,x_i \in A_{\mathcal{L},\xi,n}$, then $f(x_1,...,x_i) \in A_{\mathcal{L},\xi,n}$.
     \end{enumerate}
 \end{definition}
 
