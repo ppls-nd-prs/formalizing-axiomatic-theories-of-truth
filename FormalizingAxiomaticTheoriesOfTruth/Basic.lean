@@ -40,8 +40,7 @@ def null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Se
 
 def numeral : ℕ → SyntacticTerm LPA
   | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
-  | .succ n => numeral n
-
+  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => numeral n)
 
 -- SCRATCH WORK FROM HERE ON OUT
 
