@@ -23,7 +23,7 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
 %     We define the set of variables for a first order language as the finite set $\mathcal{V} = \{x,y,z,...\}$.
 % \end{definition}
 
-\begin{definition}[first-order language]\label{def:FO-language}
+\begin{definition}[first-order language]\label{def:fol}
     \lean{LO.FirstOrder.Language}
     \leanok
     Let $A$ be a set of function symbols and $B$ a set of predicate symbols. Then, a first-order language is a structure $\langle F, R \rangle$, where 
@@ -37,8 +37,8 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
 
 Note that this defines a language as consisting only of functions and relations, whereas traditionally a language also contains a set of constants. Observe, however, that constants can be modelled as $0$-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language.
 
-\begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:LPA}
-    \uses{def:FO-language}
+\begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:lpa}
+    \uses{def:fol}
     \lean{LPA}
     \leanok
     The language of peano arithmetic is the first-order language $\mathcal{L}_{PA} = \langle F, R \rangle$, where
@@ -53,8 +53,8 @@ Note that this defines a language as consisting only of functions and relations,
     \end{enumerate}
 \end{definition} 
 
-\begin{definition}[$\mathcal{L}_{T}$: the language of peano arithmetic including the truth predicate symbol]\label{def:LTr}
-    \uses{def:FO-language, def:LPA}
+\begin{definition}[$\mathcal{L}_{T}$: the language of peano arithmetic including the truth predicate symbol]\label{def:lt}
+    \uses{def:fol, def:lpa}
     \lean{LTr}
     \leanok
     Let $\mathcal{L}_{PA} = \langle F_{PA},R_{PA}\rangle$ be the language of Peano arithmetic. Then, the language of Peano arithmetic including the truth predicate symbol $T$ is the first-order language $\mathcal{L}_T = \langle F, R \rangle$, where
@@ -76,7 +76,7 @@ Note that this defines a language as consisting only of functions and relations,
 We can then work our way up to the level of formulas constructed using our specified languages. First we then need the definition of a term. We make use of the definitions provided by \cite{ffl}. For higher possibility of abstraction they use the concept of a semi-term, from which a full syntactic term can be derived. What constitutes that set of semi-terms is dependent on the provided language, the set of free variables and the number of bound variables.
 
 \begin{definition}[semi-term]\label{def:semi-term}
-    \uses{def:FO-language}
+    \uses{def:fol}
     \lean{LO.FirstOrder.Semiterm}
     \leanok
     Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set of free variables and $n$ a natural number. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
@@ -89,8 +89,8 @@ We can then work our way up to the level of formulas constructed using our speci
 
 Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb{N}$, as we are using de Bruijn indexing to index our free variables, and $n = 0$, as syntactic terms do not contain bound variables.
 
-\begin{definition}[syntactic term]\label{def:syntacticterm}
-    \uses{def:FO-language, def:semi-term}
+\begin{definition}[syntactic term]\label{def:syntactic-term}
+    \uses{def:fol, def:semi-term}
     \lean{LO.FirstOrder.SyntacticTerm}
     \leanok
     Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $T_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
