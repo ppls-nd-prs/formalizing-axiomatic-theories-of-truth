@@ -75,7 +75,7 @@ Note that this defines a language as consisting only of functions and relations,
 
 We can then work our way up to the level of formulas constructed using our specified languages. First we then need the definition of a term. We make use of the definitions provided by \cite{ffl}. For higher possibility of abstraction they use the concept of a semi-term, from which a full syntactic term can be derived. What constitutes that set of semi-terms is dependent on the provided language, the set of free variables and the number of bound variables.
 
-\begin{definition}[semi-term]\label{def:semi-term}
+\begin{definition}[semi-term]\label{def:sem-t}
     \uses{def:fol}
     \lean{LO.FirstOrder.Semiterm}
     \leanok
@@ -89,8 +89,8 @@ We can then work our way up to the level of formulas constructed using our speci
 
 Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb{N}$, as we are using de Bruijn indexing to index our free variables, and $n = 0$, as syntactic terms do not contain bound variables.
 
-\begin{definition}[syntactic term]\label{def:syntactic-term}
-    \uses{def:fol, def:semi-term}
+\begin{definition}[syntactic term]\label{def:syn-t}
+    \uses{def:fol, def:sem-t}
     \lean{LO.FirstOrder.SyntacticTerm}
     \leanok
     Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $\mathcal{T}_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
@@ -98,8 +98,8 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
 
 Using the concept of semi-terms we then define semi-formulas, from we can derive, by a process comparable to above, the notion of a full syntactic formula.
 
-\begin{definition}[semi-formula]\label{def:sf}
-    \uses{def:fol,def:semi-term}
+\begin{definition}[semi-formula]\label{def:sem-f}
+    \uses{def:fol,def:sem-t}
     \lean{LO.FirstOrder.Semiformula}
     \leanok
     Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set of free variables, $n$ a natural number and $A_{\mathcal{L},\xi,n}$ the associated set of semi-terms. Then, the set of semi-formulas $B_{\mathcal{L},\xi,n}$ is the smallest set such that 
@@ -115,8 +115,8 @@ Using the concept of semi-terms we then define semi-formulas, from we can derive
     \end{enumerate}
 \end{definition}
 
-\begin{definition}
-    \uses{def:fol,def:semi-formula}
+\begin{definition}[syntactic formula]\label{def:syn-f}
+    \uses{def:fol,def:sem-f}
     \lean{LO.FirstOrder.SyntacticFormula}
     \leanok
     Let $\mathcal{L}$ be a language. Then the set of syntactic formulas $W_{\mathcal{L}}$ associated with this language is the set of semi-formulas $B_{\mathcal{L},\mathbb{N},0}$.
