@@ -33,8 +33,6 @@ def LTr : Language where
   Func := LTr_Func
   Rel := LTr_Rel
 
-universe u
-
 -- Definition of useful LPA terms
 def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
 
@@ -54,9 +52,12 @@ def two : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => one
 
 open Semiformula
 def PA_f1 : SyntacticFormula LPA := Semiformula.verum
-def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => LPA_null)
+def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun h : Fin 2 => ![LPA_numeral 2,LPA_numeral 4] h) --!
 def PA_f3 : SyntacticFormula LPA := Semiformula.and PA_eq_null PA_eq_null
 def PA_f4 : SyntacticFormula LPA := Semiformula.or PA_eq_null PA_eq_null
+
+#eval (fun h : Fin 3 => if h = 0 then 2 else 4) -- ![2,4,4] then the index resulting from a modulo on the argument ∈ ℕ is returned
+#eval (fun h : Fin 3 => if h = 0 then 2 else 4) 20 -- 4, as 20 % 3 = 2 and 4 is at index 2 (0-based indexing)
 
 def PA_fvt0 : Semiterm LPA ℕ 1 := Semiterm.fvar 0
 def PA_semf1 : Semiformula LPA ℕ 1 := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => PA_fvt0)
