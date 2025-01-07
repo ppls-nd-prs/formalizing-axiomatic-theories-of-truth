@@ -36,16 +36,31 @@ def LTr : Language where
 universe u
 
 -- Definition of useful LPA terms
-def PA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
 
-def PA_numeral : ℕ → SyntacticTerm LPA
+def LPA_numeral : ℕ → SyntacticTerm LPA
   | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
-  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => PA_numeral n)
+  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LPA_numeral n)
+
+def LTr_null : SyntacticTerm LTr := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+def LTr_numeral : ℕ → SyntacticTerm LTr
+  | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LTr_numeral n)
 
 -- SCRATCH WORK FROM HERE ON OUT
 
-def one : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => PA_null)
+def one : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LPA_null)
 def two : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => one)
+
+open Semiformula
+def PA_f1 : SyntacticFormula LPA := Semiformula.verum
+def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => LPA_null)
+def PA_f3 : SyntacticFormula LPA := Semiformula.and PA_eq_null PA_eq_null
+def PA_f4 : SyntacticFormula LPA := Semiformula.or PA_eq_null PA_eq_null
+
+def PA_fvt0 : Semiterm LPA ℕ 1 := Semiterm.fvar 0
+def PA_semf1 : Semiformula LPA ℕ 1 := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => PA_fvt0)
+def PA_f5 : SyntacticFormula LPA := Semiformula.all PA_semf1
 
 
 -- Semiterm.func LPA_Func.zero (fun h : a => Empty)
