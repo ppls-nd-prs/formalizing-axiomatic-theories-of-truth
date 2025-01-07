@@ -52,6 +52,7 @@ def two : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => one
 
 open Semiformula
 def PA_f1 : SyntacticFormula LPA := Semiformula.verum
+def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => LPA_null)
 def PA_eq_num_2_num_4 : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun h : Fin 2 => ![LPA_numeral 2,LPA_numeral 4] h) --!
 def PA_f3 : SyntacticFormula LPA := Semiformula.and PA_eq_num_2_num_4 PA_eq_num_2_num_4
 def PA_f4 : SyntacticFormula LPA := Semiformula.or PA_eq_num_2_num_4 PA_eq_num_2_num_4
