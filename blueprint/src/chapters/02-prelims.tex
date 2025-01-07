@@ -93,7 +93,33 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     \uses{def:fol, def:semi-term}
     \lean{LO.FirstOrder.SyntacticTerm}
     \leanok
-    Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $T_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
+    Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $\mathcal{T}_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
+\end{definition}
+
+Using the concept of semi-terms we then define semi-formulas, from we can derive, by a process comparable to above, the notion of a full syntactic formula.
+
+\begin{definition}[semi-formula]\label{def:sf}
+    \uses{def:fol,def:semi-term}
+    \lean{LO.FirstOrder.Semiformula}
+    \leanok
+    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set of free variables, $n$ a natural number and $A_{\mathcal{L},\xi,n}$ the associated set of semi-terms. Then, the set of semi-formulas $B_{\mathcal{L},\xi,n}$ is the smallest set such that 
+    \begin{enumerate}
+        \item $\texttt{verum} \in B_{\mathcal{L},\xi,n}$,
+        \item $\texttt{falsum} \in B_{\mathcal{L},\xi,n}$,
+        \item for all $i \in \mathbb{N}$, if $P \in R(i)$ and $a_1,...,a_i \in A_{\mathcal{L},\xi,n}$, then $P(a_1,...,a_i) \in B_{\mathcal{L},\xi,n}$,
+        \item for all $i \in \mathbb{N}$, if $P \in R(i)$ and $a_1,...,a_i \in A_{\mathcal{L},\xi,n}$, then $\neg P(a_1,...,a_i) \in B_{\mathcal{L},\xi,n}$,
+        \item if $\varphi_1,\varphi_2 \in B_{\mathcal{L},\xi,n}$, then $\texttt{and}(\varphi_1,\varphi_2) \in B_{\mathcal{L},\xi,n}$,
+        \item if $\varphi_1,\varphi_2 \in B_{\mathcal{L},\xi,n}$, then $\texttt{or}(\varphi_1,\varphi_2) \in B_{\mathcal{L},\xi,n}$,
+        \item if $\varphi_1 \in B_{\mathcal{L},\xi,n+1}$, then $\texttt{all}(\varphi_1) \in B_{\mathcal{L},\xi,n}$ and
+        \item if $\varphi_1 \in B_{\mathcal{L},\xi,n+1}$, then $\texttt{ex}(\varphi_1) \in B_{\mathcal{L},\xi,n}$.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}
+    \uses{def:fol,def:semi-formula}
+    \lean{LO.FirstOrder.SyntacticFormula}
+    \leanok
+    Let $\mathcal{L}$ be a language. Then the set of syntactic formulas $W_{\mathcal{L}}$ associated with this language is the set of semi-formulas $B_{\mathcal{L},\mathbb{N},0}$.
 \end{definition}
 
 % \begin{definition}[primitive term]%\label{def:primitive-term}
