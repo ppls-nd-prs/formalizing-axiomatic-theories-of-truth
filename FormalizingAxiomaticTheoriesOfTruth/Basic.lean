@@ -49,14 +49,15 @@ section
   -- Printing terms
 
   open ToString
-  def PA_t1 : SyntacticTerm LPA := Semiterm.func LPA_Func.add ![LPA_numeral 2, LPA_numeral 3]
-  def funToStr {n}: LPA_Func n → String
+  def LTr_t1 : SyntacticTerm LTr := Semiterm.func LPA_Func.mult ![LTr_numeral 2, LTr_numeral 3]
+  def LPA_funToStr {n}: LPA_Func n → String
     | .zero => "0"
     | .succ => "S"
     | .add => "+"
     | .mult => "×"
-  instance : ToString (LPA_Func n) := ⟨funToStr⟩
-  #eval PA_t1
+  def LTr_funToStr {n} : LPA_Func n → String := LPA_funToStr
+  instance : ToString (LPA_Func n) := ⟨LPA_funToStr⟩
+  #eval LTr_t1
 end
 
 section
@@ -70,55 +71,32 @@ section
   def PA_f3 : SyntacticFormula LPA := Semiformula.and PA_eq_num_2_num_4 PA_eq_num_2_num_4
   def PA_f4 : SyntacticFormula LPA := Semiformula.or PA_eq_num_2_num_4 PA_eq_num_2_num_4
 
-  def relToStr {n}: LPA_Rel n → String
+  def LPA_relToStr {n} : LPA_Rel n → String
   | .eq => "="
-  instance : ToString (LPA_Rel n) := ⟨relToStr⟩
+  def LTr_relToStr {n} : LTr_Rel n → String
+  | .eq => "="
+  | .tr => "T"
+  instance : ToString (LPA_Rel n) := ⟨LPA_relToStr⟩
+  instance : ToString (LTr_Rel n) := ⟨LTr_relToStr⟩
   def PA_f1 : SyntacticFormula LPA := Semiformula.verum
+  def LTr_f1 : SyntacticFormula LTr := Semiformula.rel LTr_Rel.tr ![LTr_numeral 2]
   #eval PA_eq_null
+  #eval PA_eq_num_2_num_4
+  #eval PA_f3
+  #eval PA_f4
+  #eval LTr_f1
+end
 
 
 -- SCRATCH WORK FROM HERE ON OUT
-
 def one : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LPA_null)
 def two : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => one)
-
-open Semiformula
-
-
-#eval LPA_Func.zero
-
-
---instance : Repr (Semiformula L ξ n) := ⟨fun t _ => toStr t⟩
-
-
 #eval LPA_Rel.eq
-
 #eval (fun h : Fin 3 => if h = 0 then 2 else 4) -- ![2,4,4] then the index resulting from a modulo on the argument ∈ ℕ is returned
 #eval (fun h : Fin 3 => if h = 0 then 2 else 4) 20 -- 4, as 20 % 3 = 2 and 4 is at index 2 (0-based indexing)
-
 def PA_fvt0 : Semiterm LPA ℕ 1 := Semiterm.fvar 0
 def PA_semf1 : Semiformula LPA ℕ 1 := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => PA_fvt0)
 def PA_f5 : SyntacticFormula LPA := Semiformula.all PA_semf1
-
-
--- Semiterm.func LPA_Func.zero (fun h : a => Empty)
-
-example : Inhabited (Semiterm LPA ℕ 1) := Inhabited.mk (Semiterm.bvar 0)
-example : Inhabited (Semiterm LPA ℕ 1) :=
-Inhabited.mk (Semiterm.bvar 2)
-example : Inhabited (Semiterm LPA ℕ 0) :=
-Inhabited.mk (Semiterm.fvar 1)
-example : Inhabited (SyntacticTerm LPA) :=
-Inhabited.mk (Semiterm.fvar 1)
-example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.fvar 2)
-example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1))
-example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func LPA_Func.succ (fun _ : Fin 1 => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)))
-example : Inhabited (Term LPA ℕ) := Inhabited.mk (Semiterm.func LPA_Func.mult (fun _ : Fin 2 => Semiterm.fvar 1))
-
-def fvar_term : Term LPA ℕ := Semiterm.fvar 0
-#eval freeVariables fvar_term
-def not_fvar_term : Semiterm LPA ℕ 1 := Semiterm.bvar 6
-#eval freeVariables not_fvar_term
 
 -- Inhabited.mk (fun h₁ : LPA.Func 0 => (fun h₂ : Fin 0 → Semiterm LPA ℕ 0 => h₁)) PA_Func.zero
 
