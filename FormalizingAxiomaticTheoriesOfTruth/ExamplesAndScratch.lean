@@ -33,6 +33,7 @@ def LTr_f1 : SyntacticFormula LTr := Semiformula.rel LTr_Rel.tr ![LTr_numeral 2]
 #eval PA_f3
 #eval PA_f4
 #eval LTr_f1
+#eval PA_f1
 
 -- SCRATCH WORK FROM HERE ON OUT
 def one : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LPA_null)
