@@ -5,45 +5,77 @@ import Foundation.FirstOrder.Arith.PeanoMinus
 open LO
 open FirstOrder
 open Language
-open Semiterm
+section
+  open Semiterm
 
--- Definition of the language of arithmetic
-inductive LPA_Func : ℕ → Type where
-  | zero : LPA_Func 0
-  | succ : LPA_Func 1
-  | add : LPA_Func 2
-  | mult : LPA_Func 2
+  -- Definition of the language of arithmetic
+  inductive LPA_Func : ℕ → Type where
+    | zero : LPA_Func 0
+    | succ : LPA_Func 1
+    | add : LPA_Func 2
+    | mult : LPA_Func 2
 
-inductive LPA_Rel : ℕ → Type where
-  | eq : LPA_Rel 2
+  inductive LPA_Rel : ℕ → Type where
+    | eq : LPA_Rel 2
 
-def LPA : Language where
-  Func := LPA_Func
-  Rel := LPA_Rel
+  def LPA : Language where
+    Func := LPA_Func
+    Rel := LPA_Rel
 
--- Definition of the language of arithmetic including the truth
--- predicate
-def LTr_Func := LPA_Func
+  -- Definition of the language of arithmetic including the truth
+  -- predicate
+  def LTr_Func := LPA_Func
 
-inductive LTr_Rel : ℕ → Type where
-  | eq : LTr_Rel 2
-  | tr : LTr_Rel 1
+  inductive LTr_Rel : ℕ → Type where
+    | eq : LTr_Rel 2
+    | tr : LTr_Rel 1
 
-def LTr : Language where
-  Func := LTr_Func
-  Rel := LTr_Rel
+  def LTr : Language where
+    Func := LTr_Func
+    Rel := LTr_Rel
 
--- Definition of useful LPA terms
-def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+  -- Definition of useful LPA terms
+  def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
 
-def LPA_numeral : ℕ → SyntacticTerm LPA
-  | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
-  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LPA_numeral n)
+  def LPA_numeral : ℕ → SyntacticTerm LPA
+    | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+    | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LPA_numeral n)
 
-def LTr_null : SyntacticTerm LTr := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
-def LTr_numeral : ℕ → SyntacticTerm LTr
-  | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
-  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LTr_numeral n)
+  def LTr_null : SyntacticTerm LTr := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+  def LTr_numeral : ℕ → SyntacticTerm LTr
+    | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+    | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LTr_numeral n)
+
+  -- Printing terms
+
+  open ToString
+  def PA_t1 : SyntacticTerm LPA := Semiterm.func LPA_Func.add ![LPA_numeral 2, LPA_numeral 3]
+  def funToStr {n}: LPA_Func n → String
+    | .zero => "0"
+    | .succ => "S"
+    | .add => "+"
+    | .mult => "×"
+  instance : ToString (LPA_Func n) := ⟨funToStr⟩
+  #eval PA_t1
+end
+
+section
+  -- Printing formulas
+  open Semiformula
+  open ToString
+  -- Some formulas
+  def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => LPA_null)
+  def PA_eq_num_2_num_4 : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun h : Fin 2 => ![LPA_numeral 2,LPA_numeral 4] h) --!
+  def PA_e_num_2_num_4 : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq ![LPA_numeral 2,LPA_numeral 4] --!
+  def PA_f3 : SyntacticFormula LPA := Semiformula.and PA_eq_num_2_num_4 PA_eq_num_2_num_4
+  def PA_f4 : SyntacticFormula LPA := Semiformula.or PA_eq_num_2_num_4 PA_eq_num_2_num_4
+
+  def relToStr {n}: LPA_Rel n → String
+  | .eq => "="
+  instance : ToString (LPA_Rel n) := ⟨relToStr⟩
+  def PA_f1 : SyntacticFormula LPA := Semiformula.verum
+  #eval PA_eq_null
+
 
 -- SCRATCH WORK FROM HERE ON OUT
 
@@ -51,11 +83,15 @@ def one : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LPA
 def two : SyntacticTerm LPA := Semiterm.func LPA_Func.succ (fun _ : Fin 1 => one)
 
 open Semiformula
-def PA_f1 : SyntacticFormula LPA := Semiformula.verum
-def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => LPA_null)
-def PA_eq_num_2_num_4 : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun h : Fin 2 => ![LPA_numeral 2,LPA_numeral 4] h) --!
-def PA_f3 : SyntacticFormula LPA := Semiformula.and PA_eq_num_2_num_4 PA_eq_num_2_num_4
-def PA_f4 : SyntacticFormula LPA := Semiformula.or PA_eq_num_2_num_4 PA_eq_num_2_num_4
+
+
+#eval LPA_Func.zero
+
+
+--instance : Repr (Semiformula L ξ n) := ⟨fun t _ => toStr t⟩
+
+
+#eval LPA_Rel.eq
 
 #eval (fun h : Fin 3 => if h = 0 then 2 else 4) -- ![2,4,4] then the index resulting from a modulo on the argument ∈ ℕ is returned
 #eval (fun h : Fin 3 => if h = 0 then 2 else 4) 20 -- 4, as 20 % 3 = 2 and 4 is at index 2 (0-based indexing)
