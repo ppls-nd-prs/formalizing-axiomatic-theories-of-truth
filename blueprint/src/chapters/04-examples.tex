@@ -2,6 +2,10 @@
 This chapter contains some example of instances of types defined in the rest of the project.
 \section{Prelims}
 \subsection{Some terms}
-\begin{enumerate}
-    \item \lean{LPA_null}\leanok the term 0.
-\end{enumerate}
+\begin{proposition}
+    \lean{LPA_null}\leanok
+    Let $\mathcal{L}_{PA} = \langle F,R \rangle$ be the language of Peano arithmetic. Then $\texttt{zero} \in T_{\mathcal{L}_{PA}}$.
+\end{proposition}
+\begin{proof}
+    By Definition \ref{def:lpa}, we have that $\texttt{zero} \in F(0)$. Therefore, by Definition \ref{def:sem-t} clause 3, $\texttt{zero} \in A_{\mathcal{L_{PA}}, \mathbb{N}, 0}$. Hence, by Definition \ref{def:syn-t}, $\texttt{zero} \in T_{\mathcal{L}_{PA}}$. 
+\end{proof}
