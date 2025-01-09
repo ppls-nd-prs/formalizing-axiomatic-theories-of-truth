@@ -36,7 +36,7 @@ def LPA_funToStr {n}: LPA_Func n → String
   | .zero => "0"
   | .succ => "S"
   | .add => "+"
-  | .mult => "×"
+  | .mult => "\\times"
 def LTr_funToStr {n} : LPA_Func n → String := LPA_funToStr
 instance : ToString (LPA_Func n) := ⟨LPA_funToStr⟩
 
