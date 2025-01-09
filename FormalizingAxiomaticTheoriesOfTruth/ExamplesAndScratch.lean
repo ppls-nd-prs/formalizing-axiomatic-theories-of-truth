@@ -6,24 +6,24 @@ open FirstOrder
 
 -- Constructing and printing some terms
 -- Definition of useful LPA terms
-def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero ![]
 
 def LPA_numeral : ℕ → SyntacticTerm LPA
-  | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
-  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LPA_numeral n)
+  | .zero => Semiterm.func LPA_Func.zero ![]
+  | .succ n => Semiterm.func LPA_Func.succ ![LPA_numeral n]
 
-def LTr_null : SyntacticTerm LTr := Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
+def LTr_null : SyntacticTerm LTr := Semiterm.func LPA_Func.zero ![]
 def LTr_numeral : ℕ → SyntacticTerm LTr
-  | .zero => Semiterm.func LPA_Func.zero (fun _ : Fin 0 => Semiterm.fvar 1)
-  | .succ n => Semiterm.func LPA_Func.succ (fun _ : Fin 1 => LTr_numeral n)
+  | .zero => Semiterm.func LPA_Func.zero ![]
+  | .succ n => Semiterm.func LPA_Func.succ ![LTr_numeral n]
 
 def LTr_t1 : SyntacticTerm LTr := Semiterm.func LPA_Func.mult ![LTr_numeral 2, LTr_numeral 3]
 #eval LTr_t1
+#eval LPA_numeral 3
 
 -- Some formulas
-def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => LPA_null)
-def PA_eq_num_2_num_4 : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq (fun h : Fin 2 => ![LPA_numeral 2,LPA_numeral 4] h) --!
-def PA_e_num_2_num_4 : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq ![LPA_numeral 2,LPA_numeral 4] --!
+def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq ![LPA_null, LPA_null]
+def PA_eq_num_2_num_4 : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq ![LPA_numeral 2,LPA_numeral 4] --!
 def PA_f3 : SyntacticFormula LPA := Semiformula.and PA_eq_num_2_num_4 PA_eq_num_2_num_4
 def PA_f4 : SyntacticFormula LPA := Semiformula.or PA_eq_num_2_num_4 PA_eq_num_2_num_4
 def PA_f1 : SyntacticFormula LPA := Semiformula.verum
