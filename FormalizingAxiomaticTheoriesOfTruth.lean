@@ -1,1 +1,2 @@
 import FormalizingAxiomaticTheoriesOfTruth.Basic
+import FormalizingAxiomaticTheoriesOfTruth.ExamplesAndScratch
