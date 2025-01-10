@@ -6,7 +6,7 @@ open FirstOrder
 
 -- Constructing and printing some terms
 -- Definition of useful LPA terms
-instance LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero ![]
+def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero ![]
 
 def LPA_numeral : ℕ → SyntacticTerm LPA
   | .zero => Semiterm.func LPA_Func.zero ![]
