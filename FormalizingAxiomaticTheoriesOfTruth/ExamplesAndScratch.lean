@@ -45,6 +45,42 @@ def PA_fvt0 : Semiterm LPA ℕ 1 := Semiterm.fvar 0
 def PA_semf1 : Semiformula LPA ℕ 1 := Semiformula.rel LPA_Rel.eq (fun _ : Fin 2 => PA_fvt0)
 def PA_f5 : SyntacticFormula LPA := Semiformula.all PA_semf1
 
+-- variable {L : Language} {T : Theory L}
+def singleton_theory : Theory LPA := {PA_f4}
+def PA_theory : Theory LPA := {}
+theorem mem : PA_f4 ∈ singleton_theory := by
+  rw [singleton_theory] -- PA_f4 ∈ {PA_f4}
+  simp -- no goals
+def double_theory : Theory LPA := {PA_f3,PA_f4}
+theorem mem2 : PA_f3 ∈ double_theory := by
+  rw [double_theory]
+  simp
+theorem mem3 : PA_f4 ∈ double_theory := by
+  rw [double_theory]
+  simp -- no goals
+
+-- variable (L : Language)
+def der1 : Derivation T (⊤ :: [PA_f4]) := Derivation.verum [PA_f4]
+def der2 : Derivation T (⊤ :: [PA_f4,PA_f3]) := Derivation.verum [PA_f4,PA_f3]
+--def der3 : Derivation T (PA_f4 ⋏ PA_f3 :: [PA_f4,PA_f3]) := Derivation.and
+-- def der4 : Derivation T (Semiformula.rel LPA_Rel.eq ![LPA_null,LPA_null] :: [Semiformula.rel LPA_Rel.eq ![LPA_null,LPA_null]]) := Derivation.axL [] LPA_Rel.eq ![LPA_null,LPA_null]
+--def der8 : Derivation T (LPA_f4 ⋏ LPA_f3 :: [LPA_f4,LPA_f3]) := Derivation.and Derivation.axL (LPA_f4 :: [LPA_f4,LPA_f3])
+def der5 : Derivation singleton_theory [PA_f4] := Derivation.root (mem)
+def der6 : Derivation double_theory [PA_f3] := Derivation.root (mem2)
+def der7 : Derivation double_theory [PA_f4] := Derivation.root (mem3)
+def der8 : Derivation double_theory [PA_f3 ⋏ PA_f4 ] :=
+  Derivation.and der6 der7
+def der9 : Derivation double_theory [PA_f3 ⋏ PA_f3 ⋏ PA_f4] :=
+  Derivation.and der6 der8
+lemma sub1 : [PA_f3] ⊆ [PA_f3,PA_f4] := by
+  simp
+def der10 : Derivation double_theory [PA_f3,PA_f4] :=
+  Derivation.wk der6 sub1
+def der11 : Derivation double_theory [PA_f3 ⋎ PA_f4] :=
+  Derivation.or der10
+
+-- but how does a formula get in the theory?
+
 -- Inhabited.mk (fun h₁ : LPA.Func 0 => (fun h₂ : Fin 0 → Semiterm LPA ℕ 0 => h₁)) PA_Func.zero
 
 -- open Arith
