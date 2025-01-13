@@ -1,5 +1,6 @@
 \chapter{Preliminaries}
-The ordinary definition of a first-order language $\mathcal{L}$ proceeds from the specification of a signature $\mathcal{S}$ and then an inductive definition of the way formulas can be build with elements from $\mathcal{S}$, the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature. For practical reasons (which?) that is the approach \cite{ffl} have used for the specification of a language.
+\section{Syntax}
+The ordinary definition of a first-order language $\mathcal{L}$ proceeds from the specification of a signature $\mathcal{S}$ and then an inductive definition of the way formulas can be build with elements from $\mathcal{S}$, the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature. For reasons of conceptual compactness that is the approach \cite{ffl} have used for the specification of a language.
 
 % \begin{definition}[formal language] \label{def:formal-language}
 %     Let $\Sigma$ be a set of symbols. Then a formal language $\mathcal{L}$ is a subset of $\Sigma^*$.
@@ -73,7 +74,7 @@ Note that this defines a language as consisting only of functions and relations,
     \end{enumerate}
 \end{definition}
 
-We can then work our way up to the level of formulas constructed using our specified languages. First we then need the definition of a term. We make use of the definitions provided by \cite{ffl}. For higher possibility of abstraction they use the concept of a semi-term, from which a full syntactic term can be derived. What constitutes that set of semi-terms is dependent on the provided language, the set of free variables and the number of bound variables.
+We can then work our way up to the level of formulas constructed using our specified languages. First we then need the definition of a term. We make use of the definitions provided by \cite{ffl}. To ensure that type-correctness is equivalent to well-formedness they make use of \textit{partially applied} terms and formulas, called semi-terms and semi-formulas, that have a parameter $\mathbb{N}$ measuring the difference between the arity and numbers of applications. What constitutes those sets of semi-terms and -formulas is dependent on the provided language, the set used for indexing of free variables and the number of bound variables.
 
 \begin{definition}[semi-term]\label{def:sem-t}
     \uses{def:fol}
@@ -96,7 +97,7 @@ Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb
     Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $\mathcal{T}_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
 \end{definition}
 
-Using the concept of semi-terms we then define semi-formulas, from we can derive, by a process comparable to above, the notion of a full syntactic formula.
+Using the concept of semi-terms we then define semi-formulas, from which we can derive, by a process comparable to above, the notion of a full syntactic formula.
 
 \begin{definition}[semi-formula]\label{def:sem-f}
     \uses{def:fol,def:sem-t}
@@ -121,6 +122,8 @@ Using the concept of semi-terms we then define semi-formulas, from we can derive
     \leanok
     Let $\mathcal{L}$ be a language. Then the set of syntactic formulas $W_{\mathcal{L}}$ associated with this language is the set of semi-formulas $B_{\mathcal{L},\mathbb{N},0}$.
 \end{definition}
+
+\section{Proof Theory}
 
 % \begin{definition}[primitive term]%\label{def:primitive-term}
 %     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
