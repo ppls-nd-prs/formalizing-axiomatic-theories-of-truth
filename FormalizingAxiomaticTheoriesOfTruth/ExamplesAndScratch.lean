@@ -6,7 +6,7 @@ open FirstOrder
 
 -- Constructing and printing some terms
 -- Definition of useful LPA terms
-def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero ![]
+def LPA_null : Semiterm LPA Empty 0 := Semiterm.func LPA_Func.zero ![]
 
 def LPA_numeral : ℕ → SyntacticTerm LPA
   | .zero => Semiterm.func LPA_Func.zero ![]
@@ -23,6 +23,9 @@ def LTr_t1 : SyntacticTerm LTr := Semiterm.func LPA_Func.mult ![LTr_numeral 2, L
 
 -- Some formulas
 def PA_eq_null : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq ![LPA_null, LPA_null]
+def PA_bound_variable : Semiterm LPA ℕ 1 := Semiterm.bvar 1
+def PA_eq_exists : SyntacticFormula LPA := Semiformula.ex (Semiformula.rel LPA_Rel.eq ![PA_bound_variable,PA_bound_variable])
+-- def PA_eq_null_sent : Sentence LPA := Semiformula.rel LPA_Rel.eq ![LPA_null, LPA_null]
 def PA_eq_num_2_num_4 : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq ![LPA_numeral 2,LPA_numeral 4] --!
 def PA_f3 : SyntacticFormula LPA := Semiformula.and PA_eq_num_2_num_4 PA_eq_num_2_num_4
 def PA_f4 : SyntacticFormula LPA := Semiformula.or PA_eq_num_2_num_4 PA_eq_num_2_num_4
@@ -78,6 +81,67 @@ def der10 : Derivation double_theory [PA_f3,PA_f4] :=
   Derivation.wk der6 sub1
 def der11 : Derivation double_theory [PA_f3 ⋎ PA_f4] :=
   Derivation.or der10
+def theory3 : Theory LPA := {PA_eq_null}
+def one_sided_der1 : singleton_theory ⟹ [PA_f4] := by
+  apply der5
+def one_sided_der2 : OneSided.Derivation₁ singleton_theory PA_f4 :=
+  one_sided_der1
+def provable1 : singleton_theory ⊢ PA_f4 :=
+  Derivation.provableOfDerivable one_sided_der2
+def provable2 : double_theory ⊢ PA_f3 ⋏ PA_f4 :=
+  Derivation.provableOfDerivable der8
+
+-- provable3 and provable4 prove the same
+def provable3 : double_theory ⊢ PA_f3 ⋏ PA_f4 := by
+  have h1 : PA_f3 ∈ double_theory := by
+    rw [double_theory]
+    simp
+  have h2 : PA_f4 ∈ double_theory := by
+    rw [double_theory]
+    simp
+  have der_3 : Derivation double_theory [PA_f3] :=
+    Derivation.root (h1)
+  have der_4 : Derivation double_theory [PA_f4] :=
+    Derivation.root (h2)
+  have der_and : Derivation double_theory [PA_f3 ⋏ PA_f4] :=
+    Derivation.and der_3 der_4
+  apply Derivation.provableOfDerivable at der_and
+  exact der_and
+
+def provable4 : double_theory ⊢ PA_f3 ⋏ PA_f4 := by
+  have h1 : PA_f3 ∈ double_theory := by
+    rw [double_theory]
+    simp
+  have h2 : PA_f4 ∈ double_theory := by
+    rw [double_theory]
+    simp
+  apply Derivation.root at h1
+  apply Derivation.root at h2
+  apply Derivation.and h1 h2
+
+def theory2 : Theory LPA := {PA_eq_null}
+def provable5 : theory2 ⊢ PA_eq_null ⋎ PA_eq_null := by
+  have der1 : PA_eq_null ∈ theory2 := by
+    rw [theory2]
+    simp
+  apply Derivation.root at der1
+  have der2 : Derivation theory2 [PA_eq_null,PA_eq_null] := by
+    have sub1 : [PA_eq_null] ⊆ [PA_eq_null,PA_eq_null] := by
+      simp
+    apply Derivation.wk der1 sub1
+  apply Derivation.or der2
+
+def provabl6 : theory2 ⊢ PA_eq_exists := by
+  have der1 : PA_eq_null ∈ theory2 := by
+    rw [theory2]
+    simp
+  apply Derivation.root at der1
+  have der2 : Derivation theory2 [(Semiformula.rel LPA_Rel.eq ![PA_bound_variable, PA_bound_variable])/[Rew.emb LPA_null]] := by
+    simp
+    exact der1
+  apply Derivation.ex LPA_null der2
+
+
 
 -- but how does a formula get in the theory?
 
