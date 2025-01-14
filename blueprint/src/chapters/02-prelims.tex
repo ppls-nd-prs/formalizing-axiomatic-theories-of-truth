@@ -124,12 +124,37 @@ Using the concept of semi-terms we then define semi-formulas, from which we can 
 \end{definition}
 
 \section{Proof Theory}
-Once we have a formal language and specification of its formulas, we can define a proof system over that language specifying in what way new formulas follow from preceding formulas. The proof system from \cite{ffl} that we will use is based on sequent calculus.
+Once we have a formal language and specification of its formulas, we can define a proof system. Proof systems require three elements:
+\begin{enumerate}
+    \item a formal language
+    \item a set of formulas in the language that function as axioms and
+    \item a set of rules for deriving formulas from other formulas.
+\end{enumerate}    
+We will here define proof systems for $\texttt{PA}$ and $\texttt{PAT}$. To that end we will have to formulate the axioms of these theories and our set of derivation rules. We can use \cite{ffl}'s derivation rules that are based on sequent calculus. Furthermore, in \cite{ffl} theories are indexed by their defining axioms, so constructing a theory is equivalent to specifying its defining axioms.
+
+\begin{definition}[theory]\label{def:theory}
+    \uses{def:language,def:syn-f}
+    \lean{LO.FirstOrder.Theory}
+    \leanok
+    Let $\mathcal{L}$ be a formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulas. Then, a theory $T_{\mathcal{L}}$ of $\mathcal{L}$ is a set of syntactic formulas $X$ such that $X \subset W_{\mathcal{L}}$.
+\end{definition}
+
+Sequent calculus applies to sequents, which are lists of syntactic formulas.
+
+\begin{definition}[sequent]\label{def:seq}
+    \uses{def:language,def:syn-f}
+    \lean{LO.FirstOrder.Sequent}
+    \leanok
+    Let $\mathcal{L}$ be some formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulae. Then, a sequent of $\mathcal{L}$ is a list [\textcolor{red}{?define list as well?}] $[f_1,...,f_n]$, such that $f_1,...,f_n \in W_{\mathcal{L}}$.
+\end{definition}
 
 \begin{definition}[sequent calculus]\label{def:seq-calc}
     \lean{LO.FirstOrder.Derivation}
     \leanok
-    
+    Let $\mathcal{L}$ be some formal language and $T_{\mathcal{L}}$ some theory of this language. Then, our calculus is the set $R$ containing the following funtions:
+    \begin{enumerate}
+        \item $\texttt{axL} : \mathcal{S} \to $
+    \end{enumerate}
 \end{definition}
 
 % \begin{definition}[primitive term]%\label{def:primitive-term}
