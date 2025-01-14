@@ -133,7 +133,7 @@ Once we have a formal language and specification of its formulas, we can define 
 We will here define proof systems for $\texttt{PA}$ and $\texttt{PAT}$. To that end we will have to formulate the axioms of these theories and our set of derivation rules. We can use \cite{ffl}'s derivation rules that are based on sequent calculus. Furthermore, in \cite{ffl} theories are indexed by their defining axioms, so constructing a theory is equivalent to specifying its defining axioms.
 
 \begin{definition}[theory]\label{def:theory}
-    \uses{def:language,def:syn-f}
+    \uses{def:fol,def:syn-f}
     \lean{LO.FirstOrder.Theory}
     \leanok
     Let $\mathcal{L}$ be a formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulas. Then, a theory $T_{\mathcal{L}}$ of $\mathcal{L}$ is a set of syntactic formulas $X$ such that $X \subset W_{\mathcal{L}}$.
@@ -142,18 +142,23 @@ We will here define proof systems for $\texttt{PA}$ and $\texttt{PAT}$. To that 
 Sequent calculus applies to sequents, which are lists of syntactic formulas.
 
 \begin{definition}[sequent]\label{def:seq}
-    \uses{def:language,def:syn-f}
+    \uses{def:fol,def:syn-f}
     \lean{LO.FirstOrder.Sequent}
     \leanok
     Let $\mathcal{L}$ be some formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulae. Then, a sequent of $\mathcal{L}$ is a list [\textcolor{red}{?define list as well?}] $[f_1,...,f_n]$, such that $f_1,...,f_n \in W_{\mathcal{L}}$.
 \end{definition}
 
 \begin{definition}[sequent calculus]\label{def:seq-calc}
+    \uses{def:fol,def:sem-t,def:theory,def:syn-t}
     \lean{LO.FirstOrder.Derivation}
     \leanok
-    Let $\mathcal{L}$ be some formal language and $T_{\mathcal{L}}$ some theory of this language. Then, our calculus is the set $R$ containing the following funtions:
+    Let $\mathcal{L} = \langle F,R \rangle$ be some formal language, some $T_{\mathcal{L}}$ an assocaited theory of this language and $\mathcal{T}_{\mathcal{L}}$ $\mathcal{L}$'s set of syntactic formulae. Then, the set of sequents derivable from $T_{\mathcal{L}}$ is inductively defined as the smallest set of sequents $X$ such that
     \begin{enumerate}
-        \item $\texttt{axL} : \mathcal{S} \to $
+        \item if $[f_1,...,f_n] \in X$ and for some $i \in \mathbb{N}$, $P \in R(i)$ and $a_1,...,a_i \in \mathcal{T}_{\mathcal{L}}$, then $[P(a_1,...,a_n),\neg P(a_1,...,a_n),f_1,...,f_n] \in X$;
+        \item if $[f_1,...,f_n] \in X$, then $[\top,f_1,...,f_n] \in X$;
+        \item if $[\varphi,\psi,f_1,...,f_n] \in X$, then $[\varphi \lor \psi,f_1,...,f_n] \in X$;
+        \item if $[\varphi,f_1,...,f_n] \in X$ and $[\psi,f_1,...,f_n] \in X$, then $[\varphi \land \psi,f_1,...,f_n] \in X$;
+        \item ...
     \end{enumerate}
 \end{definition}
 
