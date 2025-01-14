@@ -124,6 +124,13 @@ Using the concept of semi-terms we then define semi-formulas, from which we can 
 \end{definition}
 
 \section{Proof Theory}
+Once we have a formal language and specification of its formulas, we can define a proof system over that language specifying in what way new formulas follow from preceding formulas. The proof system from \cite{ffl} that we will use is based on sequent calculus.
+
+\begin{definition}[sequent calculus]\label{def:seq-calc}
+    \lean{LO.FirstOrder.Derivation}
+    \leanok
+    
+\end{definition}
 
 % \begin{definition}[primitive term]%\label{def:primitive-term}
 %     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
