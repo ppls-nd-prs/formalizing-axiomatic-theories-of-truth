@@ -141,6 +141,59 @@ def provabl6 : theory2 ⊢ PA_eq_exists := by
     exact der1
   apply Derivation.ex LPA_null der2
 
+def free : SyntacticTerm LPA := Semiterm.fvar 1
+def freef : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq ![free,free]
+def theory_free : Theory LPA := {freef}
+def mem4 : freef ∈ theory_free := by
+  rw [theory_free]
+  simp
+def bound : Semiterm LPA ℕ 1 := Semiterm.bvar 1
+def boundf : SyntacticFormula LPA := ∀' Semiformula.rel LPA_Rel.eq ![bound,bound]
+def rewrite_function : ℕ → Semiterm LPA ℕ 0 := fun n : ℕ => Semiterm.fvar n
+#check LO.FirstOrder.Rew.rewrite rewrite_function
+
+def freet1 : Semiterm LPA ℕ 1 :=
+  Semiterm.bvar 1
+def free1 : SyntacticSemiformula LPA 1 :=
+  Semiformula.rel LPA_Rel.eq ![freet1,freet1]
+def der30 : Derivation theory_free [freef] := by
+  have der1 : freef ∈ theory_free := by
+    rw [theory_free]
+    simp
+  apply Derivation.root at der1
+  exact der1
+#check Rewriting.free free1
+#check Derivation.all der30
+
+-- def der21 : Derivation T [boundf, freef] := Derivation.all
+
+
+def provable7 : theory_free ⊢ boundf := by
+  have der1 : freef ∈ theory_free := by
+    rw [theory_free]
+    simp
+  apply Derivation.root at der1
+  have t1 : Semiterm LPA ℕ 1 := Semiterm.bvar 1
+  have f1 : SyntacticSemiformula LPA 1 := Semiformula.rel LPA_Rel.eq ![t1,t1]
+  have freef : Rewriting.free f1 :=
+  apply Derivation.all at der1
+
+
+  have der2 : Derivation theory2 [(Semiformula.rel LPA_Rel.eq ![PA_bound_variable, PA_bound_variable])/[Rew.emb LPA_null]] := by
+    simp
+    exact der1
+  apply Derivation.ex LPA_null der2
+
+
+
+
+
+#check Rewriting.free [freef]
+def rew_free : Rewriting.free freef
+
+def der20 : Derivation T ((boundf) :: [freef]) := Derivation.all (Derivation.root mem4)
+
+
 
 
 -- but how does a formula get in the theory?
