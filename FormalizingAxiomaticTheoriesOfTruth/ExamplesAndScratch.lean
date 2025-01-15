@@ -163,35 +163,35 @@ def der30 : Derivation theory_free [freef] := by
   apply Derivation.root at der1
   exact der1
 #check Rewriting.free free1
-#check Derivation.all der30
+-- #check Derivation.all der30
 
--- def der21 : Derivation T [boundf, freef] := Derivation.all
-
-
-def provable7 : theory_free ⊢ boundf := by
-  have der1 : freef ∈ theory_free := by
-    rw [theory_free]
-    simp
-  apply Derivation.root at der1
-  have t1 : Semiterm LPA ℕ 1 := Semiterm.bvar 1
-  have f1 : SyntacticSemiformula LPA 1 := Semiformula.rel LPA_Rel.eq ![t1,t1]
-  have freef : Rewriting.free f1 :=
-  apply Derivation.all at der1
+-- -- def der21 : Derivation T [boundf, freef] := Derivation.all
 
 
-  have der2 : Derivation theory2 [(Semiformula.rel LPA_Rel.eq ![PA_bound_variable, PA_bound_variable])/[Rew.emb LPA_null]] := by
-    simp
-    exact der1
-  apply Derivation.ex LPA_null der2
+-- def provable7 : theory_free ⊢ boundf := by
+--   have der1 : freef ∈ theory_free := by
+--     rw [theory_free]
+--     simp
+--   apply Derivation.root at der1
+--   have t1 : Semiterm LPA ℕ 1 := Semiterm.bvar 1
+--   have f1 : SyntacticSemiformula LPA 1 := Semiformula.rel LPA_Rel.eq ![t1,t1]
+--   have freef : Rewriting.free f1 :=
+--   apply Derivation.all at der1
 
 
+--   have der2 : Derivation theory2 [(Semiformula.rel LPA_Rel.eq ![PA_bound_variable, PA_bound_variable])/[Rew.emb LPA_null]] := by
+--     simp
+--     exact der1
+--   apply Derivation.ex LPA_null der2
 
 
 
-#check Rewriting.free [freef]
-def rew_free : Rewriting.free freef
 
-def der20 : Derivation T ((boundf) :: [freef]) := Derivation.all (Derivation.root mem4)
+
+-- #check Rewriting.free [freef]
+-- def rew_free : Rewriting.free freef
+
+-- def der20 : Derivation T ((boundf) :: [freef]) := Derivation.all (Derivation.root mem4)
 
 
 
