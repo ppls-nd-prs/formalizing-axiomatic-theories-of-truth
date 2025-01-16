@@ -153,7 +153,7 @@ def bound : Semiterm LPA ℕ 1 := Semiterm.bvar 1
 def boundf : SyntacticFormula LPA := ∀' Semiformula.rel LPA_Rel.eq ![bound,bound]
 def rewrite_function : ℕ → Semiterm LPA ℕ 0 := fun n : ℕ => Semiterm.fvar n
 #check LO.FirstOrder.Rew.rewrite rewrite_function
-
+#check
 def freet1 : Semiterm LPA ℕ 1 :=
   Semiterm.bvar 1
 def free1 : Semiformula LPA ℕ 1 :=
@@ -169,6 +169,88 @@ def der30 : Derivation theory_free [freef] := by
 --     rw [theory_free]
 --     simp
 --   apply Derivation.root at der1
+
+-- Trying to prove ∀P(0)∧H(0) from ∀P(0) and ∀H(0)
+inductive PH_rel : ℕ → Type where
+  | person : PH_rel 1
+  | hashead : PH_rel 1
+
+inductive PH_func : ℕ → Type where
+  | b : PH_func 0
+
+def PH_lang : Language where
+  Func := PH_func
+  Rel := PH_rel
+
+-- Printing formulas
+def PH_funToStr {n}: PH_func n → String
+  | .b => "b"
+instance : ToString (PH_func n) := ⟨PH_funToStr⟩
+
+def PH_relToStr {n} : PH_rel n → String
+| .person => "P"
+| .hashead => "H"
+instance : ToString (PH_rel n) := ⟨PH_relToStr⟩
+
+
+def forall_p : Semiformula PH_lang ℕ 0 :=
+  Semiformula.all (Semiformula.rel PH_rel.person ![Semiterm.bvar 1])
+def forall_p_bound_free : Semiformula PH_lang ℕ 1 :=
+  Semiformula.rel PH_rel.person ![Semiterm.bvar 1]
+def forall_free_var : Semiformula PH_lang ℕ 0 :=
+  Semiformula.rel PH_rel.person ![&1]
+def forall_h : Semiformula PH_lang ℕ 0 :=
+  Semiformula.all (Semiformula.rel PH_rel.hashead ![Semiterm.bvar 1])
+def forall_p_h : Semiformula PH_lang ℕ 0 :=
+  Semiformula.all (Semiformula.and
+    (Semiformula.rel PH_rel.person ![Semiterm.bvar 1])
+    (Semiformula.rel PH_rel.hashead ![Semiterm.bvar 1]))
+def b : Semiterm PH_lang ℕ 0 := Semiterm.func PH_func.b ![]
+
+#eval forall_p_bound_free/[b]
+#eval Rewriting.free forall_p_bound_free
+#check Rewriting.free forall_p_bound_free
+#eval forall_free_var
+#eval Rewriting.fix forall_free_var
+#eval Rewriting.fix (Rewriting.fix forall_free_var)
+#eval Rewriting.fix (Rewriting.fix (Rewriting.fix forall_free_var))
+#eval ∀' forall_p_bound_free
+#eval forall_p
+#eval Rewriting.fix forall_p
+#check Rewriting.free (Rewriting.fix forall_p)
+#eval Rewriting.free (Rewriting.fix forall_p)
+#check (Rewriting.fix forall_p)/[b]
+#eval (Rewriting.fix forall_p)/[b]
+#check Rewriting.shift forall_p
+#check Rewriting.shift forall_p_bound_free
+#check [forall_p_bound_free]⁺
+#check Derivation.all Derivation.root [Rewriting.free forall_p_bound_free, [forall_p]⁺]
+#check Rewriting.free forall_p_bound_free
+#eval Rewriting.free forall_p_bound_free
+def thing : Semiformula PH_lang ℕ 1 := Semiformula.rel PH_rel.person ![#1]
+#check Rewriting.free (thing)
+def PH_theory : Theory PH_lang := {forall_p,forall_h}
+def derivation_forall_p_h : Derivation PH_theory [forall_p_h] := by
+  have der1 : forall_p ∈ PH_theory := by
+    rw [PH_theory]
+    simp
+  apply Derivation.root at der1
+  apply Derivation.and at der1
+  have der2 : forall_h ∈ PH_theory := by
+    rw [PH_theory]
+    simp
+  apply Derivation.root at der2
+  apply der1 at der2
+  apply Derivation.all
+
+
+
+
+
+
+
+
+
 
 variable {φ : SyntacticSemiformula LPA 1}
 #eval free1/[LPA_null]
