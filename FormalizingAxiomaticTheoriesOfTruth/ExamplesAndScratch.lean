@@ -6,7 +6,9 @@ open FirstOrder
 
 -- Constructing and printing some terms
 -- Definition of useful LPA terms
-def LPA_null : Semiterm LPA Empty 0 := Semiterm.func LPA_Func.zero ![]
+-- the terms properties L, ξ and n should correspond to the
+-- properties of the formula they will be a part of
+def LPA_null : SyntacticTerm LPA := Semiterm.func LPA_Func.zero ![]
 
 def LPA_numeral : ℕ → SyntacticTerm LPA
   | .zero => Semiterm.func LPA_Func.zero ![]
@@ -131,15 +133,15 @@ def provable5 : theory2 ⊢ PA_eq_null ⋎ PA_eq_null := by
     apply Derivation.wk der1 sub1
   apply Derivation.or der2
 
-def provabl6 : theory2 ⊢ PA_eq_exists := by
-  have der1 : PA_eq_null ∈ theory2 := by
-    rw [theory2]
-    simp
-  apply Derivation.root at der1
-  have der2 : Derivation theory2 [(Semiformula.rel LPA_Rel.eq ![PA_bound_variable, PA_bound_variable])/[Rew.emb LPA_null]] := by
-    simp
-    exact der1
-  apply Derivation.ex LPA_null der2
+-- def provabl6 : theory2 ⊢ PA_eq_exists := by
+--   have der1 : PA_eq_null ∈ theory2 := by
+--     rw [theory2]
+--     simp
+--   apply Derivation.root at der1
+--   have der2 : Derivation theory2 [(Semiformula.rel LPA_Rel.eq ![PA_bound_variable, PA_bound_variable])/[Rew.emb LPA_null]] := by
+--     simp
+--     exact der1
+--   apply Derivation.ex LPA_null der2
 
 def free : SyntacticTerm LPA := Semiterm.fvar 1
 def freef : SyntacticFormula LPA := Semiformula.rel LPA_Rel.eq ![free,free]
@@ -154,7 +156,7 @@ def rewrite_function : ℕ → Semiterm LPA ℕ 0 := fun n : ℕ => Semiterm.fva
 
 def freet1 : Semiterm LPA ℕ 1 :=
   Semiterm.bvar 1
-def free1 : SyntacticSemiformula LPA 1 :=
+def free1 : Semiformula LPA ℕ 1 :=
   Semiformula.rel LPA_Rel.eq ![freet1,freet1]
 def der30 : Derivation theory_free [freef] := by
   have der1 : freef ∈ theory_free := by
@@ -162,8 +164,28 @@ def der30 : Derivation theory_free [freef] := by
     simp
   apply Derivation.root at der1
   exact der1
-#check Rewriting.free free1
+-- def der31 : theory_free ⊢ boundf := by
+--   have der1 : freef ∈ theory_free := by
+--     rw [theory_free]
+--     simp
+--   apply Derivation.root at der1
+
+variable {φ : SyntacticSemiformula LPA 1}
+#eval free1/[LPA_null]
+-- def rewr_func : ∀ h : Semiterm LPA ℕ 0, free1/[h]
+-- #check fun h : Semiterm LPA ℕ 0 => free1/[h]
+-- #check fun h : Semiterm LPA ℕ 0 => free1/[h]
+-- #check Rewriting.free free1 = freef
+-- #check Rewriting.free free1
+-- #eval Rewriting.free free1
+-- #check @Rew.free LPA 0
+-- #check @Rew.free LPA 0 ▹ free1
+-- #eval @Rew.free LPA 0 ▹ free1
+-- def der32 : Rewriting.free := @Rew.free LPA 0 ▹ free1
+-- variable {T:Theory LPA}
+-- #check @Rew.free LPA 0
 -- #check Derivation.all der30
+-- #check Derivation.all Derivation.root (mem)
 
 -- -- def der21 : Derivation T [boundf, freef] := Derivation.all
 
