@@ -153,7 +153,6 @@ def bound : Semiterm LPA ℕ 1 := Semiterm.bvar 1
 def boundf : SyntacticFormula LPA := ∀' Semiformula.rel LPA_Rel.eq ![bound,bound]
 def rewrite_function : ℕ → Semiterm LPA ℕ 0 := fun n : ℕ => Semiterm.fvar n
 #check LO.FirstOrder.Rew.rewrite rewrite_function
-#check
 def freet1 : Semiterm LPA ℕ 1 :=
   Semiterm.bvar 1
 def free1 : Semiformula LPA ℕ 1 :=
@@ -224,24 +223,24 @@ def b : Semiterm PH_lang ℕ 0 := Semiterm.func PH_func.b ![]
 #check Rewriting.shift forall_p
 #check Rewriting.shift forall_p_bound_free
 #check [forall_p_bound_free]⁺
-#check Derivation.all Derivation.root [Rewriting.free forall_p_bound_free, [forall_p]⁺]
+-- #check Derivation.all Derivation.root [Rewriting.free forall_p_bound_free, [forall_p]⁺]
 #check Rewriting.free forall_p_bound_free
 #eval Rewriting.free forall_p_bound_free
 def thing : Semiformula PH_lang ℕ 1 := Semiformula.rel PH_rel.person ![#1]
 #check Rewriting.free (thing)
 def PH_theory : Theory PH_lang := {forall_p,forall_h}
-def derivation_forall_p_h : Derivation PH_theory [forall_p_h] := by
-  have der1 : forall_p ∈ PH_theory := by
-    rw [PH_theory]
-    simp
-  apply Derivation.root at der1
-  apply Derivation.and at der1
-  have der2 : forall_h ∈ PH_theory := by
-    rw [PH_theory]
-    simp
-  apply Derivation.root at der2
-  apply der1 at der2
-  apply Derivation.all
+-- def derivation_forall_p_h : Derivation PH_theory [forall_p_h] := by
+--   have der1 : forall_p ∈ PH_theory := by
+--     rw [PH_theory]
+--     simp
+--   apply Derivation.root at der1
+--   apply Derivation.and at der1
+--   have der2 : forall_h ∈ PH_theory := by
+--     rw [PH_theory]
+--     simp
+--   apply Derivation.root at der2
+--   apply der1 at der2
+--   apply Derivation.all
 
 
 
