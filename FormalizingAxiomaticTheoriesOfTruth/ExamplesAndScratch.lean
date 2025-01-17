@@ -1,6 +1,8 @@
 import Foundation.Logic.Predicate.Language
 import FormalizingAxiomaticTheoriesOfTruth.Basic
 
+
+
 open LO
 open FirstOrder
 
@@ -277,6 +279,22 @@ def PA : Theory LPA := {first_PA_ax}
 
 --   -- have h2 (a : Semiformula LPA ℕ 0) : Semiformula LPA ℕ 0 :=
 --   --   (Rewriting.fix a)/[LPA_numeral 3]
+
+-- MISLUKT EXPERIMENT:
+--def Contains_terms {arity : ℕ} {func : LPA_Func arity} {f : Fin arity → Semiterm LPA ℕ 0}
+-- (Semiterm.func func f: Semiterm LPA ℕ 0) : Set Semiterm LPA ℕ 0
+--   | .fvar => {Semiterm.func func f}
+--   | .bvar => {Semiterm.func func f}
+--   | .func => {f}
+
+-- def Substit (φ : Semiterm LPA ℕ 0)(t : Semiterm LPA ℕ 0): Semiterm LPA ℕ 0
+--   | .fvar => t
+--   | .bvar => φ
+--   | .func => Semiterm.func
+
+-- def Substit (φ : Semiformula LPA ℕ 0)(t : Semiterm LPA ℕ 0): Semiformula LPA ℕ 0
+--   | φ.all => (Substit φ t).all
+--   |
 
 
 
