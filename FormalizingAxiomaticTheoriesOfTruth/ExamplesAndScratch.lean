@@ -191,44 +191,145 @@ def PH_relToStr {n} : PH_rel n → String
 | .hashead => "H"
 instance : ToString (PH_rel n) := ⟨PH_relToStr⟩
 
+-- Objective: have a Derivation of ∀P(0) from P(0)
+-- Question: can one rw to something by definition? Answer: yes
+-- But it does not matter: we should show HOW(/WHY) they
+-- are the same.
+def a_1 : Nat := 1
+def b_1 : Nat := a_1
+
+lemma test : a_1 = b_1 := by
+  rw[b_1,a_1]
+
 
 def forall_p : Semiformula PH_lang ℕ 0 :=
   Semiformula.all (Semiformula.rel PH_rel.person ![Semiterm.bvar 1])
 def forall_p_bound_free : Semiformula PH_lang ℕ 1 :=
   Semiformula.rel PH_rel.person ![Semiterm.bvar 1]
-def forall_free_var : Semiformula PH_lang ℕ 0 :=
-  Semiformula.rel PH_rel.person ![&1]
-def forall_h : Semiformula PH_lang ℕ 0 :=
-  Semiformula.all (Semiformula.rel PH_rel.hashead ![Semiterm.bvar 1])
-def forall_p_h : Semiformula PH_lang ℕ 0 :=
-  Semiformula.all (Semiformula.and
-    (Semiformula.rel PH_rel.person ![Semiterm.bvar 1])
-    (Semiformula.rel PH_rel.hashead ![Semiterm.bvar 1]))
-def b : Semiterm PH_lang ℕ 0 := Semiterm.func PH_func.b ![]
+def free_var : Semiformula PH_lang ℕ 0 :=
+  Rewriting.free forall_p_bound_free
+def th_p_free : Theory PH_lang := {free_var}
+def derivation_forall_p : Derivation th_p_free [forall_p] := by
+  have h1 : free_var ∈ th_p_free := by
+    rw [th_p_free]
+    simp
+  apply Derivation.root at h1
+  rw[free_var,forall_p_bound_free] at h1
+  rw[forall_p]
+  have h2 : Derivation th_p_free [forall_p] := Derivation.all h1
+  rw [forall_p] at h2
+  exact h2
+-- okay, this works but it feels like cheating, because the fact that
+-- free_var is the same as Rewriting.free forall_b_bound_free is 'hard coded'
+-- I'll try to see what happens if we'd want to prove stuff from the
+-- peano arithmetic theory.
 
-#eval forall_p_bound_free/[b]
-#eval Rewriting.free forall_p_bound_free
-#check Rewriting.free forall_p_bound_free
-#eval forall_free_var
-#eval Rewriting.fix forall_free_var
-#eval Rewriting.fix (Rewriting.fix forall_free_var)
-#eval Rewriting.fix (Rewriting.fix (Rewriting.fix forall_free_var))
+--
+
+open Theory
+-- sets are defined in the following fashion
+inductive weekday : Set Nat
+  | monday : weekday 1
+  | tuesday : weekday 2
+
+def monday : weekday 1 := weekday.monday
+def tuesday : weekday 1 := weekday.monday
+-- therefore axiom membership for the theory of PAMinus is
+-- defined as it is and proven as follows.
+lemma lem : PAMinus (“x | x + 0 = x”) := PAMinus.addZero
+-- however, (i) how do we get from this notion of membership to
+-- the one necessary to get “x | x + 0 = x” into our derivation?
+-- Furthermore (ii), how do we get proofs about specific terms
+-- from such general formulas?
+-- subquestion: how to get “3 + 0 = 3” from “x | x + 0 = x”?
+-- subsubquestion: how to get the specific installment of a
+-- term in a spot taken by a free variable? Normally under some
+-- assignment. Is that possible to get here?
+-- Perhaps we have more access to the meaning of the formulas when we
+-- use semantic concepts.
+-- An other alternative might be to still define our theory syntactically
+-- and use derivation₂.
+open Semantics
+-- def lemmm : PAMinus ⊢ “x | x + 0 = x” := by
+
+def first_PA_ax : Semiformula LPA ℕ 0 :=
+  Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
+  ![&0],Semiterm.func LPA_Func.zero ![]]
+def instance_first_PA_ax : Semiformula LPA ℕ 0 :=
+  Semiformula.nrel LPA_Rel.eq ![(LPA_numeral 3),LPA_null]
+
+#eval first_PA_ax
+#eval (Rewriting.fix first_PA_ax)/[LPA_numeral 3]
+#check Rewriting.fix (Rewriting.fix first_PA_ax)
+
+def PA : Theory LPA := {first_PA_ax}
+
+-- def lem50 : PA ⊢ instance_first_PA_ax := by
+--   have h1 : first_PA_ax ∈ PA := by
+--     rw[PA]
+--     simp
+--   have h2: first_PA_ax ∈ [first_PA_ax] := by
+--     simp
+--   have h3 : Derivation2 PA {first_PA_ax} := by
+
+--   apply Derivation2.root at h1
+--   apply h1
+
+--   -- have h2 (a : Semiformula LPA ℕ 0) : Semiformula LPA ℕ 0 :=
+--   --   (Rewriting.fix a)/[LPA_numeral 3]
+
+
+
+
+
+-- #check “x | x + 0 = x”/[LPA_null]
+
+-- #check PAMinus ⊢ “x | x + 0 = x”
+-- def lem1 : PAMinus ⊢ “3 + 0 = 3” := by
+--   have h : “x | x + 0 = x” ∈ PAMinus := PAMinus.addZero
+--   apply Derivation.root at h
+--   have h2 : PAMinus “3 + 0 = 3” := by
+--     apply “x | x + 0 = 0”/[3]
+-- #check PAMinus “x | x + 0 = x”
+-- #check “x | x + 0 = x”
+
+
+
+
+
+
+
+
+-- def forall_h : Semiformula PH_lang ℕ 0 :=
+--   Semiformula.all (Semiformula.rel PH_rel.hashead ![Semiterm.bvar 1])
+-- def forall_p_h : Semiformula PH_lang ℕ 0 :=
+--   Semiformula.all (Semiformula.and
+--     (Semiformula.rel PH_rel.person ![Semiterm.bvar 1])
+--     (Semiformula.rel PH_rel.hashead ![Semiterm.bvar 1]))
+
+-- #eval forall_p_bound_free/[b]
+-- #eval Rewriting.free forall_p_bound_free
+-- #check Rewriting.free forall_p_bound_free
+-- #eval forall_free_var
+-- #eval Rewriting.fix forall_free_var
+-- #eval Rewriting.fix (Rewriting.fix forall_free_var)
+-- #eval Rewriting.fix (Rewriting.fix (Rewriting.fix forall_free_var))
 #eval ∀' forall_p_bound_free
 #eval forall_p
 #eval Rewriting.fix forall_p
 #check Rewriting.free (Rewriting.fix forall_p)
 #eval Rewriting.free (Rewriting.fix forall_p)
-#check (Rewriting.fix forall_p)/[b]
-#eval (Rewriting.fix forall_p)/[b]
-#check Rewriting.shift forall_p
-#check Rewriting.shift forall_p_bound_free
-#check [forall_p_bound_free]⁺
--- #check Derivation.all Derivation.root [Rewriting.free forall_p_bound_free, [forall_p]⁺]
-#check Rewriting.free forall_p_bound_free
-#eval Rewriting.free forall_p_bound_free
-def thing : Semiformula PH_lang ℕ 1 := Semiformula.rel PH_rel.person ![#1]
-#check Rewriting.free (thing)
-def PH_theory : Theory PH_lang := {forall_p,forall_h}
+-- #check (Rewriting.fix forall_p)/[b]
+-- #eval (Rewriting.fix forall_p)/[b]
+-- #check Rewriting.shift forall_p
+-- #check Rewriting.shift forall_p_bound_free
+-- #check [forall_p_bound_free]⁺
+-- -- #check Derivation.all Derivation.root [Rewriting.free forall_p_bound_free, [forall_p]⁺]
+-- #check Rewriting.free forall_p_bound_free
+-- #eval Rewriting.free forall_p_bound_free
+-- def thing : Semiformula PH_lang ℕ 1 := Semiformula.rel PH_rel.person ![#1]
+-- #check Rewriting.free (thing)
+-- def PH_theory : Theory PH_lang := {forall_p,forall_h}
 -- def derivation_forall_p_h : Derivation PH_theory [forall_p_h] := by
 --   have der1 : forall_p ∈ PH_theory := by
 --     rw [PH_theory]
