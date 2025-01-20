@@ -148,17 +148,34 @@ Sequent calculus applies to sequents, which are lists of syntactic formulas.
     Let $\mathcal{L}$ be some formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulae. Then, a sequent of $\mathcal{L}$ is a list [\textcolor{red}{?define list as well?}] $[f_1,...,f_n]$, such that $f_1,...,f_n \in W_{\mathcal{L}}$.
 \end{definition}
 
+We will also need the concept of substitution of terms in terms and formulas with a free bound variable.
+
+\begin{definition}[substitution in terms]\label{def:subst-t}
+    Let $\mathcal{T}_0 = B_{\mathcal{L},\mathbb{N},0}$ and $\mathcal{T}_1 = B_{\mathcal{L},\mathbb{N},1}$ be sets of semiformulae. Then, substitution of a term $t_0 \in \mathcal{T}_0$ in a term $t_1 \in \mathcal{T}_1$, denoted $t_1/[t_0]$, is recursively defined as
+    \begin{enumerate}
+        \item ...
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[substituion]\label{def:subst}
+    Let $\mathcal{F} = B_{\mathcal{L},\mathbb{N},1}$ be a set of semiformulae and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},0}$ a set of terms. Then, the substituion of term $t \in \mathcal{T}$ in formula $\varphi \in \mathcal{F}$ is inductively defined as ...
+\end{definition}
+
 \begin{definition}[sequent calculus]\label{def:seq-calc}
     \uses{def:fol,def:sem-t,def:theory,def:syn-t}
     \lean{LO.FirstOrder.Derivation}
     \leanok
-    Let $\mathcal{L} = \langle F,R \rangle$ be some formal language, some $T_{\mathcal{L}}$ an assocaited theory of this language and $\mathcal{T}_{\mathcal{L}}$ $\mathcal{L}$'s set of syntactic formulae. Then, the set of sequents derivable from $T_{\mathcal{L}}$ is inductively defined as the smallest set of sequents $X$ such that
+    Let $\mathcal{L} = \langle F,R \rangle$ be some formal language, some $T_{\mathcal{L}}$ an assocaited theory of this language, $\mathcal{T}_{\mathcal{L}}$ $\mathcal{L}$'s set of syntactic terms and $B_{\mathcal{L},\mathbb{N},1}$ the set of $\mathcal{L}$-formulae with one unbound bound variable. Then, the set of sequents derivable from $T_{\mathcal{L}}$ is inductively defined as the smallest set of sequents $X$ such that
     \begin{enumerate}
-        \item if $[f_1,...,f_n] \in X$ and for some $i \in \mathbb{N}$, $P \in R(i)$ and $a_1,...,a_i \in \mathcal{T}_{\mathcal{L}}$, then $[P(a_1,...,a_n),\neg P(a_1,...,a_n),f_1,...,f_n] \in X$;
+        \item if $[f_1,...,f_n] \in X$ and for some $i \in \mathbb{N}$, $P \in R(i)$ and $a_1,...,a_i \in \mathcal{T}_{\mathcal{L}}$, then \\ $[P(a_1,...,a_n),\neg P(a_1,...,a_n),f_1,...,f_n] \in X$;
         \item if $[f_1,...,f_n] \in X$, then $[\top,f_1,...,f_n] \in X$;
         \item if $[\varphi,\psi,f_1,...,f_n] \in X$, then $[\varphi \lor \psi,f_1,...,f_n] \in X$;
         \item if $[\varphi,f_1,...,f_n] \in X$ and $[\psi,f_1,...,f_n] \in X$, then $[\varphi \land \psi,f_1,...,f_n] \in X$;
-        \item ...
+        \item if $[f_1,...,f_n] \in X$ and $\varphi \in X$, where $\varphi$ has only variables of level 1, then $[\forall \varphi, f_1,...,f_n] \in X$;
+        \item if $[f_1,...,f_n] \in X$ and there is some $t \in \mathcal{T}$ such that $[\varphi /[t],f_1,...,f_n] \in X$, then $[\exists \varphi, f_1,...,f_n] \in X$;
+        \item for $\Delta = [g_1,...,g_k] \in X$ and $\Gamma = [f_1,...,f_n]$ some sequent, if for all $i: 0 \leq i \leq k$ there is some $j: 0 \leq j \leq n$ such that $g_i = f_j$, then $\Gamma \in X$;
+        \item if $[\varphi,f_1,...,f_n] \in X$ and $[\neg \varphi,f_1,...,f_n] \in X$, then $[f_1,...,f_n] \in X$;
+        \item if $\varphi \in T_{\mathcal{L}}$, then $[\varphi] \in X$. 
     \end{enumerate}
 \end{definition}
 
