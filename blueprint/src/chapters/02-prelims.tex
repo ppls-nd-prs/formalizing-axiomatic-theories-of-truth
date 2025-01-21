@@ -82,8 +82,8 @@ We can then work our way up to the level of formulas constructed using our speci
     \leanok
     Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set used for indexing of free variables and $n$ a natural number. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
     \begin{enumerate}
-        \item for every $i$ such that $0 \leq i \leq n$, there is a bound variable $x_i \in A_{\mathcal{L},\xi,n}$,
-        \item if $x \in \xi$, then $x \in A_{\mathcal{L},\xi,n}$ and
+        \item the set of bound variables $BV_n = \{\#i | 0 \leq i \leq n\} \subseteq A_{\mathcal{L},\xi,n}$,
+        \item the set of free variables $FV_\xi = \{\&i | i \in \xi\} \subseteq A_{\mathcal{L},\xi,n}$ and
         \item for all $i \in \mathbb{N}$, if $f \in F(i)$ and $x_1,...,x_i \in A_{\mathcal{L},\xi,n}$, then $f(x_1,...,x_i) \in A_{\mathcal{L},\xi,n}$.
     \end{enumerate}
 \end{definition}
@@ -148,17 +148,29 @@ Sequent calculus applies to sequents, which are lists of syntactic formulas.
     Let $\mathcal{L}$ be some formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulae. Then, a sequent of $\mathcal{L}$ is a list [\textcolor{red}{?define list as well?}] $[f_1,...,f_n]$, such that $f_1,...,f_n \in W_{\mathcal{L}}$.
 \end{definition}
 
-We will also need the concept of substitution of terms in terms and formulas with a free bound variable.
+We will also need the concept of substitution of terms in terms and formulas with a free bound variable. Traditionally, for example in \cite{negri2001}, substitution is inductively defined over terms, then over formulas. For reasons of integration with Lean 4's preset notions of substitution of terms (Lean 4 is after all a logical system in itself), \cite{ffl} has chosen not to have their substitution method defined over terms, but solely over formulas, making use of Lean 4's innate function for terms. As the inner workings of Lean 4 are outside the scope of this project and on the level of formulas substitution works the same with the traditional definitions of subsitution (for De Bruijn notation) as with the definitions used by \cite{ffl}, we will therefore give the traditional definition of substitution in terms, with the exception that it is denotation will not resemble that of substitution of terms in formulae, accentuating the fact that $t_0/[t_1]$, where $t_0$ and $t_1$ are semiterms, is not defined.
 
-\begin{definition}[substitution in terms]\label{def:subst-t}
-    Let $\mathcal{T}_0 = B_{\mathcal{L},\mathbb{N},0}$ and $\mathcal{T}_1 = B_{\mathcal{L},\mathbb{N},1}$ be sets of semiformulae. Then, substitution of a term $t_0 \in \mathcal{T}_0$ in a term $t_1 \in \mathcal{T}_1$, denoted $t_1/[t_0]$, is recursively defined as
+\begin{definition}[substitution in terms]
+    Let $\mathcal{A} = A_{\mathcal{L},\mathbb{N},n}$ and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ be sets of semiterms. Then, the substitution function $\texttt{sub}_t : \mathcal{A} \times \mathcal{T} \to \mathcal{B}$, is recursively defined as
     \begin{enumerate}
-        \item ...
+        \item if $a \in BV_1$, then $\texttt{sub}_t(a,t) = t$,
+        \item if $a \in FV_{\mathbb{N}}$, then $\texttt{sub}_t(a,t) = a$ and
+        \item if $a = f(b_1,...,b_k) \in \mathcal{A}$, then $\texttt{sub}_t(a,t) = f(\texttt{sub}_t(b_1,t),...,\texttt{sub}_t(b_k,t))$. 
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[substituion]\label{def:subst}
-    Let $\mathcal{F} = B_{\mathcal{L},\mathbb{N},1}$ be a set of semiformulae and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},0}$ a set of terms. Then, the substituion of term $t \in \mathcal{T}$ in formula $\varphi \in \mathcal{F}$ is inductively defined as ...
+\begin{definition}[substitution]\label{def:subst}
+    Let $\mathcal{F} = B_{\mathcal{L},\mathbb{N},n}$ be a set of semiformulae and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ a set of terms. Then, the substitution function $sub_f : \mathcal{F} \times \mathcal{T} \to \mathcal{F}$, of terms $\textbf{t} \in \mathcal{T}$, where $\textbf{t} = t_1,...,t_n$, in formula $\varphi \in \mathcal{F}$, denoted $\varphi/[\textbf{t}]$, is inductively defined as
+    \begin{enumerate}
+        \item $\texttt{verum}/[\textbf{t}] = \texttt{verum}$;
+        \item $\texttt{falsum}/[\textbf{t}] = \texttt{falsum}$;
+        \item if $P(a_1,...,a_k) \in \mathcal{F}$, then $P(a_1,...,a_k)/[\textbf{t}] = P(\texttt{sub}_t(a_1,\textbf{t}),...,\texttt{sub}(a_k,\textbf{t}))$;
+        \item if $\neg P(a_1,...,a_k) \in \mathcal{F}$, then $ \neg P(a_1,...,a_k)/[\textbf{t}] = \neg P(\texttt{sub}_t(a_1,\textbf{t}),...,\texttt{sub}_t(a_k,\textbf{t}))$;
+        \item if $\texttt{and}(\varphi_1, \varphi_2) \in \mathcal{F}$, then $\texttt{and}(\varphi_1, \varphi_2)/[\textbf{t}] = \texttt{and}(\varphi_1/[\textbf{t}],\varphi/[t])$;
+        \item if $\texttt{or}(\varphi_1, \varphi_2) \in \mathcal{F}$, then $\texttt{or}(\varphi_1, \varphi_2)/[\textbf{t}] = \texttt{or}(\varphi_1/[\textbf{t}],\varphi/[\textbf{t}])$;
+        \item if $\texttt{all}(\varphi) \in \mathcal{F}$, then $\texttt{all}(\varphi)/[\textbf{t}] = \texttt{all}(\varphi/[\textbf{t}])$ and
+        \item if $\texttt{ex}(\varphi)\in \mathcal{F}$, then $\texttt{ex}(\varphi)/[\textbf{t}] = \texttt{ex}(\varphi/[\textbf{t}])$.
+    \end{enumerate}
 \end{definition}
 
 \begin{definition}[sequent calculus]\label{def:seq-calc}
