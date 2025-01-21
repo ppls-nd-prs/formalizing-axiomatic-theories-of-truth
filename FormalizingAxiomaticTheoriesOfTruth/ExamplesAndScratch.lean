@@ -94,11 +94,11 @@ def f1 : Semiformula LPA ℕ 2 := Semiformula.rel LPA_Rel.eq
 def tk0 : Semiterm LPA ℕ 2 := &0
 def tk1 : Semiterm LPA ℕ 2 := &1
 def tl : Semiterm LPA ℕ 1 := #0
-def f2 : Semiformula LPA ℕ 2 := Semiformula.rel LPA_Rel.eq ![tk,tk]
+-- def f2 : Semiformula LPA ℕ 2 := Semiformula.rel LPA_Rel.eq ![tk,tk]
 
 -- can you subsitute in semiformulas with a number of free
 -- bound variables different than 1? Answer: no (see below)
 def f3 : Semiformula LPA ℕ 2 :=
   Semiformula.rel LPA_Rel.eq ![#0,#1]
-#eval f3/[tk0,tk1] 
-#check f3/[tk0,tk1]  
+#eval f3/[tk0,tk1]
+#check f3/[tk0,tk1]
