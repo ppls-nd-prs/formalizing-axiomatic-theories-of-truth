@@ -80,8 +80,25 @@ def derivation : PA ⊢ instance_first_PA_ax := by
 
 
 def t2 : Semiterm LPA ℕ 1 := Semiterm.func LPA_Func.zero ![]
+def t3 : Semiterm LPA ℕ 1 := #0
 def f1 : Semiformula LPA ℕ 2 := Semiformula.rel LPA_Rel.eq
 ![#0, #1]
+-- def t4 : Semiterm LPA ℕ 1 := Semiterm.func LPA_Func.add ![t2,t3]
 #eval f1
-#eval ∃'(∀' f1) -- TODO: search for relation with theoretical level
-#eval (∀' f1)/[LPA_numeral 2]
+#eval (∀' f1) -- TODO: search for relation with theoretical level
+#eval (∀' f1)/[t3]
+-- #eval t4/[LPA_numeral 2]
+
+-- can you construct a semiformula from semiterms with a
+-- different numbers of free bound variables? Answer: no (see below)
+def tk0 : Semiterm LPA ℕ 2 := &0
+def tk1 : Semiterm LPA ℕ 2 := &1
+def tl : Semiterm LPA ℕ 1 := #0
+def f2 : Semiformula LPA ℕ 2 := Semiformula.rel LPA_Rel.eq ![tk,tk]
+
+-- can you subsitute in semiformulas with a number of free
+-- bound variables different than 1? Answer: no (see below)
+def f3 : Semiformula LPA ℕ 2 :=
+  Semiformula.rel LPA_Rel.eq ![#0,#1]
+#eval f3/[tk0,tk1] 
+#check f3/[tk0,tk1]  
