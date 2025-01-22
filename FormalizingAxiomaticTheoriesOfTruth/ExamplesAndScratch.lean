@@ -99,6 +99,14 @@ def tl : Semiterm LPA ℕ 1 := #0
 -- can you subsitute in semiformulas with a number of free
 -- bound variables different than 1? Answer: no (see below)
 def f3 : Semiformula LPA ℕ 2 :=
-  Semiformula.rel LPA_Rel.eq ![#0,#1]
+  ∀' .rel .eq ![#0,&1]
 #eval f3/[tk0,tk1]
 #check f3/[tk0,tk1]
+
+#eval f3
+#eval (Rewriting.free f3)
+#eval ∀' f3 -- d.b. : ∀=(2,0)
+#eval ∀' ∀' f3
+-- Note: the i-th bound variable is bound by the i-th quantifier that
+-- is added to the left of the expression (see notebook 22/1/'25 for
+-- notational details)
