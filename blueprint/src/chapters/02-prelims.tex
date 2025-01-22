@@ -74,21 +74,39 @@ Note that this defines a language as consisting only of functions and relations,
     \end{enumerate}
 \end{definition}
 
-We can then work our way up to the level of formulas constructed using our specified languages. First we then need the definition of a term. We make use of the definitions provided by \cite{ffl}. To ensure that type-correctness is equivalent to well-formedness they make use of \textit{partially applied} terms and formulas, called semi-terms and semi-formulas, that have a parameter $\mathbb{N}$ measuring the difference between the arity and numbers of applications. What constitutes those sets of semi-terms and -formulas is dependent on the provided language, the set used for indexing of free variables and the number of bound variables.
+We can then work our way up to the level of formulas constructed using our specified languages. As \cite{ffl} want to be able to make a distinction between sentences, i.e. formulas without free variables, and non-sentences, i.e. formulas containing free variables, their formalization of formulas features a disinction between bound and free variables, something which is not present in traditional de Bruijn syntax: there free variables are just those that are indexed by a number higher than the amount of quantifiers ($-1$ as Lean 4 is 0-based). For example in the de Bruijn formula 
+\begin{equation}
+\forall P(0,1),
+\label{eq:db}
+\end{equation}
+the variable indexed by 1 is a free variable, while the variable indexed by 0 is bound by the universal quantifier. In \cite{ffl}'s notation, however, this formula would be coded as
+\begin{equation}
+\forall P(\#0,\&0),
+\label{eq:ffl}
+\end{equation}
+where \& indicates the index following it indexes a free variables and \# indicates the index following it indexes a bound variable. Hence the universal quantifier binds \#0 and not \&0, corresponding to the meaning of expression \ref{eq:db}.
+
+Another consequence of this distinction is that we need an effective method to ensure all variables that were intended as bound variables are indeed bound by some quantifier. To ensure that is the case \cite{ffl}'s authors make use of \textit{partially applied} formulas, called semi-formulas, that have a parameter $n \in \mathbb{N}$ measuring the difference between the intended and present number of quantifiers. As a result, $n$ also indicates the number of distinct bound variables the semi-formula may contain that do not yet have a corresponding quantifier. The idea is that these $n$ quantifiers will still be added. 
+
+Pried loose from the ordered nature of indexing that only bound variable match-up with quantifiers requires it is now also possible, for abstraction purposes, to have the free variables indexed by an aribitrary set rather than an ordered one. Nevertheless, for most purposes using $\mathbb{N}$ for free variable indexing is convenient.
+
+
+% Now, assuming expression \ref{eq:ffl} is a well-formed formula, we should, by the above concept of \textit{partially applied formulas}, have that its sub-formula $\varphi = P(\#0,\&0)$ has a parameter $n = 1$ specifying one quantifier should be added to $\varphi$ to obtain a well-formed formula. As will become apparent from Definition \ref{def:sem-t} and Definition \ref{def:sem-f}.3 this is exactly why $P(\#0,\&0)$ can contain \#0 as a term in the first place: Definition \ref{def:sem-f}.3 and Definition \ref{def:sem-f}.4 state that semiformulas of the set with $n = k$ can only contains semiterms from the set of semiterms with $n = k$ and sets of semi-terms with parameter $n$ can only contain bound variables $\#i$ with $i < n$. Together with Definitions \ref{def:sem-f}.7 and \ref{def:sem-f}.8 this assures that in formulas in the set of semiformulas with $n = 0$ all bound variables are bound.
+%  then assure that whenever a quantifier $Q$ is placed in front of a formula $\psi$ from the set of semiformulas with parameter $n = k$ the resulting formula $Q \psi$ is a member of the set of semiformulas with parameter $n = k - 1$. So the only way to obtain a semiformula in the set with $n = k - 1$ is to either (i) place a quantifier in front of a semiformula from the set with $n = k$, all of which only require $k$ extra quantifiers before the formula is well-formed or (ii) construct a semiformula that only contains bound variables that require $k - 1$ quantifiers before the formula to make it well-formed. Hence, a semiformula from the set with $n = 0$ can be obtained by either (i) placing a quantifier in front of a semiformula from the set of semiformulas that only need $n = 1$ extra quantifier to make them well-formed or (ii) by constructing a semiformula that only contains bound variables that require $0 - 1 \in \mathbb{N}$, i.e. no, quantifiers to make it well-formed. This guarantees that all formulas in the set of semiformulas with $n = 0$ are well-formed.
 
 \begin{definition}[semi-term]\label{def:sem-t}
     \uses{def:fol}
     \lean{LO.FirstOrder.Semiterm}
     \leanok
-    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set used for indexing of free variables and $n$ a natural number. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
+    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set used for indexing of free variables and $n \in \mathbb{N}$ an intended number of quantifiers. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
     \begin{enumerate}
-        \item the set of bound variables $BV_n = \{\#i | 0 \leq i \leq n\} \subseteq A_{\mathcal{L},\xi,n}$,
+        \item the set of bound variables $BV_n = \{\#i | 0 \leq i < n\} \subseteq A_{\mathcal{L},\xi,n}$,
         \item the set of free variables $FV_\xi = \{\&i | i \in \xi\} \subseteq A_{\mathcal{L},\xi,n}$ and
         \item for all $i \in \mathbb{N}$, if $f \in F(i)$ and $x_1,...,x_i \in A_{\mathcal{L},\xi,n}$, then $f(x_1,...,x_i) \in A_{\mathcal{L},\xi,n}$.
     \end{enumerate}
 \end{definition}
 
-Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb{N}$, as we are using de Bruijn indexing to index our free variables, and $n = 0$, as syntactic terms do not contain bound variables.
+Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb{N}$, as we are using de Bruijn indexing to index our free variables, and $n = 0$, as syntactic terms are not bound variables.
 
 \begin{definition}[syntactic term]\label{def:syn-t}
     \uses{def:fol, def:sem-t}
@@ -103,7 +121,7 @@ Using the concept of semi-terms we then define semi-formulas, from which we can 
     \uses{def:fol,def:sem-t}
     \lean{LO.FirstOrder.Semiformula}
     \leanok
-    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set of free variables, $n$ a natural number and $A_{\mathcal{L},\xi,n}$ the associated set of semi-terms. Then, the set of semi-formulas $B_{\mathcal{L},\xi,n}$ is the smallest set such that 
+    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set used for indexing of free variables, $n \in \mathbb{N}$ an intended number of quantifiers and $A_{\mathcal{L},\xi,n}$ the associated set of semi-terms. Then, the set of semi-formulas $B_{\mathcal{L},\xi,n}$ is the smallest set such that 
     \begin{enumerate}
         \item $\texttt{verum} \in B_{\mathcal{L},\xi,n}$,
         \item $\texttt{falsum} \in B_{\mathcal{L},\xi,n}$,
@@ -126,11 +144,12 @@ Using the concept of semi-terms we then define semi-formulas, from which we can 
 \section{Proof Theory}
 Once we have a formal language and specification of its formulas, we can define a proof system. Proof systems require three elements:
 \begin{enumerate}
-    \item a formal language
+    \item a formal language,
     \item a set of formulas in the language that function as axioms and
     \item a set of rules for deriving formulas from other formulas.
 \end{enumerate}    
-We will here define proof systems for $\texttt{PA}$ and $\texttt{PAT}$. To that end we will have to formulate the axioms of these theories and our set of derivation rules. We can use \cite{ffl}'s derivation rules that are based on sequent calculus. Furthermore, in \cite{ffl} theories are indexed by their defining axioms, so constructing a theory is equivalent to specifying its defining axioms.
+
+We will here define proof systems for $\texttt{PA}$ and $\texttt{PAT}$. To that end we will need these theories' axioms and derivation rules for first-order languages. In \cite{ffl} theories are indexed by their defining axioms, so constructing a theory is equivalent to specifying its defining axioms. 
 
 \begin{definition}[theory]\label{def:theory}
     \uses{def:fol,def:syn-f}
@@ -139,28 +158,25 @@ We will here define proof systems for $\texttt{PA}$ and $\texttt{PAT}$. To that 
     Let $\mathcal{L}$ be a formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulas. Then, a theory $T_{\mathcal{L}}$ of $\mathcal{L}$ is a set of syntactic formulas $X$ such that $X \subset W_{\mathcal{L}}$.
 \end{definition}
 
-Sequent calculus applies to sequents, which are lists of syntactic formulas.
+Furthermore, we can use \cite{ffl}'s derivation rules that are based on tait calculus (see for example \cite{lee2007}). These rules depend on the concept of substitution of terms in terms and formulas with free bound variables. Traditionally, for example in \cite{negri2001}, substitution is inductively defined over terms, then over formulas. For reasons of integration with Lean 4's preset notions of substitution of terms (Lean 4 is after all a logical system in itself), \cite{ffl} has chosen to not define their substitution methods themselves but rely on Lean 4's innate function for substitution. As the inner workings of Lean 4 are outside the scope of this project and characterizations using the traditional accounts of these operations can be given that function equivalently on the current level of term and formula substitution we will give the traditional definitions of substitution, with the exception that the denotation of term substitution will not resemble that of substitution of terms in formulae, accentuating the fact that $t_0/[t_1]$, where $t_0$ and $t_1$ are semiterms, is not defined in Lean 4.
 
-\begin{definition}[sequent]\label{def:seq}
-    \uses{def:fol,def:syn-f}
-    \lean{LO.FirstOrder.Sequent}
+\begin{definition}[substitution in terms]\label{def:sub-t}
+    \uses{def:sem-t}
     \leanok
-    Let $\mathcal{L}$ be some formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulae. Then, a sequent of $\mathcal{L}$ is a list [\textcolor{red}{?define list as well?}] $[f_1,...,f_n]$, such that $f_1,...,f_n \in W_{\mathcal{L}}$.
-\end{definition}
-
-We will also need the concept of substitution of terms in terms and formulas with a free bound variable. Traditionally, for example in \cite{negri2001}, substitution is inductively defined over terms, then over formulas. For reasons of integration with Lean 4's preset notions of substitution of terms (Lean 4 is after all a logical system in itself), \cite{ffl} has chosen not to have their substitution method defined over terms, but solely over formulas, making use of Lean 4's innate function for terms. As the inner workings of Lean 4 are outside the scope of this project and on the level of formulas substitution works the same with the traditional definitions of subsitution (for De Bruijn notation) as with the definitions used by \cite{ffl}, we will therefore give the traditional definition of substitution in terms, with the exception that it is denotation will not resemble that of substitution of terms in formulae, accentuating the fact that $t_0/[t_1]$, where $t_0$ and $t_1$ are semiterms, is not defined.
-
-\begin{definition}[substitution in terms]
-    Let $\mathcal{A} = A_{\mathcal{L},\mathbb{N},n}$ and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ be sets of semiterms. Then, the substitution function $\texttt{sub}_t : \mathcal{A} \times \mathcal{T} \to \mathcal{B}$, is recursively defined as
+    Let $\mathcal{A} = A_{\mathcal{L},\mathbb{N},n}$ and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ be sets of semiterms. Then, the substitution function $\texttt{sub}_t : \mathcal{A} \times \mathcal{T}^n \to \mathcal{A}$, where $\textbf{t}$ denotes $(t_1,...,t_n)$ is recursively defined as
     \begin{enumerate}
-        \item if $a \in BV_1$, then $\texttt{sub}_t(a,t) = t$,
-        \item if $a \in FV_{\mathbb{N}}$, then $\texttt{sub}_t(a,t) = a$ and
-        \item if $a = f(b_1,...,b_k) \in \mathcal{A}$, then $\texttt{sub}_t(a,t) = f(\texttt{sub}_t(b_1,t),...,\texttt{sub}_t(b_k,t))$. 
+        \item if $a = \#i \in BV_n$, then $\texttt{sub}_t(a,\textbf{t}) = t_i$,
+        \item if $a \in FV_{\mathbb{N}}$, then $\texttt{sub}_t(a,\textbf{t}) = a$ and
+        \item if $a = f(b_1,...,b_k) \in \mathcal{A}$, then $\texttt{sub}_t(a,\textbf{t}) = f(\texttt{sub}_t(b_1,\textbf{t}),...,\texttt{sub}_t(b_k,\textbf{t}))$. 
     \end{enumerate}
 \end{definition}
 
+With this concept we can then define the concept of substitution in formulas.
+
 \begin{definition}[substitution]\label{def:subst}
-    Let $\mathcal{F} = B_{\mathcal{L},\mathbb{N},n}$ be a set of semiformulae and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ a set of terms. Then, the substitution function $sub_f : \mathcal{F} \times \mathcal{T} \to \mathcal{F}$, of terms $\textbf{t} \in \mathcal{T}$, where $\textbf{t} = t_1,...,t_n$, in formula $\varphi \in \mathcal{F}$, denoted $\varphi/[\textbf{t}]$, is inductively defined as
+    \uses{def:sem-t,def:sem-f,def:sub-t}
+    \leanok
+    Let $\mathcal{F} = B_{\mathcal{L},\mathbb{N},n}$ be a set of semiformulae and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ a set of terms. Then, the substitution function $\texttt{sub}_f : \mathcal{F} \times \mathcal{T}^{n} \to \mathcal{F}$, of terms $\textbf{t} \in \mathcal{T}$, where $\textbf{t} = (t_1,...,t_n)$, in formula $\varphi \in \mathcal{F}$, denoted $\varphi/[\textbf{t}]$, is inductively defined as
     \begin{enumerate}
         \item $\texttt{verum}/[\textbf{t}] = \texttt{verum}$;
         \item $\texttt{falsum}/[\textbf{t}] = \texttt{falsum}$;
@@ -173,23 +189,36 @@ We will also need the concept of substitution of terms in terms and formulas wit
     \end{enumerate}
 \end{definition}
 
+As our derivation rules are over sequents, below we define the concept of a sequent.
+
+\begin{definition}[sequent]\label{def:seq}
+    \uses{def:fol,def:syn-f}
+    \lean{LO.FirstOrder.Sequent}
+    \leanok
+    Let $\mathcal{L}$ be some formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulae. Then, a sequent of $\mathcal{L}$ is a tuple $(f_1,...,f_n) \in W_{\mathcal{L}}^n$, where $n \in \mathbb{N}$.
+\end{definition}
+
+Now we have everything in place to define sequent calculus.
+
 \begin{definition}[sequent calculus]\label{def:seq-calc}
     \uses{def:fol,def:sem-t,def:theory,def:syn-t}
     \lean{LO.FirstOrder.Derivation}
     \leanok
-    Let $\mathcal{L} = \langle F,R \rangle$ be some formal language, some $T_{\mathcal{L}}$ an assocaited theory of this language, $\mathcal{T}_{\mathcal{L}}$ $\mathcal{L}$'s set of syntactic terms and $B_{\mathcal{L},\mathbb{N},1}$ the set of $\mathcal{L}$-formulae with one unbound bound variable. Then, the set of sequents derivable from $T_{\mathcal{L}}$ is inductively defined as the smallest set of sequents $X$ such that
+    Let $\mathcal{L} = \langle F,R \rangle$ be some formal language, some $T_{\mathcal{L}}$ an associated theory of this language. Then, the set of sequents derivable from $T_{\mathcal{L}}$ is inductively defined as the smallest set of sequents $X$ such that
     \begin{enumerate}
-        \item if $[f_1,...,f_n] \in X$ and for some $i \in \mathbb{N}$, $P \in R(i)$ and $a_1,...,a_i \in \mathcal{T}_{\mathcal{L}}$, then \\ $[P(a_1,...,a_n),\neg P(a_1,...,a_n),f_1,...,f_n] \in X$;
-        \item if $[f_1,...,f_n] \in X$, then $[\top,f_1,...,f_n] \in X$;
-        \item if $[\varphi,\psi,f_1,...,f_n] \in X$, then $[\varphi \lor \psi,f_1,...,f_n] \in X$;
-        \item if $[\varphi,f_1,...,f_n] \in X$ and $[\psi,f_1,...,f_n] \in X$, then $[\varphi \land \psi,f_1,...,f_n] \in X$;
-        \item if $[f_1,...,f_n] \in X$ and $\varphi \in X$, where $\varphi$ has only variables of level 1, then $[\forall \varphi, f_1,...,f_n] \in X$;
-        \item if $[f_1,...,f_n] \in X$ and there is some $t \in \mathcal{T}$ such that $[\varphi /[t],f_1,...,f_n] \in X$, then $[\exists \varphi, f_1,...,f_n] \in X$;
-        \item for $\Delta = [g_1,...,g_k] \in X$ and $\Gamma = [f_1,...,f_n]$ some sequent, if for all $i: 0 \leq i \leq k$ there is some $j: 0 \leq j \leq n$ such that $g_i = f_j$, then $\Gamma \in X$;
-        \item if $[\varphi,f_1,...,f_n] \in X$ and $[\neg \varphi,f_1,...,f_n] \in X$, then $[f_1,...,f_n] \in X$;
-        \item if $\varphi \in T_{\mathcal{L}}$, then $[\varphi] \in X$. 
+        \item if $(f_1,...,f_n) \in X$ and for some $i \in \mathbb{N}$, $P \in R(i)$ and $a_1,...,a_i \in \mathcal{T}_{\mathcal{L}}$, then \\ $(P(a_1...a_n),\neg P(a_1,...,a_n),f_1,...,f_n) \in X$;
+        \item if $(f_1,...,f_n) \in X$, then $(\top,f_1,...,f_n) \in X$;
+        \item if $(\varphi,\psi,f_1,...,f_n) \in X$, then $(\varphi \lor \psi,f_1,...,f_n) \in X$;
+        \item if $(\varphi,f_1,...,f_n) \in X$ and $(\psi,f_1,...,f_n) \in X$, then $(\varphi \land \psi,f_1,...,f_n) \in X$;
+        \item if $(\varphi,f_1,...,f_n) \in X$, then $(\forall \varphi, f_1,...,f_n) \in X$;
+        \item if $(f_1,...,f_n) \in X$ and there is some $t \in \mathcal{T}$ such that $(\varphi /[t],f_1,...,f_n) \in X$, then $(\exists \varphi, f_1,...,f_n) \in X$;
+        \item for $\Delta = (g_1,...,g_k) \in X$ and $\Gamma = (f_1,...,f_n)$ some sequent, if for all $i: 0 \leq i \leq k$ there is some $j: 0 \leq j \leq n$ such that $g_i = f_j$, then $\Gamma \in X$;
+        \item if $(\varphi,f_1,...,f_n) \in X$ and $(\neg \varphi,f_1,...,f_n) \in X$, then $(f_1,...,f_n) \in X$;
+        \item if $\varphi \in T_{\mathcal{L}}$, then $(\varphi) \in X$. 
     \end{enumerate}
 \end{definition}
+
+Intuitively, we can think of all distinct formulas comprising our sequents as disjuncts of one big disjunction thereby making one sequent a big disjunction \cite{lee2007}. The derivation rules ensure that only disjuncts can be derived where truth is preserved.
 
 % \begin{definition}[primitive term]%\label{def:primitive-term}
 %     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
