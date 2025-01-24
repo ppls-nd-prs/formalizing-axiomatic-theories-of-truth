@@ -45,8 +45,19 @@ def LTr_f1 : SyntacticFormula LTr := Semiformula.rel LTr_Rel.tr ![LTr_numeral 2]
 -- SCRATCH WORK FROM HERE ON OUT
 -- Goal: have ¬=(S(S(S(0))),0) from PA axiom 1.
 def first_PA_ax : Semiformula LPA ℕ 0 :=
-  Semiformula.all (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
-  ![#0],Semiterm.func LPA_Func.zero ![]])
+  .all (.nrel .eq ![.func .succ
+  ![#0],.func .zero ![]])
+def second_PA_ax : Semiformula LPA ℕ 0 :=
+  .all
+    (.all
+      (.or
+        (.nrel LPA_Rel.eq
+          ![(.func LPA_Func.succ ![#1]),(.func .succ ![#0])])
+        (.rel LPA_Rel.eq
+          ![#1,#0])
+      )
+    )
+#eval second_PA_ax
 def first_PA_ax_b_free : Semiformula LPA ℕ 1 :=
   (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
   ![#0],Semiterm.func LPA_Func.zero ![]])
@@ -62,7 +73,7 @@ def finset1 : Finset ℕ := {1,2,3}
 
 def PA : Theory LPA := {first_PA_ax}
 
-def derivation : PA ⊢ instance_first_PA_ax := by
+example : PA ⊢ instance_first_PA_ax := by
   have h0 : PA ⟹. instance_first_PA_ax := by
     have h1 : PA ⟹ [first_PA_ax] := by
       have h10 : first_PA_ax ∈ PA := by
@@ -103,10 +114,18 @@ def f3 : Semiformula LPA ℕ 2 :=
 #eval f3/[tk0,tk1]
 #check f3/[tk0,tk1]
 
+-- variable [(k : ℕ) → Encodable (LPA.Func k)]
+
+
+
 #eval f3
 #eval (Rewriting.free f3)
 #eval ∀' f3 -- d.b. : ∀=(2,0)
 #eval ∀' ∀' f3
+
+-- def thing : ℕ := Semiformula.toNat (f3)
+-- def thing2 : Semiformula LPA ℕ 0 := Semiformula.ofNat thing
+-- #eval Semiformula.ofNat (Semiformula.toNat (f3))
 -- Note: the i-th bound variable is bound by the i-th quantifier that
 -- is added to the left of the expression (see notebook 22/1/'25 for
 -- notational details)
