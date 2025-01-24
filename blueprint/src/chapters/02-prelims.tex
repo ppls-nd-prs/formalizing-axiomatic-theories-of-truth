@@ -74,7 +74,7 @@ Note that this defines a language as consisting only of functions and relations,
     \end{enumerate}
 \end{definition}
 
-We can then work our way up to the level of formulas constructed using our specified languages. As \cite{ffl} want to be able to make a distinction between sentences, i.e. formulas without free variables, and non-sentences, i.e. formulas containing free variables, their formalization of formulas features a disinction between bound and free variables, something which is not present in traditional de Bruijn syntax: there free variables are just those that are indexed by a number higher than the amount of quantifiers ($-1$ as Lean 4 is 0-based). For example in the de Bruijn formula 
+We can then work our way up to the level of formulas constructed using our specified languages. As \cite{ffl} want to be able to make a distinction between sentences, i.e. formulas without free variables, and non-sentences, i.e. formulas containing free variables, their formalization of formulas features a distinction between bound and free variables, something which is not present in traditional de Bruijn syntax, where free variables are just those that are indexed by a number higher than the amount of quantifiers ($-1$ as Lean 4 is 0-based). For example in the de-Bruijn style formula 
 \begin{equation}
 \forall P(0,1),
 \label{eq:db}
@@ -201,7 +201,7 @@ As our derivation rules are over sequents, below we define the concept of a sequ
 Now we have everything in place to define sequent calculus.
 
 \begin{definition}[sequent calculus]\label{def:seq-calc}
-    \uses{def:fol,def:sem-t,def:theory,def:syn-t}
+    \uses{def:fol,def:sem-t,def:theory,def:syn-t,def:subst,def:seq}
     \lean{LO.FirstOrder.Derivation}
     \leanok
     Let $\mathcal{L} = \langle F,R \rangle$ be some formal language, some $T_{\mathcal{L}}$ an associated theory of this language. Then, the set of sequents derivable from $T_{\mathcal{L}}$ is inductively defined as the smallest set of sequents $X$ such that
