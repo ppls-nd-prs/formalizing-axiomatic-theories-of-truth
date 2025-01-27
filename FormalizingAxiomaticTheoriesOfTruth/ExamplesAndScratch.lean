@@ -42,6 +42,32 @@ def LTr_f1 : SyntacticFormula LTr := Semiformula.rel LTr_Rel.tr ![LTr_numeral 2]
 #eval LTr_f1
 #eval PA_f1
 
+/-
+A to and fro coding of an LPA and LTr formula.
+Firstly, a coding for the function and relations symbols
+must be defined (see Basic.lean).
+Then we can code a given formula
+-/
+def code_PA_eq_null : ℕ := PA_eq_null.toNat
+def code_LTr_f1 : ℕ := LTr_f1.toNat
+#eval code_PA_eq_null
+#eval code_LTr_f1
+
+/-
+Next we can decode these codes, but since the decoding is
+a partial function from ℕ to Semiformula L ξ n, we need
+a default formula that answers to all ℕ's that do not
+map to any formula in the intended language.
+-/
+def default_LPA : Semiformula LPA ℕ 0 := ⊥
+def default_LTr : Semiformula LTr ℕ 0 := ⊥
+def decoded_code_PA_eq_null : Semiformula LPA ℕ 0 :=
+  (Semiformula.ofNat 0 code_PA_eq_null).getD default_LPA
+def decoded_code_LTr_f1 : Semiformula LTr ℕ 0 :=
+  (Semiformula.ofNat 0 code_LTr_f1).getD default_LTr
+#eval decoded_code_PA_eq_null
+#eval decoded_code_LTr_f1
+
 -- SCRATCH WORK FROM HERE ON OUT
 -- Goal: have ¬=(S(S(S(0))),0) from PA axiom 1.
 def first_PA_ax : Semiformula LPA ℕ 0 :=
@@ -122,6 +148,14 @@ def f3 : Semiformula LPA ℕ 2 :=
 #eval (Rewriting.free f3)
 #eval ∀' f3 -- d.b. : ∀=(2,0)
 #eval ∀' ∀' f3
+#check Semiformula.toNat (∀' ∀' f3)
+#eval Semiformula.toNat (∀' ∀' f3)
+#check Semiformula.ofNat (23460333233568182948710079090855127361868625011856248581350574429543027046250562210549328935436759433571486259413131829967353055270420113831862126666494661623578231846968) 0
+universe u
+
+def thing4 : Semiformula LPA ℕ 0 :=
+  (Semiformula.ofNat 0 23460333233568182948710079090855127361868625011856248581350574429543027046250562210549328935436759433571486259413131829967353055270420113831862126666494661623578231846968).getD PA_f3
+#eval thing4
 
 -- def thing : ℕ := Semiformula.toNat (f3)
 -- def thing2 : Semiformula LPA ℕ 0 := Semiformula.ofNat thing
