@@ -172,6 +172,7 @@ what it is defined as being equal to, i.e. {first_PA_axiom}.
 * This proof seems unnecessarily lengthy; that might be solved
 by starting out with the real things.
 * Rewriting parts of the equation can be done with congrArg (see above).
+* Some under the hood weirdness is happening with "_auxLemma.nn" terms.
 -/
 
 #print provable_instance
