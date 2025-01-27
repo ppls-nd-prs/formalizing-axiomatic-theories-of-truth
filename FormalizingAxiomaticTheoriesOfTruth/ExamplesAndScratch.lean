@@ -99,21 +99,99 @@ def finset1 : Finset ℕ := {1,2,3}
 
 def PA : Theory LPA := {first_PA_ax}
 
-example : PA ⊢ instance_first_PA_ax := by
-  have h0 : PA ⟹. instance_first_PA_ax := by
-    have h1 : PA ⟹ [first_PA_ax] := by
-      have h10 : first_PA_ax ∈ PA := by
-        rw [PA]
-        simp
-      apply Derivation.root at h10
-      exact h10
-    apply Derivation.specialize (LPA_numeral 2) at h1
+def provable_instance : PA ⊢ instance_first_PA_ax := by
+  have step1 : first_PA_ax ∈ PA := by
+    rw [PA]
+    simp
+  have step2 : PA ⟹ [first_PA_ax] := by
+    apply Derivation.root at step1
+    exact step1
+  have step3 : PA ⟹. instance_first_PA_ax := by
+    apply Derivation.specialize (LPA_numeral 2) at step2
     rw[instance_first_PA_ax]
-    simp at h1
+    simp at step2
     rw[LPA_numeral,LPA_null]
-    exact h1
+    exact step2
   apply Derivation.provableOfDerivable
-  exact h0
+  exact step3
+
+def step01 : Eq PA {first_PA_ax} :=
+  Eq.refl PA
+#check first_PA_ax ∈ PA
+#check Eq.refl PA
+#print PA.eq_1
+#check Eq.refl first_PA_ax
+#check Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax)
+#check Eq.mpr (id (congrArg (fun _a ↦ first_PA_ax ∈ _a) PA.eq_1)) (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax))
+
+def step1 : first_PA_ax ∈ PA :=
+  Eq.mpr ((congrArg (fun _a ↦ first_PA_ax ∈ _a) PA.eq_1))
+  (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax))
+def step2 : PA ⟹ [first_PA_ax] :=
+  Derivation.root step1
+def step3 : (PA ⟹. instance_first_PA_ax) =
+            (PA ⟹. .nrel .eq ![LPA_numeral 3, LPA_null]) :=
+  (congrArg (fun _a ↦ PA ⟹. _a) instance_first_PA_ax.eq_1)
+def step4 : (PA ⟹. .nrel .eq ![LPA_numeral 3, LPA_null]) =
+  (PA ⟹. .nrel .eq ![.func .succ ![LPA_numeral 2], LPA_null]) :=
+(congrArg (fun _a ↦ PA ⟹. .nrel .eq ![_a, LPA_null]) (LPA_numeral.eq_2 2))
+def step5 : (PA ⟹.
+    .nrel .eq ![.func .succ ![LPA_numeral 2], LPA_null]) =
+  (PA ⟹.
+    .nrel LPA_Rel.eq ![.func .succ ![LPA_numeral 2], .func .zero ![]]) :=
+id
+  (congrArg (fun _a ↦ PA ⟹. Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![LPA_numeral 2], _a])
+    LPA_null.eq_1)
+def step6 : (PA ⟹
+    [(Rewriting.app (Rew.substs ![LPA_numeral 2]))
+        (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![]])]) =
+  (PA ⟹
+    [Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![LPA_numeral 2], Semiterm.func LPA_Func.zero ![]]]) :=
+congrArg (fun x ↦ PA ⟹ [x])
+  (Eq.trans (Semiformula.rew_nrel2 (Rew.substs ![LPA_numeral 2]))
+    (congrArg (Semiformula.nrel LPA_Rel.eq)
+      (congr
+        (congrArg Matrix.vecCons
+          (Eq.trans (Rew.func1 (Rew.substs ![LPA_numeral 2]) LPA_Func.succ #0)
+            (congrArg (fun x ↦ Semiterm.func LPA_Func.succ ![x])
+              (Eq.trans (Rew.substs_bvar ![LPA_numeral 2] 0) (Matrix.cons_val_fin_one (LPA_numeral 2) ![] 0)))))
+        (congrArg (fun x ↦ ![x]) (Rew.func0 (Rew.substs ![LPA_numeral 2]) LPA_Func.zero ![])))))
+def step7 : PA ⟹. Semiformula.nrel LPA_Rel.eq ![LPA_numeral 3, LPA_null] :=
+  step3.mpr
+    (step4.mpr
+      (step5.mpr (step6.mp (Derivation.specialize (LPA_numeral 2) step2))))
+def provable_instance_3 : PA ⊢ instance_first_PA_ax :=
+  Derivation.provableOfDerivable step7
+
+example : Semiformula.rel LPA_Rel.eq ![LPA_null,LPA_null] = Semiformula.rel LPA_Rel.eq ![Semiterm.func LPA_Func.zero ![],LPA_null] :=
+  congrArg (fun _a => Semiformula.rel LPA_Rel.eq ![LPA_null, LPA_null]) (LPA_null.eq_1)
+
+/- NOTES:
+* PA.eq_1 produces the proposition that PA is equal to
+what it is defined as being equal to, i.e. {first_PA_axiom}.
+* This proof seems unnecessarily lengthy; that might be solved
+by starting out with the real things.
+* Rewriting parts of the equation can be done with congrArg (see above).
+-/
+
+#print provable_instance
+
+
+def provable_instance_2 : PA ⊢ instance_first_PA_ax :=
+let_fun step1 := provable_instance.proof_2;
+let_fun step2 := Derivation.root step1;
+let_fun step3 :=
+  provable_instance.proof_3.mpr
+    (provable_instance.proof_4.mpr
+      (provable_instance.proof_5.mpr (provable_instance.proof_6.mp (Derivation.specialize (LPA_numeral 2) step2))));
+Derivation.provableOfDerivable step3
+
+
+/-
+∀ {α : Type} {a b : α}, (a ∈ {b}) = (a = b)
+-/
+
+#print provable_instance.proof_3
 
 
 def t2 : Semiterm LPA ℕ 1 := Semiterm.func LPA_Func.zero ![]
