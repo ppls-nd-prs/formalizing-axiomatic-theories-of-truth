@@ -1,5 +1,6 @@
 import Foundation.Logic.Predicate.Language
 import FormalizingAxiomaticTheoriesOfTruth.Basic
+import Mathlib.Lean.Meta
 
 
 
@@ -115,6 +116,36 @@ def provable_instance : PA ⊢ instance_first_PA_ax := by
   apply Derivation.provableOfDerivable
   exact step3
 
+#eval (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![]])/[LPA_numeral 2]
+
+open Semiterm
+
+example : (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![]])/[LPA_numeral 2] = (Rew.substs ![LPA_numeral 2]) ▹ (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![] ]) :=
+  Eq.refl ((Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![]])/[LPA_numeral 2])
+
+example : (Rew.substs ![LPA_numeral 2]) ▹ (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![] ]) = Rewriting.app (Rew.substs ![LPA_numeral 2]) (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![] ]):=
+  Eq.refl ((Rew.substs ![LPA_numeral 2]) ▹ (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![] ]))
+
+example : Rewriting.app (Rew.substs ![LPA_numeral 2]) (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![] ]) = Rewriting.app (bind ![LPA_numeral 2] fvar) (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![] ]) :=
+  Eq.refl (Rewriting.app (Rew.substs ![LPA_numeral 2]) (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![] ]))
+
+#check ((fun (eq1 : (LPA_numeral 3) = .func .succ ![LPA_numeral 2]) (h2 : PA ⟹ [first_PA_ax]) => (Derivation.specialize (LPA_numeral 2) h2))
+    (Eq.refl (LPA_numeral 3)))
+
+
+def provable_instance_4 : PA ⊢ instance_first_PA_ax :=
+(fun h1 : PA ⟹ [instance_first_PA_ax] => Derivation.provableOfDerivable h1)
+  ((fun (eq1 : (LPA_numeral 3) = .func .succ ![LPA_numeral 2]) (h2 : PA ⟹ [first_PA_ax]) => (Derivation.specialize (LPA_numeral 2) h2))
+    (Eq.refl (LPA_numeral 3)))
+    (fun h3 : first_PA_ax ∈ PA => Derivation.root h3)
+      (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax))
+
+-- put equalities there ↑
+
+
+
+
+
 def step01 : Eq PA {first_PA_ax} :=
   Eq.refl PA
 #check first_PA_ax ∈ PA
@@ -124,44 +155,22 @@ def step01 : Eq PA {first_PA_ax} :=
 #check Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax)
 #check Eq.mpr (id (congrArg (fun _a ↦ first_PA_ax ∈ _a) PA.eq_1)) (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax))
 
-def step1 : first_PA_ax ∈ PA :=
-  Eq.mpr ((congrArg (fun _a ↦ first_PA_ax ∈ _a) PA.eq_1))
-  (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax))
-def step2 : PA ⟹ [first_PA_ax] :=
-  Derivation.root step1
-def step3 : (PA ⟹. instance_first_PA_ax) =
-            (PA ⟹. .nrel .eq ![LPA_numeral 3, LPA_null]) :=
-  (congrArg (fun _a ↦ PA ⟹. _a) instance_first_PA_ax.eq_1)
-def step4 : (PA ⟹. .nrel .eq ![LPA_numeral 3, LPA_null]) =
-  (PA ⟹. .nrel .eq ![.func .succ ![LPA_numeral 2], LPA_null]) :=
-(congrArg (fun _a ↦ PA ⟹. .nrel .eq ![_a, LPA_null]) (LPA_numeral.eq_2 2))
-def step5 : (PA ⟹.
-    .nrel .eq ![.func .succ ![LPA_numeral 2], LPA_null]) =
-  (PA ⟹.
-    .nrel LPA_Rel.eq ![.func .succ ![LPA_numeral 2], .func .zero ![]]) :=
-id
-  (congrArg (fun _a ↦ PA ⟹. Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![LPA_numeral 2], _a])
-    LPA_null.eq_1)
-def step6 : (PA ⟹
-    [(Rewriting.app (Rew.substs ![LPA_numeral 2]))
-        (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![]])]) =
-  (PA ⟹
-    [Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![LPA_numeral 2], Semiterm.func LPA_Func.zero ![]]]) :=
-congrArg (fun x ↦ PA ⟹ [x])
-  (Eq.trans (Semiformula.rew_nrel2 (Rew.substs ![LPA_numeral 2]))
-    (congrArg (Semiformula.nrel LPA_Rel.eq)
-      (congr
-        (congrArg Matrix.vecCons
-          (Eq.trans (Rew.func1 (Rew.substs ![LPA_numeral 2]) LPA_Func.succ #0)
-            (congrArg (fun x ↦ Semiterm.func LPA_Func.succ ![x])
-              (Eq.trans (Rew.substs_bvar ![LPA_numeral 2] 0) (Matrix.cons_val_fin_one (LPA_numeral 2) ![] 0)))))
-        (congrArg (fun x ↦ ![x]) (Rew.func0 (Rew.substs ![LPA_numeral 2]) LPA_Func.zero ![])))))
-def step7 : PA ⟹. Semiformula.nrel LPA_Rel.eq ![LPA_numeral 3, LPA_null] :=
-  step3.mpr
-    (step4.mpr
-      (step5.mpr (step6.mp (Derivation.specialize (LPA_numeral 2) step2))))
 def provable_instance_3 : PA ⊢ instance_first_PA_ax :=
-  Derivation.provableOfDerivable step7
+  (fun step1 : first_PA_ax ∈ PA =>
+    (fun step2 : PA ⟹ [first_PA_ax] =>
+      (fun step3 : (PA ⟹. instance_first_PA_ax) = (PA ⟹. .nrel .eq ![LPA_numeral 3, LPA_null]) =>
+        (fun step4 : (PA ⟹. .nrel .eq ![LPA_numeral 3, LPA_null]) = (PA ⟹. .nrel .eq ![.func .succ ![LPA_numeral 2], LPA_null]) =>
+          (fun step5 : (PA ⟹. .nrel .eq ![.func .succ ![LPA_numeral 2], LPA_null]) = (PA ⟹..nrel LPA_Rel.eq ![.func .succ ![LPA_numeral 2], .func .zero ![]]) =>
+            (fun step6 : (PA ⟹ [(Rewriting.app (Rew.substs ![LPA_numeral 2])) (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![#0], Semiterm.func LPA_Func.zero ![]])]) = (PA ⟹ [Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![LPA_numeral 2], Semiterm.func LPA_Func.zero ![]]]) =>
+              (fun step7 : PA ⊢ instance_first_PA_ax =>
+                Derivation.provableOfDerivable step7)
+            (step3.mpr (step4.mpr (step5.mpr (step6.mp (Derivation.specialize (LPA_numeral 2) step2))))))
+          (congrArg (fun x ↦ PA ⟹ [x]) (Eq.trans (Semiformula.rew_nrel2 (Rew.substs ![LPA_numeral 2])) (congrArg (Semiformula.nrel LPA_Rel.eq) (congr (congrArg Matrix.vecCons (Eq.trans (Rew.func1 (Rew.substs ![LPA_numeral 2]) LPA_Func.succ #0) (congrArg (fun x ↦ Semiterm.func LPA_Func.succ ![x]) (Eq.trans (Rew.substs_bvar ![LPA_numeral 2] 0) (Matrix.cons_val_fin_one (LPA_numeral 2) ![] 0))))) (congrArg (fun x ↦ ![x]) (Rew.func0 (Rew.substs ![LPA_numeral 2]) LPA_Func.zero ![])))))))
+        (id (congrArg (fun _a ↦ PA ⟹. Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ ![LPA_numeral 2], _a]) LPA_null.eq_1)))
+      (congrArg (fun _a ↦ PA ⟹. .nrel .eq ![_a, LPA_null]) (LPA_numeral.eq_2 2)))
+    (congrArg (fun _a ↦ PA ⟹. _a) instance_first_PA_ax.eq_1))
+   (Derivation.root step1))
+  (Eq.mpr ((congrArg (fun _a ↦ first_PA_ax ∈ _a) PA.eq_1)) (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax)))
 
 example : Semiformula.rel LPA_Rel.eq ![LPA_null,LPA_null] = Semiformula.rel LPA_Rel.eq ![Semiterm.func LPA_Func.zero ![],LPA_null] :=
   congrArg (fun _a => Semiformula.rel LPA_Rel.eq ![LPA_null, LPA_null]) (LPA_null.eq_1)
@@ -173,6 +182,7 @@ what it is defined as being equal to, i.e. {first_PA_axiom}.
 by starting out with the real things.
 * Rewriting parts of the equation can be done with congrArg (see above).
 * Some under the hood weirdness is happening with "_auxLemma.nn" terms.
+* let can be used in
 -/
 
 #print provable_instance
