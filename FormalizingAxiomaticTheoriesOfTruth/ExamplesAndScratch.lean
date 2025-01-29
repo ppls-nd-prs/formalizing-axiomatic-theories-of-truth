@@ -111,6 +111,7 @@ def finset1 : Finset ℕ := {1,2,3}
 #check finset1
 
 def PA : Theory LPA := {first_PA_ax}
+
 def full_PA : Theory LPA := {first_PA_ax,
                         second_PA_ax,
                         third_PA_ax,
@@ -220,6 +221,23 @@ by starting out with the real things.
 * let can be used in
 -/
 
+def provable_instance : PA ⊢ instance_first_PA_ax := by
+  have step1 : first_PA_ax ∈ PA := by
+    rw [PA]
+    simp
+  have step2 : PA ⟹ [first_PA_ax] := by
+    apply Derivation.root at step1
+    exact step1
+  have step3 : PA ⟹. instance_first_PA_ax := by
+    apply Derivation.specialize (LPA_numeral 2) at step2
+    rw[instance_first_PA_ax]
+    simp at step2
+    rw[LPA_numeral,LPA_null]
+    exact step2
+  apply Derivation.provableOfDerivable
+  exact step3
+
+
 #print provable_instance
 
 
@@ -303,7 +321,7 @@ def one : Semiterm ℒₒᵣ ℕ 0 :=
 #check (Rewriting.fix formula)/[one]
 #eval (Rewriting.fix formula)/[one]
 
-def provable_instance : 𝐏𝐀 ⊢ “3 + 0 = 3” := by
+def ffl_provable_instance : 𝐏𝐀 ⊢ “3 + 0 = 3” := by
   have step1 : “x | x + 0 = x” ∈ 𝐏𝐀⁻ := PAMinus.addZero
   have step2 : 𝐏𝐀 = 𝐏𝐀⁻ + indScheme ℒₒᵣ Set.univ := Eq.refl 𝐏𝐀
   have step3 : 𝐏𝐀⁻ + indScheme ℒₒᵣ Set.univ ⊆ 𝐏𝐀 :=
@@ -316,6 +334,7 @@ def provable_instance : 𝐏𝐀 ⊢ “3 + 0 = 3” := by
     Subset.trans (step5) (step3)
   have step7 : “x | x + 0 = x” ∈ 𝐏𝐀 :=
     (mem_of_subset_of_mem step6) step1
+  sorry
 
 
 
