@@ -403,7 +403,10 @@ def ffl_provable_instance : 𝐏𝐀 ⊢ “3 + 0 = 3” := by
     (mem_of_subset_of_mem step6) step1
   have step8 : 𝐏𝐀⁻ ∪ indScheme ℒₒᵣ Set.univ ⊆ 𝐏𝐀 := by
     rfl
-
+  have step9 : Semiformula ℒₒᵣ ℕ 1 := “x | x + 0 = x”
+  have step10 : 𝐏𝐀 ⟹. “x | x + 0 = x” := by
+    apply Derivation.root at step7
+    exact step7
   sorry
 
 
