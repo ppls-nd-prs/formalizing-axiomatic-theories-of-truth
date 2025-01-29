@@ -316,10 +316,20 @@ def formula : Semiformula ℒₒᵣ ℕ 0 := “x | x + 0 = x”
 open Language
 -- #check Rewriting.free (Rewriting.shift formula)
 -- #eval Rewriting.free (Rewriting.shift formula)
-def one : Semiterm ℒₒᵣ ℕ 0 :=
-  Semiterm.func ORing.Func.one ![]
-#check (Rewriting.fix formula)/[one]
-#eval (Rewriting.fix formula)/[one]
+
+notation "zero" => Semiterm.func ORing.Func.zero ![]
+notation "+" => Semiterm.func ORing.Func.add
+notation "one" => Semiterm.func ORing.Func.one ![]
+
+def one_t : Semiterm ℒₒᵣ ℕ 0 :=
+  one
+def zero_t : Semiterm ℒₒᵣ ℕ 0 :=
+  zero
+def two_t : Semiterm ℒₒᵣ ℕ 0 :=
+  + ![one_t,one_t]
+#check (Rewriting.fix formula)/[two_t]
+#eval (Rewriting.fix formula)/[one_t]
+#eval two_t
 
 def ffl_provable_instance : 𝐏𝐀 ⊢ “3 + 0 = 3” := by
   have step1 : “x | x + 0 = x” ∈ 𝐏𝐀⁻ := PAMinus.addZero
