@@ -101,6 +101,8 @@ def sixth_PA_ax : SyntacticFormula LPA :=
 def instance_first_PA_ax : Semiformula LPA ℕ 0 :=
   Semiformula.nrel LPA_Rel.eq ![(LPA_numeral 3),LPA_null]
 
+
+
 def PA : Theory LPA := {first_PA_ax}
 
 def full_PA : Theory LPA := {first_PA_ax,
