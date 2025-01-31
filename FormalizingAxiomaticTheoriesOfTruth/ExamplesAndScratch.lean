@@ -101,8 +101,6 @@ def sixth_PA_ax : SyntacticFormula LPA :=
 def instance_first_PA_ax : Semiformula LPA ℕ 0 :=
   Semiformula.nrel LPA_Rel.eq ![(LPA_numeral 3),LPA_null]
 
-
-
 def PA : Theory LPA := {first_PA_ax}
 
 def full_PA : Theory LPA := {first_PA_ax,
@@ -111,6 +109,20 @@ def full_PA : Theory LPA := {first_PA_ax,
                         fourth_PA_ax,
                         fifth_PA_ax,
                         sixth_PA_ax}
+
+open Theory
+
+def test1 : SyntacticFormula LPA :=
+  (∀' (.rel LPA_Rel.eq ![#0,#0])/[.func LPA_Func.zero ![]] ⋏ .rel LPA_Rel.eq ![#0,#0]) imp .rel LPA_Rel.eq ![&0,&0]
+#eval test1
+
+def induction_scheme (φ : Semiformula LPA ℕ 1) : SyntacticFormula LPA :=
+  (φ/[.func LPA_Func.zero ![]] ⋏ (∀' (φ imp φ/[.func LPA_Func.succ ![#0]]))) imp ∀' φ
+
+def instance_first_PA : Semiformula LPA ℕ 1 :=
+  Semiformula.rel LPA_Rel.eq ![#0,#0]
+#eval induction_scheme instance_first_PA
+
 
 open Semiterm
 /-
@@ -390,28 +402,22 @@ def ffl_formula2 : SyntacticFormula ℒₒᵣ :=
  (Encodable.decode (Encodable.encode ffl_formula)).getD “0 = 0”
 #eval ffl_formula
 
+def ffffll : SyntacticFormula ℒₒᵣ := “x | x + 0 = x”
+
+#eval ffffll
+
+-- example : 𝐏𝐀⁻ ⟹ [“∀ x, x + 0 = x”] := by
+--   have step1 : “x | x + 0 = x” ∈ 𝐏𝐀⁻ := PAMinus.addZero
+--   have step2 : 𝐏𝐀⁻ ⟹ [“x | x + 0 = x”] := Derivation.root step1
+--   have step3 : Rewriting.free (“(#0 + 0) = #0”) = “(&0 + 0) = &0” := by rfl
+
+
+  -- have step4 : 𝐏𝐀⁻ ⟹ [“∀ x, x + 0 = x”] := Derivation.all step2
+
+
 def ffl_provable_instance : 𝐏𝐀 ⊢ “3 + 0 = 3” := by
-  have step1 : “x | x + 0 = x” ∈ 𝐏𝐀⁻ := PAMinus.addZero
-  have step2 : 𝐏𝐀 = 𝐏𝐀⁻ + indScheme ℒₒᵣ Set.univ := Eq.refl 𝐏𝐀
-  have step3 : 𝐏𝐀⁻ + indScheme ℒₒᵣ Set.univ ⊆ 𝐏𝐀 :=
-    Eq.subset step2
-  have step4 : 𝐏𝐀⁻ + indScheme ℒₒᵣ Set.univ = 𝐏𝐀⁻ ∪ indScheme ℒₒᵣ Set.univ :=
-    Eq.refl (𝐏𝐀⁻ + indScheme ℒₒᵣ Set.univ)
-  have step5 : 𝐏𝐀⁻ ⊆ 𝐏𝐀⁻ ∪ indScheme ℒₒᵣ Set.univ :=
-    fun _ => Or.inl
-  have step6 : 𝐏𝐀⁻ ⊆ 𝐏𝐀:=
-    Subset.trans (step5) (step3)
-  have step7 : “x | x + 0 = x” ∈ 𝐏𝐀 :=
-    (mem_of_subset_of_mem step6) step1
-  have step8 : 𝐏𝐀⁻ ∪ indScheme ℒₒᵣ Set.univ ⊆ 𝐏𝐀 := by
-    rfl
-  have step9 : Semiformula ℒₒᵣ ℕ 1 := “x | x + 0 = x”
-  have step10 : 𝐏𝐀 ⟹. “x | x + 0 = x” := by
-    apply Derivation.root at step7
-    exact step7
+
   sorry
-
-
 
   -- have step3 : “x | x + 0 = x” ∈ 𝐏𝐀⁻ → “x | x + 0 = x” ∈ 𝐏𝐀 :=
   --   fun h : “x | x + 0 = x” ∈ 𝐏𝐀⁻ =>

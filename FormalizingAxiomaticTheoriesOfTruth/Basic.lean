@@ -148,3 +148,46 @@ instance enc_ltr_r (k : ℕ) : Encodable (LTr.Rel k) where
   encodek := LTr_Rel_enc_dec
 
 -- pairwise encoding functions for LTr.Func and LTr.Rel
+
+/-
+# Theory of PA and useful notation
+-/
+infixr:60 " imp " => Arrow.arrow
+prefix:60 "p_succ" => Semiterm.func LPA_Func.succ
+prefix:60 "p_eq" => Semiformula.rel LPA_Rel.eq
+prefix:60 "p_zero" => Semiterm.func LPA_Func.zero
+prefix:60 "p_add" => Semiterm.func LPA_Func.add
+prefix:60 "p_mult" => Semiterm.func LPA_Func.mult
+
+def psucc : (Fin 1 → Semiterm LPA ξ n) → Semiterm LPA ξ n := .func LPA_Func.succ
+def first_PA_ax : Semiformula LPA ℕ 0 :=
+ ∀' (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
+  ![#0],Semiterm.func LPA_Func.zero ![]])
+def first_PA_ax_b_free : Semiformula LPA ℕ 1 :=
+  (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
+  ![#0],Semiterm.func LPA_Func.zero ![]])
+def second_PA_ax : SyntacticFormula LPA :=
+  ∀' ∀' ((p_eq ![p_succ ![#1],p_succ ![#0]]) imp (p_eq ![#1,#0]))
+def third_PA_ax : SyntacticFormula LPA :=
+  ∀' (p_eq ![p_add ![#0, p_zero ![]], #0])
+def fourth_PA_ax : SyntacticFormula LPA :=
+  ∀' ∀' (p_eq ![p_add ![#1,p_succ ![#0]],p_succ ![p_add ![#1,#0]]])
+def fifth_PA_ax : SyntacticFormula LPA :=
+  ∀' (p_eq ![p_mult ![#0,p_zero ![]], p_zero ![]])
+def sixth_PA_ax : SyntacticFormula LPA :=
+  ∀' ∀' (p_eq ![p_mult ![#1,p_succ ![#0]],p_add ![p_mult ![#1,#0],#1]])
+
+def induction_scheme (φ : Semiformula LPA ℕ 1) : SyntacticFormula LPA :=
+  (φ/[.func LPA_Func.zero ![]] ⋏ (∀' (φ imp φ/[.func LPA_Func.succ ![#0]]))) imp ∀' φ
+def induction_set (Γ : Semiformula LPA ℕ 1 → Prop) : Theory LPA :=
+  { ψ | ∃ φ : Semiformula LPA ℕ 1, Γ φ ∧ ψ = induction_scheme φ }
+
+def PA : Theory LPA := {first_PA_ax,
+                        second_PA_ax,
+                        third_PA_ax,
+                        fourth_PA_ax,
+                        fifth_PA_ax,
+                        sixth_PA_ax}
+def PA_plus_induction : Theory LPA := PA + induction_set Set.univ
+-- TODO: prove that ((0 = 0) ∧ ∀x(x = x → S(x) = S(x))) → ∀x(x = x) ∈ PA_plus_induction (below)
+-- example : (.rel LPA_Rel.eq ![LPA_null,LPA_null]) ⋏ (∀' (.rel LPA_Rel.eq ![#0,#0] imp .rel LPA_Rel.eq ![.func LPA_Func.succ ![#0],(φ/[.func LPA_Func.zero ![]] ⋏ (∀' (φ imp φ/[.func LPA_Func.succ ![#0]]))) imp ∀' φ]))) imp ∀' φ
