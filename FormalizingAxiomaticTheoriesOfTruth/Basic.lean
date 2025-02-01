@@ -5,215 +5,175 @@ import Foundation.FirstOrder.Arith.PeanoMinus
 open LO
 open FirstOrder
 
--- Definition of the language of arithmetic
-inductive LPA_Func : ℕ → Type where
-  | zero : LPA_Func 0
-  | succ : LPA_Func 1
-  | add : LPA_Func 2
-  | mult : LPA_Func 2
+/-
+# Definitions for the language of PA
+-/
+namespace PA
+inductive Func : ℕ → Type where
+  | zero : Func 0
+  | succ : Func 1
+  | add : Func 2
+  | mult : Func 2
 
-inductive LPA_Rel : ℕ → Type where
-  | eq : LPA_Rel 2
+inductive Rel : ℕ → Type where
+  | eq : Rel 2
 
-def LPA : Language where
-  Func := LPA_Func
-  Rel := LPA_Rel
+def lpa : Language where
+  Func := Func
+  Rel := Rel
 
--- Definition of the language of arithmetic including the truth
--- predicate
-def LTr_Func := LPA_Func
+/-
+# Useful notation
+-/
+prefix:60 "p_succ" => Semiterm.func Func.succ
+prefix:60 "p_eq" => Semiformula.rel Rel.eq
+prefix:60 "p_zero" => Semiterm.func Func.zero
+prefix:60 "p_add" => Semiterm.func Func.add
+prefix:60 "p_mult" => Semiterm.func Func.mult
 
-inductive LTr_Rel : ℕ → Type where
-  | eq : LTr_Rel 2
-  | tr : LTr_Rel 1
-
-def LTr : Language where
-  Func := LTr_Func
-  Rel := LTr_Rel
+/-
+# Some useful terms
+-/
+def null : SyntacticTerm lpa :=
+  p_zero ![]
+def numeral : ℕ → SyntacticTerm lpa
+  | .zero => p_zero ![]
+  | .succ n => p_succ ![numeral n]
 
 -- Printing terms
-def LPA_funToStr {n}: LPA_Func n → String
+def funToStr {n}: Func n → String
   | .zero => "0"
   | .succ => "S"
   | .add => "+"
   | .mult => "\\times"
-def LTr_funToStr {n} : LPA_Func n → String := LPA_funToStr
-instance : ToString (LPA_Func n) := ⟨LPA_funToStr⟩
+instance : ToString (Func n) := ⟨funToStr⟩
 
 -- Printing formulas
-def LPA_relToStr {n} : LPA_Rel n → String
+def relToStr {n} : Rel n → String
 | .eq => "="
-def LTr_relToStr {n} : LTr_Rel n → String
-| .eq => "="
-| .tr => "Tr"
-instance : ToString (LPA_Rel n) := ⟨LPA_relToStr⟩
-instance : ToString (LTr_Rel n) := ⟨LTr_relToStr⟩
+instance : ToString (Rel n) := ⟨relToStr⟩
 
 -- pairwise encoding functions for LPA.Func, LPA.Rel, LTr.Func
 -- and LTr.Rel
-def LPA_Func_enc : LPA_Func k → ℕ
+def Func_enc : Func k → ℕ
   | .zero => Nat.pair 0 0 + 1
   | .succ => Nat.pair 1 0 + 1
   | .add => Nat.pair 2 0 + 1
   | .mult => Nat.pair 2 1 + 1
-def LTr_Func_enc : LTr_Func k → ℕ := LPA_Func_enc
 
-def LPA_Func_dec : (n : ℕ) → Option (LPA_Func k)
+def Func_dec : (n : ℕ) → Option (Func k)
   | 0 => none
   | e + 1 =>
     match k with
       | 0 =>
         match e.unpair.2 with
-          | 0 => some (LPA_Func.zero)
+          | 0 => some (Func.zero)
           | _ => none
       | 1 =>
         match e.unpair.2 with
-          | 0 => some (LPA_Func.succ)
+          | 0 => some (Func.succ)
           | _ => none
       | 2 =>
         match e.unpair.2 with
-          | 0 => some (LPA_Func.add)
-          | 1 => some (LPA_Func.mult)
+          | 0 => some (Func.add)
+          | 1 => some (Func.mult)
           | _ => none
       | _ => none
-def LTr_Func_dec : (n : ℕ) → Option (LTr_Func k) := LPA_Func_dec
 
-lemma LPA_Func_enc_dec {k : ℕ}: ∀ f : LPA_Func k, LPA_Func_dec (LPA_Func_enc f) = (some f) := by
+lemma Func_enc_dec {k : ℕ}: ∀ f : Func k, Func_dec (Func_enc f) = (some f) := by
   intro h
   induction h
-  simp [LPA_Func_enc,Nat.pair,LPA_Func_dec]
-  simp [LPA_Func_enc,Nat.pair,LPA_Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
-  simp [LPA_Func_enc,Nat.pair,LPA_Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
-  simp [LPA_Func_enc,Nat.pair,LPA_Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
-lemma LTr_Func_enc_dec {k : ℕ}: ∀ f : LTr_Func k, LTr_Func_dec (LTr_Func_enc f) = (some f) :=
-  LPA_Func_enc_dec
+  simp [Func_enc,Nat.pair,Func_dec]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-instance enc_pa_f (k : ℕ) : Encodable (LPA.Func k) where
-  encode := LPA_Func_enc
-  decode := LPA_Func_dec
-  encodek := LPA_Func_enc_dec
-instance enc_ltr_f (k : ℕ) : Encodable (LTr.Func k) :=
-  enc_pa_f k
+instance enc_f (k : ℕ) : Encodable (Func k) where
+  encode := Func_enc
+  decode := Func_dec
+  encodek := Func_enc_dec
 
-def LPA_Rel_enc : LPA_Rel k → ℕ
+def Rel_enc : Rel k → ℕ
   | .eq => Nat.pair 2 0 + 1
 
-def LTr_Rel_enc : LTr_Rel k → ℕ
-  | .eq => Nat.pair 2 0 + 1
-  | .tr => Nat.pair 1 0 + 1
-
-def LPA_Rel_dec : (n : ℕ) → Option (LPA_Rel k)
+def Rel_dec : (n : ℕ) → Option (Rel k)
   | 0 => none
   | e + 1 =>
     match k with
       | 2 =>
         match e.unpair.2 with
-          | 0 => some (LPA_Rel.eq)
+          | 0 => some (Rel.eq)
           | _ => none
       | _ => none
 
-def LTr_Rel_dec : (n : ℕ) → Option (LTr_Rel k)
-  | 0 => none
-  | e + 1 =>
-    match k with
-      | 1 =>
-        match e.unpair.2 with
-          | 0 => some (LTr_Rel.tr)
-          | _ => none
-      | 2 =>
-        match e.unpair.2 with
-          | 0 => some (LTr_Rel.eq)
-          | _ => none
-      | _ => none
-
-lemma LPA_Rel_enc_dec {k : ℕ}: ∀ f : LPA_Rel k, LPA_Rel_dec (LPA_Rel_enc f) = (some f) := by
+lemma Rel_enc_dec {k : ℕ}: ∀ f : Rel k, Rel_dec (Rel_enc f) = (some f) := by
   intro h
   induction h
-  simp [LPA_Rel_enc,Nat.pair,LPA_Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-lemma LTr_Rel_enc_dec {k : ℕ}: ∀ f : LTr_Rel k, LTr_Rel_dec (LTr_Rel_enc f) = (some f) := by
-  intro h
-  induction h
-  simp [LTr_Rel_enc,Nat.pair,LTr_Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
-  simp [LTr_Rel_enc,Nat.pair,LTr_Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
-
-instance enc_lpa_r (k : ℕ) : Encodable (LPA.Rel k) where
-  encode := LPA_Rel_enc
-  decode := LPA_Rel_dec
-  encodek := LPA_Rel_enc_dec
-
-instance enc_ltr_r (k : ℕ) : Encodable (LTr.Rel k) where
-  encode := LTr_Rel_enc
-  decode := LTr_Rel_dec
-  encodek := LTr_Rel_enc_dec
-
--- pairwise encoding functions for LTr.Func and LTr.Rel
+instance enc_r (k : ℕ) : Encodable (Rel k) where
+  encode := Rel_enc
+  decode := Rel_dec
+  encodek := Rel_enc_dec
 
 /-
 # Theory of PA and useful notation
 -/
-infixr:60 " imp " => Arrow.arrow
-prefix:60 "p_succ" => Semiterm.func LPA_Func.succ
-prefix:60 "p_eq" => Semiformula.rel LPA_Rel.eq
-prefix:60 "p_zero" => Semiterm.func LPA_Func.zero
-prefix:60 "p_add" => Semiterm.func LPA_Func.add
-prefix:60 "p_mult" => Semiterm.func LPA_Func.mult
+infixr:60 " p_imp " => Arrow.arrow
 
-namespace TPA
-def psucc : (Fin 1 → Semiterm LPA ξ n) → Semiterm LPA ξ n := .func LPA_Func.succ
-def first_PA_ax : Semiformula LPA ℕ 0 :=
- ∀' (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
-  ![#0],Semiterm.func LPA_Func.zero ![]])
-def first_PA_ax_b_free : Semiformula LPA ℕ 1 :=
-  (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
-  ![#0],Semiterm.func LPA_Func.zero ![]])
-def second_PA_ax : SyntacticFormula LPA :=
-  ∀' ∀' ((p_eq ![p_succ ![#1],p_succ ![#0]]) imp (p_eq ![#1,#0]))
-def third_PA_ax : SyntacticFormula LPA :=
+def psucc : (Fin 1 → Semiterm lpa ξ n) → Semiterm lpa ξ n := .func Func.succ
+def first_ax : Semiformula lpa ℕ 0 :=
+ ∀' (Semiformula.nrel Rel.eq ![Semiterm.func Func.succ
+  ![#0],Semiterm.func Func.zero ![]])
+def second_ax : SyntacticFormula lpa :=
+  ∀' ∀' ((p_eq ![p_succ ![#1],p_succ ![#0]]) p_imp (p_eq ![#1,#0]))
+def third_ax : SyntacticFormula lpa :=
   ∀' (p_eq ![p_add ![#0, p_zero ![]], #0])
-def fourth_PA_ax : SyntacticFormula LPA :=
+def fourth_ax : SyntacticFormula lpa :=
   ∀' ∀' (p_eq ![p_add ![#1,p_succ ![#0]],p_succ ![p_add ![#1,#0]]])
-def fifth_PA_ax : SyntacticFormula LPA :=
+def fifth_ax : SyntacticFormula lpa :=
   ∀' (p_eq ![p_mult ![#0,p_zero ![]], p_zero ![]])
-def sixth_PA_ax : SyntacticFormula LPA :=
+def sixth_ax : SyntacticFormula lpa :=
   ∀' ∀' (p_eq ![p_mult ![#1,p_succ ![#0]],p_add ![p_mult ![#1,#0],#1]])
 
-def zero_term : Semiterm LPA ℕ 0 := .func .zero ![]
-def succ_var_term : Semiterm LPA ℕ 1 := .func .succ ![#0]
-def induction_scheme (φ : Semiformula LPA ℕ 1) : SyntacticFormula LPA :=
-  (.and (φ/[zero_term])
-   (∀' (φ imp φ/[succ_var_term]))) imp ∀' φ
-def induction_set (Γ : Semiformula LPA ℕ 1 → Prop) : Theory LPA :=
-  { ψ | ∃ φ : Semiformula LPA ℕ 1, Γ φ ∧ ψ = (induction_scheme φ)}
+def zero_term : Semiterm lpa ℕ 0 := .func .zero ![]
+def succ_var_term : Semiterm lpa ℕ 1 := .func .succ ![#0]
+def induction_schema (φ : Semiformula lpa ℕ 1) : SyntacticFormula lpa :=
+  (.and
+    (φ/[zero_term])
+    (∀' (φ p_imp φ/[succ_var_term]))) p_imp
+    ∀' φ
+def induction_set (Γ : Semiformula lpa ℕ 1 → Prop) : Theory lpa :=
+  { ψ | ∃ φ : Semiformula lpa ℕ 1, Γ φ ∧ ψ = (induction_schema φ)}
 
-def PA : Theory LPA := {first_PA_ax,
-                        second_PA_ax,
-                        third_PA_ax,
-                        fourth_PA_ax,
-                        fifth_PA_ax,
-                        sixth_PA_ax}
-def PA_plus_induction : Theory LPA := PA + induction_set Set.univ
-def the_formula : Semiformula LPA ℕ 0 := (Semiformula.and ((Semiformula.rel LPA_Rel.eq ![zero_term,zero_term]))
-          (∀' (Semiformula.rel LPA_Rel.eq ![#0,#0] imp .rel LPA_Rel.eq ![succ_var_term,succ_var_term]))) imp
-          ∀' (Semiformula.rel LPA_Rel.eq ![#0,#0])
-#eval the_formula
-def φ : Semiformula LPA ℕ 1 := Semiformula.rel LPA_Rel.eq ![#0,#0]
-
+def axiom_set : Theory lpa := {first_ax,
+                        second_ax,
+                        third_ax,
+                        fourth_ax,
+                        fifth_ax,
+                        sixth_ax}
+def t_pa : Theory lpa := axiom_set + induction_set Set.univ
 /-
 # (Sanity check) Proof that ((0 = 0) ∧ ∀x(x = x → S(x) = S(x))) → ∀x(x = x) ∈ PA_plus_induction (below)
 -/
-example : the_formula ∈ PA_plus_induction := by
-          rw[PA_plus_induction]
+def the_formula : Semiformula lpa ℕ 0 := (Semiformula.and ((Semiformula.rel Rel.eq ![zero_term,zero_term]))
+          (∀' (Semiformula.rel Rel.eq ![#0,#0] p_imp .rel Rel.eq ![succ_var_term,succ_var_term]))) p_imp
+          ∀' (Semiformula.rel Rel.eq ![#0,#0])
+#eval the_formula
+def φ : Semiformula lpa ℕ 1 := Semiformula.rel Rel.eq ![#0,#0]
+
+example : the_formula ∈ t_pa := by
+          rw[t_pa]
           have step1 : φ ∈ Set.univ := by simp
           have step2 : Set.univ φ := by
             apply step1
           have step3 : the_formula ∈ (induction_set Set.univ) := by
             rw[induction_set]
-            have h : Set.univ φ ∧ the_formula = induction_scheme φ := by
+            have h : Set.univ φ ∧ the_formula = induction_schema φ := by
               apply And.intro
               apply step2
               rw[the_formula]
-              simp[induction_scheme]
+              simp[induction_schema]
               apply And.intro
               apply And.intro
               rw[φ]
@@ -226,3 +186,165 @@ example : the_formula ∈ PA_plus_induction := by
             apply Exists.intro φ h
           apply Set.mem_union_right
           apply step3
+
+end PA
+/-
+# Definitions for the language L_T
+-/
+namespace L_T
+inductive Func : ℕ → Type where
+  | zero : Func 0
+  | succ : Func 1
+  | add : Func 2
+  | mult : Func 2
+
+inductive Rel : ℕ → Type where
+  | eq : Rel 2
+  | t : Rel 1
+
+def lt : Language where
+  Func := Func
+  Rel := Rel
+
+/-
+# Useful notation
+-/
+prefix:60 "pt_succ" => Semiterm.func Func.succ
+prefix:60 "pt_eq" => Semiformula.rel Rel.eq
+prefix:60 "pt_zero" => Semiterm.func Func.zero
+prefix:60 "pt_add" => Semiterm.func Func.add
+prefix:60 "pt_mult" => Semiterm.func Func.mult
+
+/-
+# Some useful terms
+-/
+def null : SyntacticTerm lt :=
+  pt_zero ![]
+def numeral : ℕ → SyntacticTerm lt
+  | .zero => pt_zero ![]
+  | .succ n => pt_succ ![numeral n]
+
+def funToStr {n} : PA.Func n → String := PA.funToStr
+
+def relToStr {n} : Rel n → String
+| .eq => "="
+| .t => "T"
+
+instance : ToString (Rel n) := ⟨relToStr⟩
+
+def Func_enc : Func k → ℕ
+  | .zero => Nat.pair 0 0 + 1
+  | .succ => Nat.pair 1 0 + 1
+  | .add => Nat.pair 2 0 + 1
+  | .mult => Nat.pair 2 1 + 1
+
+def Func_dec : (n : ℕ) → Option (Func k)
+  | 0 => none
+  | e + 1 =>
+    match k with
+      | 0 =>
+        match e.unpair.2 with
+          | 0 => some (Func.zero)
+          | _ => none
+      | 1 =>
+        match e.unpair.2 with
+          | 0 => some (Func.succ)
+          | _ => none
+      | 2 =>
+        match e.unpair.2 with
+          | 0 => some (Func.add)
+          | 1 => some (Func.mult)
+          | _ => none
+      | _ => none
+
+lemma Func_enc_dec {k : ℕ}: ∀ f : Func k, Func_dec (Func_enc f) = (some f) := by
+  intro h
+  induction h
+  simp [Func_enc,Nat.pair,Func_dec]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+instance enc_f (k : ℕ) : Encodable (Func k) where
+  encode := Func_enc
+  decode := Func_dec
+  encodek := Func_enc_dec
+
+def Rel_enc : Rel k → ℕ
+  | .eq => Nat.pair 2 0 + 1
+  | .t => Nat.pair 1 0 + 1
+
+def Rel_dec : (n : ℕ) → Option (Rel k)
+  | 0 => none
+  | e + 1 =>
+    match k with
+      | 1 =>
+        match e.unpair.2 with
+          | 0 => some .t
+          | _ => none
+      | 2 =>
+        match e.unpair.2 with
+          | 0 => some (Rel.eq)
+          | _ => none
+      | _ => none
+
+lemma Rel_enc_dec {k : ℕ}: ∀ f : Rel k, Rel_dec (Rel_enc f) = (some f) := by
+  intro h
+  induction h
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+instance enc_r (k : ℕ) : Encodable (Rel k) where
+  encode := Rel_enc
+  decode := Rel_dec
+  encodek := Rel_enc_dec
+end L_T
+/-
+# Definitions for the PAT theory
+-/
+namespace PAT
+open L_T
+infixr:60 " pt_bi_imp " => LogicalConnective.iff
+infixr:60 " pt_imp " => Arrow.arrow
+
+def psucc : (Fin 1 → Semiterm lt ξ n) → Semiterm lt ξ n := .func Func.succ
+def first_ax : Semiformula lt ℕ 0 :=
+ ∀' (Semiformula.nrel Rel.eq ![Semiterm.func Func.succ
+  ![#0],Semiterm.func Func.zero ![]])
+def second_ax : SyntacticFormula lt :=
+  ∀' ∀' ((pt_eq ![pt_succ ![#1],pt_succ ![#0]]) pt_imp (pt_eq ![#1,#0]))
+def third_ax : SyntacticFormula lt :=
+  ∀' (pt_eq ![pt_add ![#0, pt_zero ![]], #0])
+def fourth_ax : SyntacticFormula lt :=
+  ∀' ∀' (pt_eq ![pt_add ![#1,pt_succ ![#0]],pt_succ ![pt_add ![#1,#0]]])
+def fifth_ax : SyntacticFormula lt :=
+  ∀' (pt_eq ![pt_mult ![#0,pt_zero ![]], pt_zero ![]])
+def sixth_ax : SyntacticFormula lt :=
+  ∀' ∀' (pt_eq ![pt_mult ![#1,pt_succ ![#0]],pt_add ![pt_mult ![#1,#0],#1]])
+
+def zero_term : Semiterm lt ℕ 0 := .func .zero ![]
+def succ_var_term : Semiterm lt ℕ 1 := .func .succ ![#0]
+def induction_schema (φ : Semiformula lt ℕ 1) : SyntacticFormula lt :=
+  (.and
+    (φ/[zero_term])
+    (∀' (φ p_imp φ/[succ_var_term]))) p_imp
+    ∀' φ
+def induction_set (Γ : Semiformula lt ℕ 1 → Prop) : Theory lt :=
+  { ψ | ∃ φ : Semiformula lt ℕ 1, Γ φ ∧ ψ = (induction_schema φ)}
+
+def axiom_set : Theory lt := {
+  first_ax,
+  second_ax,
+  third_ax,
+  fourth_ax,
+  fifth_ax,
+  sixth_ax
+}
+def t_pat : Theory lt := axiom_set + induction_set Set.univ
+end PAT
+
+/-
+# The definition of TB
+-/
+namespace TB
+open L_T
