@@ -88,40 +88,23 @@ def first_PA_ax : Semiformula LPA ℕ 0 :=
 def first_PA_ax_b_free : Semiformula LPA ℕ 1 :=
   (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
   ![#0],Semiterm.func LPA_Func.zero ![]])
-def second_PA_ax : SyntacticFormula LPA :=
-  ∀' ∀' ((p_eq ![p_succ ![#1],p_succ ![#0]]) imp (p_eq ![#1,#0]))
-def third_PA_ax : SyntacticFormula LPA :=
-  ∀' (p_eq ![p_add ![#0, p_zero ![]], #0])
-def fourth_PA_ax : SyntacticFormula LPA :=
-  ∀' ∀' (p_eq ![p_add ![#1,p_succ ![#0]],p_succ ![p_add ![#1,#0]]])
-def fifth_PA_ax : SyntacticFormula LPA :=
-  ∀' (p_eq ![p_mult ![#0,p_zero ![]], p_zero ![]])
-def sixth_PA_ax : SyntacticFormula LPA :=
-  ∀' ∀' (p_eq ![p_mult ![#1,p_succ ![#0]],p_add ![p_mult ![#1,#0],#1]])
+
 def instance_first_PA_ax : Semiformula LPA ℕ 0 :=
   Semiformula.nrel LPA_Rel.eq ![(LPA_numeral 3),LPA_null]
 
 def PA : Theory LPA := {first_PA_ax}
 
 def full_PA : Theory LPA := {first_PA_ax,
-                        second_PA_ax,
-                        third_PA_ax,
-                        fourth_PA_ax,
-                        fifth_PA_ax,
-                        sixth_PA_ax}
+                        TPA.second_PA_ax,
+                        TPA.third_PA_ax,
+                        TPA.fourth_PA_ax,
+                        TPA.fifth_PA_ax,
+                        TPA.sixth_PA_ax}
 
 open Theory
 
-def test1 : SyntacticFormula LPA :=
-  (∀' (.rel LPA_Rel.eq ![#0,#0])/[.func LPA_Func.zero ![]] ⋏ .rel LPA_Rel.eq ![#0,#0]) imp .rel LPA_Rel.eq ![&0,&0]
-#eval test1
-
-def induction_scheme (φ : Semiformula LPA ℕ 1) : SyntacticFormula LPA :=
-  (φ/[.func LPA_Func.zero ![]] ⋏ (∀' (φ imp φ/[.func LPA_Func.succ ![#0]]))) imp ∀' φ
-
 def instance_first_PA : Semiformula LPA ℕ 1 :=
   Semiformula.rel LPA_Rel.eq ![#0,#0]
-#eval induction_scheme instance_first_PA
 
 
 open Semiterm
@@ -178,7 +161,7 @@ def provable_instance_3 : PA ⊢ instance_first_PA_ax :=
       (congrArg (fun _a ↦ PA ⟹. .nrel .eq ![_a, LPA_null]) (LPA_numeral.eq_2 2)))
     (congrArg (fun _a ↦ PA ⟹. _a) instance_first_PA_ax.eq_1))
    (Derivation.root step1))
-  (Eq.mpr ((congrArg (fun _a ↦ first_PA_ax ∈ _a) PA.eq_1)) (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax)))
+  (Eq.mpr ((congrArg (fun _a ↦ first_PA_ax ∈ _a) PA.eq_1)) (Set.mem_singleton_iff.mpr (Eq.refl TPA.first_PA_ax)))
 
 /-
 A self-constructed inductive proof (provable_instance_without_tactics) without tactics that relies on a rather
