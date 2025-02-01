@@ -347,3 +347,125 @@ def axiom_set : Theory lt := {
 }
 def t_pat : Theory lt := axiom_set + induction_set Set.univ
 end PAT
+
+/-
+# The namespace sandbox is an environment for experimentation
+-/
+namespace sandbox
+open PA
+def psucc : (Fin 1 → Semiterm lpa ξ n) → Semiterm lpa ξ n := .func .succ
+def first_PA_ax : Semiformula lpa ℕ 0 :=
+ ∀' (Semiformula.nrel .eq ![Semiterm.func .succ
+  ![#0],Semiterm.func .zero ![]])
+def first_PA_ax_b_free : Semiformula lpa ℕ 1 :=
+  (Semiformula.nrel .eq ![Semiterm.func .succ
+  ![#0],Semiterm.func .zero ![]])
+
+def instance_first_PA_ax : Semiformula lpa ℕ 0 :=
+  Semiformula.nrel .eq ![(numeral 3),null]
+
+def PA : Theory lpa := {first_PA_ax}
+
+open Theory
+
+def instance_first_PA : Semiformula lpa ℕ 1 :=
+  Semiformula.rel .eq ![#0,#0]
+
+
+open Semiterm
+/-
+# Goal have ¬=(S(S(S(0))),0) from PA axiom 1.
+-/
+/-
+## The intuitive one using tactics
+-/
+def provable_instance : PA ⊢ instance_first_PA_ax := by
+  have step1 : first_PA_ax ∈ PA := by
+    rw [PA]
+    simp
+  have step2 : PA ⟹ [first_PA_ax] := by
+    apply Derivation.root at step1
+    exact step1
+  have step3 : PA ⟹. instance_first_PA_ax := by
+    apply Derivation.specialize (numeral 2) at step2
+    rw[instance_first_PA_ax]
+    simp at step2
+    rw[numeral,null]
+    exact step2
+  apply Derivation.provableOfDerivable
+  exact step3
+
+  /-
+What print gives from the above (but that relies on that proof
+itself)
+-/
+#print provable_instance
+
+def provable_instance_2 : PA ⊢ instance_first_PA_ax :=
+let_fun step1 := provable_instance.proof_2;
+let_fun step2 := Derivation.root step1;
+let_fun step3 :=
+  provable_instance.proof_3.mpr
+    (provable_instance.proof_4.mpr
+      (provable_instance.proof_5.mpr (provable_instance.proof_6.mp (Derivation.specialize (numeral 2) step2))));
+Derivation.provableOfDerivable step3
+
+/-
+What you get when printing and copying all instances of provable_instance.proof_#
+and rewriting the let_funs to their inductive meaning
+-/
+def provable_instance_3 : PA ⊢ instance_first_PA_ax :=
+  (fun step1 : first_PA_ax ∈ PA =>
+    (fun step2 : PA ⟹ [first_PA_ax] =>
+      (fun step3 : (PA ⟹. instance_first_PA_ax) = (PA ⟹. .nrel .eq ![numeral 3, null]) =>
+        (fun step4 : (PA ⟹. .nrel .eq ![numeral 3, null]) = (PA ⟹. .nrel .eq ![.func .succ ![numeral 2], null]) =>
+          (fun step5 : (PA ⟹. .nrel .eq ![.func .succ ![numeral 2], null]) = (PA ⟹..nrel Rel.eq ![.func .succ ![numeral 2], .func .zero ![]]) =>
+            (fun step6 : (PA ⟹ [(Rewriting.app (Rew.substs ![numeral 2])) (Semiformula.nrel Rel.eq ![Semiterm.func Func.succ ![#0], Semiterm.func Func.zero ![]])]) = (PA ⟹ [Semiformula.nrel Rel.eq ![Semiterm.func Func.succ ![numeral 2], Semiterm.func Func.zero ![]]]) =>
+              (fun step7 : PA ⊢ instance_first_PA_ax =>
+                Derivation.provableOfDerivable step7)
+            (step3.mpr (step4.mpr (step5.mpr (step6.mp (Derivation.specialize (numeral 2) step2))))))
+          (congrArg (fun x ↦ PA ⟹ [x]) (Eq.trans (Semiformula.rew_nrel2 (Rew.substs ![numeral 2])) (congrArg (Semiformula.nrel Rel.eq) (congr (congrArg Matrix.vecCons (Eq.trans (Rew.func1 (Rew.substs ![numeral 2]) Func.succ #0) (congrArg (fun x ↦ Semiterm.func Func.succ ![x]) (Eq.trans (Rew.substs_bvar ![numeral 2] 0) (Matrix.cons_val_fin_one (numeral 2) ![] 0))))) (congrArg (fun x ↦ ![x]) (Rew.func0 (Rew.substs ![numeral 2]) Func.zero ![])))))))
+        (id (congrArg (fun _a ↦ PA ⟹. Semiformula.nrel Rel.eq ![Semiterm.func Func.succ ![numeral 2], _a]) null.eq_1)))
+      (congrArg (fun _a ↦ PA ⟹. .nrel .eq ![_a, null]) (numeral.eq_2 2)))
+    (congrArg (fun _a ↦ PA ⟹. _a) instance_first_PA_ax.eq_1))
+   (Derivation.root step1))
+  (Eq.mpr ((congrArg (fun _a ↦ first_PA_ax ∈ _a) PA.eq_1)) (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax)))
+
+/-
+A self-constructed inductive proof (provable_instance_without_tactics) without tactics that relies on a rather
+complicated rewriting and simplying bit (rw_and_simp_(with/without)_tactics), but further is rather concise.
+More notes:
+* PA.eq_1 produces the proposition that PA is equal to
+what it is defined as being equal to, i.e. {first_PA_axiom}.
+* Rewriting parts of the equation can be done with congrArg (see above).
+-/
+theorem rw_and_simp_with_tactics : (PA ⟹ [instance_first_PA_ax]) = (PA ⟹ [(Semiformula.nrel Rel.eq ![func Func.succ ![#0], func Func.zero ![]])/[numeral 2]]) := by
+  simp
+  rw[instance_first_PA_ax,numeral,null]
+
+theorem rw_and_simp_without_tactics : (PA ⟹ [instance_first_PA_ax]) = (PA ⟹ [(Semiformula.nrel Rel.eq ![func Func.succ ![#0], func Func.zero ![]])/[numeral 2]]) :=
+  Eq.mpr
+  (id
+    (congrArg (fun x ↦ (PA ⟹ [instance_first_PA_ax]) = (PA ⟹ [x]))
+      (Eq.trans (Semiformula.rew_nrel2 (Rew.substs ![numeral 2]))
+        (congrArg (Semiformula.nrel Rel.eq)
+          (congr
+            (congrArg Matrix.vecCons
+              (Eq.trans (Rew.func1 (Rew.substs ![numeral 2]) Func.succ #0)
+                (congrArg (fun x ↦ func Func.succ ![x])
+                  (Eq.trans (Rew.substs_bvar ![numeral 2] 0) (Matrix.cons_val_fin_one (numeral 2) ![] 0)))))
+            (congrArg (fun x ↦ ![x]) (Rew.func0 (Rew.substs ![numeral 2]) Func.zero ![])))))))
+  (Eq.refl (PA ⟹ [instance_first_PA_ax]))
+
+def provable_instance_without_tactics : PA ⊢ instance_first_PA_ax :=
+(fun h1 : PA ⟹ [instance_first_PA_ax] => Derivation.provableOfDerivable h1)
+  ((fun h2 : PA ⟹ [(Semiformula.nrel Rel.eq ![func Func.succ ![#0], func Func.zero ![]])/[numeral 2]] =>
+    rw_and_simp_without_tactics.mpr h2)
+    ((fun h3 : PA ⟹ [first_PA_ax] => Derivation.specialize (numeral 2) h3)
+      ((fun h4 : first_PA_ax ∈ PA => Derivation.root h4)
+        ((fun h5 : first_PA_ax ∈ {first_PA_ax} => (congrArg (fun _a => first_PA_ax ∈ _a) (PA.eq_1)).mpr h5)
+            (Set.mem_singleton_iff.mpr (Eq.refl first_PA_ax))))))
+
+/-
+* So, this goes well, but thm23 is just very complicated, i.e. #print thm23 yields
+-/
