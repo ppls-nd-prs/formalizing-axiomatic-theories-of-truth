@@ -88,7 +88,7 @@ lemma Func_enc_dec {k : ℕ}: ∀ f : Func k, Func_dec (Func_enc f) = (some f) :
   simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
   simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-instance enc_f (k : ℕ) : Encodable (Func k) where
+instance enc_f (k : ℕ) : Encodable (lpa.Func k) where
   encode := Func_enc
   decode := Func_dec
   encodek := Func_enc_dec
@@ -111,7 +111,7 @@ lemma Rel_enc_dec {k : ℕ}: ∀ f : Rel k, Rel_dec (Rel_enc f) = (some f) := by
   induction h
   simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-instance enc_r (k : ℕ) : Encodable (Rel k) where
+instance enc_r (k : ℕ) : Encodable (lpa.Rel k) where
   encode := Rel_enc
   decode := Rel_dec
   encodek := Rel_enc_dec
@@ -224,7 +224,12 @@ def numeral : ℕ → SyntacticTerm lt
   | .zero => pt_zero ![]
   | .succ n => pt_succ ![numeral n]
 
-def funToStr {n} : PA.Func n → String := PA.funToStr
+def funToStr {n}: Func n → String
+  | .zero => "0"
+  | .succ => "S"
+  | .add => "+"
+  | .mult => "\\times"
+instance : ToString (Func n) := ⟨funToStr⟩
 
 def relToStr {n} : Rel n → String
 | .eq => "="
@@ -265,7 +270,7 @@ lemma Func_enc_dec {k : ℕ}: ∀ f : Func k, Func_dec (Func_enc f) = (some f) :
   simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
   simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-instance enc_f (k : ℕ) : Encodable (Func k) where
+instance enc_f (k : ℕ) : Encodable (lt.Func k) where
   encode := Func_enc
   decode := Func_dec
   encodek := Func_enc_dec
@@ -294,7 +299,7 @@ lemma Rel_enc_dec {k : ℕ}: ∀ f : Rel k, Rel_dec (Rel_enc f) = (some f) := by
   simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
   simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-instance enc_r (k : ℕ) : Encodable (Rel k) where
+instance enc_r (k : ℕ) : Encodable (lt.Rel k) where
   encode := Rel_enc
   decode := Rel_dec
   encodek := Rel_enc_dec
@@ -342,9 +347,3 @@ def axiom_set : Theory lt := {
 }
 def t_pat : Theory lt := axiom_set + induction_set Set.univ
 end PAT
-
-/-
-# The definition of TB
--/
-namespace TB
-open L_T
