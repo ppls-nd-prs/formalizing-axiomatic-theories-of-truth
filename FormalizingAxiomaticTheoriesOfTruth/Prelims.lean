@@ -351,7 +351,7 @@ end PAT
 /-
 # The namespace sandbox is an environment for experimentation
 -/
-namespace sandbox
+namespace Sandbox
 open PA
 def psucc : (Fin 1 → Semiterm lpa ξ n) → Semiterm lpa ξ n := .func .succ
 def first_PA_ax : Semiformula lpa ℕ 0 :=
