@@ -177,10 +177,13 @@ def fifth_PA_ax : SyntacticFormula LPA :=
 def sixth_PA_ax : SyntacticFormula LPA :=
   ∀' ∀' (p_eq ![p_mult ![#1,p_succ ![#0]],p_add ![p_mult ![#1,#0],#1]])
 
+def zero_term : Semiterm LPA ℕ 0 := .func .zero ![]
+def succ_var_term : Semiterm LPA ℕ 1 := .func .succ ![#0]
 def induction_scheme (φ : Semiformula LPA ℕ 1) : SyntacticFormula LPA :=
-  (φ/[.func LPA_Func.zero ![]] ⋏ (∀' (φ imp φ/[.func LPA_Func.succ ![#0]]))) imp ∀' φ
+  (.and (φ/[zero_term])
+   (∀' (φ imp φ/[succ_var_term]))) imp ∀' φ
 def induction_set (Γ : Semiformula LPA ℕ 1 → Prop) : Theory LPA :=
-  { ψ | ∃ φ : Semiformula LPA ℕ 1, Γ φ ∧ ψ = induction_scheme φ }
+  { ψ | ∃ φ : Semiformula LPA ℕ 1, Γ φ ∧ ψ = (induction_scheme φ)}
 
 def PA : Theory LPA := {first_PA_ax,
                         second_PA_ax,
@@ -189,5 +192,36 @@ def PA : Theory LPA := {first_PA_ax,
                         fifth_PA_ax,
                         sixth_PA_ax}
 def PA_plus_induction : Theory LPA := PA + induction_set Set.univ
--- TODO: prove that ((0 = 0) ∧ ∀x(x = x → S(x) = S(x))) → ∀x(x = x) ∈ PA_plus_induction (below)
--- example : (.rel LPA_Rel.eq ![LPA_null,LPA_null]) ⋏ (∀' (.rel LPA_Rel.eq ![#0,#0] imp .rel LPA_Rel.eq ![.func LPA_Func.succ ![#0],(φ/[.func LPA_Func.zero ![]] ⋏ (∀' (φ imp φ/[.func LPA_Func.succ ![#0]]))) imp ∀' φ]))) imp ∀' φ
+def the_formula : Semiformula LPA ℕ 0 := (Semiformula.and ((Semiformula.rel LPA_Rel.eq ![zero_term,zero_term]))
+          (∀' (Semiformula.rel LPA_Rel.eq ![#0,#0] imp .rel LPA_Rel.eq ![succ_var_term,succ_var_term]))) imp
+          ∀' (Semiformula.rel LPA_Rel.eq ![#0,#0])
+#eval the_formula
+def φ : Semiformula LPA ℕ 1 := Semiformula.rel LPA_Rel.eq ![#0,#0]
+
+/-
+# Proof that ((0 = 0) ∧ ∀x(x = x → S(x) = S(x))) → ∀x(x = x) ∈ PA_plus_induction (below)
+-/
+example : the_formula ∈ PA_plus_induction := by
+          rw[PA_plus_induction]
+          have step1 : φ ∈ Set.univ := by simp
+          have step2 : Set.univ φ := by
+            apply step1
+          have step3 : the_formula ∈ (induction_set Set.univ) := by
+            rw[induction_set]
+            have h : Set.univ φ ∧ the_formula = induction_scheme φ := by
+              apply And.intro
+              apply step2
+              rw[the_formula]
+              simp[induction_scheme]
+              apply And.intro
+              apply And.intro
+              rw[φ]
+              simp
+              apply And.intro
+              rfl
+              rw[φ]
+              simp
+              rfl
+            apply Exists.intro φ h
+          apply Set.mem_union_right
+          apply step3
