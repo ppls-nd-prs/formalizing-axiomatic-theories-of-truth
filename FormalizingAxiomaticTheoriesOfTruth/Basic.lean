@@ -159,6 +159,7 @@ prefix:60 "p_zero" => Semiterm.func LPA_Func.zero
 prefix:60 "p_add" => Semiterm.func LPA_Func.add
 prefix:60 "p_mult" => Semiterm.func LPA_Func.mult
 
+namespace TPA
 def psucc : (Fin 1 → Semiterm LPA ξ n) → Semiterm LPA ξ n := .func LPA_Func.succ
 def first_PA_ax : Semiformula LPA ℕ 0 :=
  ∀' (Semiformula.nrel LPA_Rel.eq ![Semiterm.func LPA_Func.succ
@@ -199,7 +200,7 @@ def the_formula : Semiformula LPA ℕ 0 := (Semiformula.and ((Semiformula.rel LP
 def φ : Semiformula LPA ℕ 1 := Semiformula.rel LPA_Rel.eq ![#0,#0]
 
 /-
-# Proof that ((0 = 0) ∧ ∀x(x = x → S(x) = S(x))) → ∀x(x = x) ∈ PA_plus_induction (below)
+# (Sanity check) Proof that ((0 = 0) ∧ ∀x(x = x → S(x) = S(x))) → ∀x(x = x) ∈ PA_plus_induction (below)
 -/
 example : the_formula ∈ PA_plus_induction := by
           rw[PA_plus_induction]
