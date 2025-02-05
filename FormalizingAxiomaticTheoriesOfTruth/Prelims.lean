@@ -125,15 +125,15 @@ def psucc : (Fin 1 → Semiterm lpa ξ n) → Semiterm lpa ξ n := .func Func.su
 def first_ax : Semiformula lpa ℕ 0 :=
  ∀' (Semiformula.nrel Rel.eq ![Semiterm.func Func.succ
   ![#0],Semiterm.func Func.zero ![]])
-def second_ax : SyntacticFormula lpa :=
+def second_ax : Semiformula lpa ℕ 0 :=
   ∀' ∀' ((p_eq ![p_succ ![#1],p_succ ![#0]]) p_imp (p_eq ![#1,#0]))
-def third_ax : SyntacticFormula lpa :=
+def third_ax : Semiformula lpa ℕ 0 :=
   ∀' (p_eq ![p_add ![#0, p_zero ![]], #0])
-def fourth_ax : SyntacticFormula lpa :=
+def fourth_ax : Semiformula lpa ℕ 0 :=
   ∀' ∀' (p_eq ![p_add ![#1,p_succ ![#0]],p_succ ![p_add ![#1,#0]]])
-def fifth_ax : SyntacticFormula lpa :=
+def fifth_ax : Semiformula lpa ℕ 0 :=
   ∀' (p_eq ![p_mult ![#0,p_zero ![]], p_zero ![]])
-def sixth_ax : SyntacticFormula lpa :=
+def sixth_ax : Semiformula lpa ℕ 0 :=
   ∀' ∀' (p_eq ![p_mult ![#1,p_succ ![#0]],p_add ![p_mult ![#1,#0],#1]])
 
 def zero_term : Semiterm lpa ℕ 0 := .func .zero ![]
@@ -303,7 +303,47 @@ instance enc_r (k : ℕ) : Encodable (lt.Rel k) where
   encode := Rel_enc
   decode := Rel_dec
   encodek := Rel_enc_dec
+
+/-
+A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
+also lt formulas
+-/
+def to_lt_func {arity : ℕ} : (PA.lpa.Func arity) → (L_T.lt.Func arity)
+  | .zero => .zero
+  | .succ => .succ
+  | .add => .add
+  | .mult => .mult
+
+def to_lt_rel {n : ℕ} : (PA.lpa.Rel n) → (L_T.lt.Rel n)
+  | .eq => .eq
+
+def to_lt_t {n : ℕ}: Semiterm PA.lpa ℕ n → Semiterm L_T.lt ℕ n
+  | #x => #x
+  | &x => &x
+  | .func f v => .func (to_lt_func f) (fun i => to_lt_t (v i))
+
+def to_lt_vt {k n: ℕ} (v : Fin k → Semiterm PA.lpa ℕ n) : Fin k → Semiterm L_T.lt ℕ n :=
+  fun i => to_lt_t (v i)
+
+def to_lt_f {n : ℕ} : Semiformula PA.lpa ℕ n → Semiformula L_T.lt ℕ n
+| .verum => .verum
+| .falsum => .falsum
+| .rel r v => .rel (to_lt_rel r) (to_lt_vt v)
+| .nrel r v => .nrel (to_lt_rel r) (to_lt_vt v)
+| .and φ ψ => .and (to_lt_f φ) (to_lt_f ψ)
+| .or φ ψ => .or (to_lt_f φ) (to_lt_f ψ)
+| .all φ => .all (to_lt_f φ)
+| .ex φ => .ex (to_lt_f φ)
+
+example {n : ℕ}: ∀φ:Semiformula PA.lpa ℕ n, ∃ψ:Semiformula L_T.lt ℕ n, ψ = to_lt_f φ :=
+  fun a : Semiformula PA.lpa ℕ n => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
+
+instance : Coe (Semiterm PA.lpa ℕ n) (Semiterm L_T.lt ℕ n) where
+  coe t := to_lt_t t
+instance : Coe (Semiformula PA.lpa ℕ n) (Semiformula L_T.lt ℕ n) where
+  coe φ := to_lt_f φ
 end L_T
+
 /-
 # Definitions for the PAT theory
 -/
@@ -312,30 +352,38 @@ open L_T
 infixr:60 " pt_bi_imp " => LogicalConnective.iff
 infixr:60 " pt_imp " => Arrow.arrow
 
-def psucc : (Fin 1 → Semiterm lt ξ n) → Semiterm lt ξ n := .func Func.succ
-def first_ax : Semiformula lt ℕ 0 :=
- ∀' (Semiformula.nrel Rel.eq ![Semiterm.func Func.succ
-  ![#0],Semiterm.func Func.zero ![]])
-def second_ax : SyntacticFormula lt :=
-  ∀' ∀' ((pt_eq ![pt_succ ![#1],pt_succ ![#0]]) pt_imp (pt_eq ![#1,#0]))
-def third_ax : SyntacticFormula lt :=
-  ∀' (pt_eq ![pt_add ![#0, pt_zero ![]], #0])
-def fourth_ax : SyntacticFormula lt :=
-  ∀' ∀' (pt_eq ![pt_add ![#1,pt_succ ![#0]],pt_succ ![pt_add ![#1,#0]]])
-def fifth_ax : SyntacticFormula lt :=
-  ∀' (pt_eq ![pt_mult ![#0,pt_zero ![]], pt_zero ![]])
-def sixth_ax : SyntacticFormula lt :=
-  ∀' ∀' (pt_eq ![pt_mult ![#1,pt_succ ![#0]],pt_add ![pt_mult ![#1,#0],#1]])
+-- def psucc : (Fin 1 → Semiterm lt ξ n) → Semiterm lt ξ n := .func Func.succ
+-- def first_ax : Semiformula lt ℕ 0 :=
+--  ∀' (Semiformula.nrel Rel.eq ![Semiterm.func Func.succ
+--   ![#0],Semiterm.func Func.zero ![]])
+-- def second_ax : SyntacticFormula lt :=
+--   ∀' ∀' ((pt_eq ![pt_succ ![#1],pt_succ ![#0]]) pt_imp (pt_eq ![#1,#0]))
+-- def third_ax : SyntacticFormula lt :=
+--   ∀' (pt_eq ![pt_add ![#0, pt_zero ![]], #0])
+-- def fourth_ax : SyntacticFormula lt :=
+--   ∀' ∀' (pt_eq ![pt_add ![#1,pt_succ ![#0]],pt_succ ![pt_add ![#1,#0]]])
+-- def fifth_ax : SyntacticFormula lt :=
+--   ∀' (pt_eq ![pt_mult ![#0,pt_zero ![]], pt_zero ![]])
+-- def sixth_ax : SyntacticFormula lt :=
+--   ∀' ∀' (pt_eq ![pt_mult ![#1,pt_succ ![#0]],pt_add ![pt_mult ![#1,#0],#1]])
 
-def zero_term : Semiterm lt ℕ 0 := .func .zero ![]
-def succ_var_term : Semiterm lt ℕ 1 := .func .succ ![#0]
-def induction_schema (φ : Semiformula lt ℕ 1) : SyntacticFormula lt :=
+def zero_term : Semiterm lt ℕ 0 := PA.zero_term
+def succ_var_term : Semiterm lt ℕ 1 := PA.succ_var_term
+
+def first_ax : Semiformula lt ℕ 0 := PA.first_ax
+def second_ax : Semiformula lt ℕ 0 := PA.second_ax
+def third_ax : Semiformula lt ℕ 0 := PA.third_ax
+def fourth_ax : Semiformula lt ℕ 0 := PA.fourth_ax
+def fifth_ax : Semiformula lt ℕ 0 := PA.fifth_ax
+def sixth_ax : Semiformula lt ℕ 0 := PA.sixth_ax
+
+def induction_schema (φ : Semiformula PA.lpa ℕ 1) : SyntacticFormula lt :=
   (.and
-    (φ/[zero_term])
+    (φ/[PAT.zero_term])
     (∀' (φ p_imp φ/[succ_var_term]))) p_imp
     ∀' φ
 def induction_set (Γ : Semiformula lt ℕ 1 → Prop) : Theory lt :=
-  { ψ | ∃ φ : Semiformula lt ℕ 1, Γ φ ∧ ψ = (induction_schema φ)}
+  { ψ | ∃ φ : Semiformula PA.lpa ℕ 1, Γ φ ∧ ψ = (induction_schema φ)}
 
 def axiom_set : Theory lt := {
   first_ax,
