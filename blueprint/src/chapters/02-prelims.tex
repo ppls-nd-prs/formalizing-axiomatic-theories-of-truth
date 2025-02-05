@@ -63,7 +63,7 @@ Note that this defines a language as consisting only of functions and relations,
         \item $F = F_{PA}$ and
         \item $R$ is defined by
         \begin{enumerate}
-            \item $R(1) = \{\texttt{Tr}\}$ and
+            \item $R(1) = \{\texttt{T}\}$ and
             \item $R(2) = R_{PA}(2)$.
         \end{enumerate}
         % \item $F(0) = F_{PA}(0)$,
@@ -219,6 +219,45 @@ Now we have everything in place to define sequent calculus.
 \end{definition}
 
 Intuitively, we can think of all distinct formulas comprising our sequents as disjuncts of one big disjunction thereby making one sequent a big disjunction \cite{lee2007}. The derivation rules ensure that only disjuncts can be derived where truth is preserved.
+
+\section{Pair encoding}
+Formulas in some first-order langauge $\mathcal{L}$ can be encoded to and decoded from natural numbers. An advantage of this is that we can use a language that has natural numbers as terms, in our case $\mathcal{L}_T$ to formulate metatheoretical statements. In this project we make use of pair encoding.
+
+Pair encoding of sequences is based on a recursive notion of sequence building, where a pairing function encodes two natural numbers into one natural number, where these natural numbers themselves could again be encodings of two natural numbers, allowing encoding of an arbitrarily large sequence. Hence, we first need the pairing function. This function is native to mathlib.
+
+\begin{definition}[\texttt{pair}]\label{def:pair}
+    \lean{Nat.pair}
+    \leanok
+    The pairing function $\texttt{pair} : \mathbb{N}^2 \to \mathbb{N}$ is defined as 
+    \begin{align*}
+        \texttt{pair}(a,b) = \begin{cases}
+            b \cdot b + a &\text{if } a < b \\
+            a \cdot a + a + b &\text{else}.        
+        \end{cases}
+    \end{align*}
+\end{definition}
+
+The encoding this results in is illustrated in Figure \ref{fig:pairing-table}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=6cm]{./img/pairing-table.pdf}
+    \caption{An illustration of the process of encoding natural numbers using \texttt{pair}.}
+    \label{fig:pairing-table}
+\end{figure}
+
+Then, we can use this to have an encoding function $\texttt{toNat} : B_{\mathcal{L},\xi,n} \to \mathbb{N}$ from semiformulas to natural numbers.
+
+\begin{definition}[\texttt{toNat}]\label{def:toNat}
+    \lean{LO.FirstOrder.Semiformula.toNat}
+    \leanok
+    Let $B_{\mathcal{L},\xi,\mathbb{N}}$ be a set of semiformulas. Then the function $\texttt{toNat} : B_{\mathcal{L},\xi,\mathbb{N}} \to \mathbb{N}$ is defined such that
+    \begin{enumerate}
+        \item \texttt{toNat}$(a,b)$
+
+    \end{enumerate}
+
+\end{definition}
 
 % \begin{definition}[primitive term]%\label{def:primitive-term}
 %     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
