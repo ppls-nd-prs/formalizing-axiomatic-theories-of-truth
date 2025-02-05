@@ -40,7 +40,7 @@ Note that this defines a language as consisting only of functions and relations,
 
 \begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:lpa}
     \uses{def:fol}
-    \lean{LPA}
+    \lean{PA.lpa}
     \leanok
     The language of peano arithmetic is the first-order language $\mathcal{L}_{PA} = \langle F, R \rangle$, where
     \begin{enumerate}
@@ -56,7 +56,7 @@ Note that this defines a language as consisting only of functions and relations,
 
 \begin{definition}[$\mathcal{L}_{T}$: the language of peano arithmetic including the truth predicate symbol]\label{def:lt}
     \uses{def:fol, def:lpa}
-    \lean{LTr}
+    \lean{L_T.lt}
     \leanok
     Let $\mathcal{L}_{PA} = \langle F_{PA},R_{PA}\rangle$ be the language of Peano arithmetic. Then, the language of Peano arithmetic including the truth predicate symbol $T$ is the first-order language $\mathcal{L}_T = \langle F, R \rangle$, where
     \begin{enumerate}
