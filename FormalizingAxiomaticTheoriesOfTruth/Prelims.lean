@@ -143,16 +143,30 @@ def induction_schema (φ : Semiformula lpa ℕ 1) : SyntacticFormula lpa :=
     (φ/[zero_term])
     (∀' (φ p_imp φ/[succ_var_term]))) p_imp
     ∀' φ
-def induction_set (Γ : Semiformula lpa ℕ 1 → Prop) : Theory lpa :=
-  { ψ | ∃ φ : Semiformula lpa ℕ 1, Γ φ ∧ ψ = (induction_schema φ)}
+def induction_set (Γ : Semiformula lpa ℕ 1 → Prop) : (Semiformula lpa ℕ 0) → Prop :=
+  fun ψ => ∃ φ : Semiformula lpa ℕ 1, Γ φ ∧ ψ = (induction_schema φ)
 
-def axiom_set : Theory lpa := {first_ax,
-                        second_ax,
-                        third_ax,
-                        fourth_ax,
-                        fifth_ax,
-                        sixth_ax}
-def t_pa : Theory lpa := axiom_set + induction_set Set.univ
+-- def axiom_set : Theory lpa := {first_ax,
+--                         second_ax,
+--                         third_ax,
+--                         fourth_ax,
+--                         fifth_ax,
+--                         sixth_ax}
+
+inductive axiom_set : (Semiformula lpa ℕ 0) → Prop
+  | first : axiom_set first_ax
+  | second : axiom_set second_ax
+  | third : axiom_set third_ax
+  | fourth : axiom_set fourth_ax
+  | fifth : axiom_set fifth_ax
+  | sixth : axiom_set sixth_ax
+
+#check axiom_set first_ax
+example : axiom_set first_ax := axiom_set.first
+example : axiom_set third_ax := axiom_set.third
+
+def t_pa : Theory lpa := {φ | (axiom_set φ) ∨ (induction_set Set.univ) φ}
+
 /-
 # (Sanity check) Proof that ((0 = 0) ∧ ∀x(x = x → S(x) = S(x))) → ∀x(x = x) ∈ PA_plus_induction (below)
 -/
@@ -162,12 +176,12 @@ def the_formula : Semiformula lpa ℕ 0 := (Semiformula.and ((Semiformula.rel Re
 #eval the_formula
 def φ : Semiformula lpa ℕ 1 := Semiformula.rel Rel.eq ![#0,#0]
 
-example : the_formula ∈ t_pa := by
+example : t_pa the_formula  := by
           rw[t_pa]
           have step1 : φ ∈ Set.univ := by simp
           have step2 : Set.univ φ := by
             apply step1
-          have step3 : the_formula ∈ (induction_set Set.univ) := by
+          have step3 : (induction_set Set.univ) the_formula := by
             rw[induction_set]
             have h : Set.univ φ ∧ the_formula = induction_schema φ := by
               apply And.intro
@@ -184,7 +198,7 @@ example : the_formula ∈ t_pa := by
               simp
               rfl
             apply Exists.intro φ h
-          apply Set.mem_union_right
+          apply Or.intro_right
           apply step3
 
 end PA
@@ -377,23 +391,47 @@ def fourth_ax : Semiformula lt ℕ 0 := PA.fourth_ax
 def fifth_ax : Semiformula lt ℕ 0 := PA.fifth_ax
 def sixth_ax : Semiformula lt ℕ 0 := PA.sixth_ax
 
-def induction_schema (φ : Semiformula PA.lpa ℕ 1) : SyntacticFormula lt :=
+def induction_schema (φ : Semiformula lt ℕ 1) : SyntacticFormula lt :=
   (.and
     (φ/[PAT.zero_term])
     (∀' (φ p_imp φ/[succ_var_term]))) p_imp
     ∀' φ
-def induction_set (Γ : Semiformula lt ℕ 1 → Prop) : Theory lt :=
-  { ψ | ∃ φ : Semiformula PA.lpa ℕ 1, Γ φ ∧ ψ = (induction_schema φ)}
+def induction_set (Γ : Semiformula lt ℕ 1 → Prop) : (Semiformula lt ℕ 0) → Prop :=
+  fun ψ => ∃ φ : Semiformula PA.lpa ℕ 1, Γ φ ∧ ψ = (induction_schema φ)
 
-def axiom_set : Theory lt := {
-  first_ax,
-  second_ax,
-  third_ax,
-  fourth_ax,
-  fifth_ax,
-  sixth_ax
-}
-def t_pat : Theory lt := axiom_set + induction_set Set.univ
+-- def axiom_set : Theory lt := {
+--   first_ax,
+--   second_ax,
+--   third_ax,
+--   fourth_ax,
+--   fifth_ax,
+--   sixth_ax
+-- }
+
+inductive axiom_set : (Semiformula lt ℕ 0) → Prop
+  | first : axiom_set PA.first_ax
+  | second : axiom_set PA.second_ax
+  | third : axiom_set PA.third_ax
+  | fourth : axiom_set PA.fourth_ax
+  | fifth : axiom_set PA.fifth_ax
+  | sixth : axiom_set PA.sixth_ax
+
+/-
+Proof that all PA axioms are in PAT
+-/
+lemma lem_pa_ax_to_pat_ax (φ : Semiformula PA.lpa ℕ 0) : PA.axiom_set φ → axiom_set φ
+  | .first => axiom_set.first
+  | .second => axiom_set.second
+  | .third => axiom_set.third
+  | .fourth => axiom_set.fourth
+  | .fifth => axiom_set.fifth
+  | .sixth => axiom_set.sixth
+
+lemma all_pa_ax_pat_ax : ∀φ:Semiformula PA.lpa ℕ 0, (PA.axiom_set φ) → (axiom_set φ) :=
+  fun φ : Semiformula PA.lpa ℕ 0 =>
+    lem_pa_ax_to_pat_ax φ
+
+def t_pat : Theory lt := {φ | axiom_set φ ∨ (induction_set Set.univ) φ}
 end PAT
 
 /-
@@ -517,3 +555,4 @@ def provable_instance_without_tactics : PA ⊢ instance_first_PA_ax :=
 /-
 * So, this goes well, but thm23 is just very complicated, i.e. #print thm23 yields
 -/
+end Sandbox

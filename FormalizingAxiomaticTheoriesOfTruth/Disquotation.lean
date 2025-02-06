@@ -13,8 +13,7 @@ def disquotation_schema (φ : Semiformula PA.lpa ℕ 0) : Semiformula lt ℕ 0 :
   .rel .t ![numeral (Semiformula.toNat (φ))] pt_bi_imp φ
 def disquotation_set (Γ : Semiformula lt ℕ 0 → Prop) : Theory lt :=
   { ψ | ∃ φ : Semiformula PA.lpa ℕ 0, Γ φ ∧ ψ = (disquotation_schema φ)}
-def tb : Theory lt := t_pat + disquotation_set Set.univ
-
+def tb : Theory lt := {φ | t_pat φ ∨ (disquotation_set Set.univ) φ}
 end TB
 
 /-
@@ -26,9 +25,8 @@ def formula_eq_null : Semiformula PA.lpa ℕ 0 :=
   .rel .eq ![PA.null,PA.null]
 def disquotation : Semiformula lt ℕ 0 :=
   .rel .t ![numeral (formula_eq_null.toNat)] pt_bi_imp formula_eq_null
-example : disquotation ∈ tb := by
-  have step1 : (disquotation ∈ tb) = (disquotation ∈ t_pat + {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ}) := by
-    rw[tb,disquotation_set]
+example : tb disquotation := by
+  have step1 : (tb disquotation) = (t_pat disquotation ∨ {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} disquotation) := by
     rfl
   have step2 : formula_eq_null ∈ Set.univ := by simp
   have step3 : Set.univ formula_eq_null := by
@@ -41,17 +39,88 @@ example : disquotation ∈ tb := by
     exact step4
   have step6 : ∃ φ, Set.univ φ ∧ disquotation = disquotation_schema φ := by
     apply Exists.intro formula_eq_null step5
-  have step7 : disquotation ∈ {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} := by
+  have step7 : {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} disquotation := by
     exact step6
-  have step8 : disquotation ∈ {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} → disquotation ∈ t_pat + {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} := by
-    apply Set.mem_union_right
-  have step9 : disquotation ∈ t_pat + {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} := by
+  have step8 : {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} disquotation → t_pat disquotation ∨ {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} disquotation := by
+    apply Or.intro_right
+  have step9 : t_pat disquotation ∨ {ψ | ∃ φ, Set.univ φ ∧ ψ = disquotation_schema φ} disquotation := by
     apply step8 step7
-  have step10 : disquotation ∈ tb := by
+  have step10 : tb disquotation := by
     apply step1.mpr step9
   exact step10
 
--- theorem ax_pa_sub_ax_tb :
+open Sandbox
+open PA
+/-
+# Trying to formalize the steps of Halbach's theorem 7.2 on the conservativity of TB
+-/
+lemma to_lt_phi_eq_phi_to_lt (φ : Semiformula lpa ℕ 1): to_lt_f (φ/[PA.zero_term].and (∀' (φ pt_imp φ/[PA.succ_var_term])) pt_imp ∀' φ) =
+  (to_lt_f φ)/[PAT.zero_term].and (∀' (to_lt_f φ pt_imp (to_lt_f φ)/[PAT.succ_var_term])) pt_imp ∀' to_lt_f φ := by
+    cases φ with
+      | verum =>
+        have step1 : PA.zero_term = PAT.zero_term := by rfl
+        have step2 : PA.succ_var_term = PAT.succ_var_term := by rfl
+        have step3 {n : ℕ}(t : Semiterm lpa ℕ n) : Semiformula.verum/[t] = Semiformula.verum := by
+          rfl
+        rw[step3,step3]
+        have step4 {n : ℕ}(t : Semiterm lt ℕ n) : (to_lt_f Semiformula.verum)/[t] = (to_lt_f Semiformula.verum) := by
+          rfl
+        rw[step4,step4]
+        sorry
+      | falsum => sorry
+      | rel => sorry
+      | nrel => sorry
+      | and => sorry
+      | or => sorry
+      | all => sorry
+      | ex => sorry
+
+lemma pa_ind_eq_pat_ind (φ : Semiformula lpa ℕ 1) : (PA.induction_schema φ) = (PAT.induction_schema φ) := by
+  rw[PA.induction_schema,PAT.induction_schema]
+  apply to_lt_phi_eq_phi_to_lt
+
+lemma pa_ind_to_pat_ind (φ : Semiformula lpa ℕ 0) : (PA.induction_set Set.univ) φ → (PAT.induction_set Set.univ) φ := by
+  rw[PA.induction_set,PAT.induction_set]
+  intro h
+  have step1 (φ_1 : Semiformula lpa ℕ 1): (PA.induction_schema φ_1) = (PAT.induction_schema φ_1) := by
+    apply pa_ind_eq_pat_ind
+  sorry
+
+lemma all_pa_ind_pat_ind : ∀φ : Semiformula lpa ℕ 0,(PA.induction_set Set.univ) φ → (PAT.induction_set Set.univ) φ := by
+sorry
+
+lemma lem2 (φ : Semiformula lpa ℕ 0) : t_pa φ → tb φ := by
+  rw[t_pa,tb,t_pat]
+  intro h1
+  cases h1 with
+  | inl t =>
+    apply Or.intro_left
+    apply Or.intro_left
+    apply all_pa_ax_pat_ax
+    exact t
+  | inr t =>
+    apply Or.intro_left
+    apply Or.intro_right
+    sorry
+
+def derivation_tb_to_derivation_t_pa (φ : Semiformula lpa ℕ 0) : tb ⟹. to_lt_f φ → t_pa ⟹. φ := by
+  sorry
+
+def derivation_to_entails (L : Language)(T : Theory L)(φ : Semiformula L ℕ 0) : T ⟹. φ → T ⊢! φ := by
+  intro h
+  apply Derivation.provableOfDerivable at h
+  sorry
+  -- have step1 {F : Type} {S : Type} [System F S] (𝓢 : S) (f : F) : System.Provable φ := Nonempty (h)
+
+
+theorem conservativity_of_tb : ∀φ:Semiformula lpa ℕ 0, (tb ⊢! to_lt_f φ) → (t_pa ⊢! φ) := by
+  -- apply derivation_tb_to_derivation_t_pa
+  sorry
+
+example : ∀φ : Semiformula PA.lpa ℕ 0, PA.t_pa φ → tb φ :=
+  fun φ : Semiformula PA.lpa ℕ 0 => sorry
+
+  -- theorem ax_pa_sub_ax_tb :
 
 -- /-
 -- We should first prove that the theory of PA is a subset of TB from the
@@ -60,7 +129,9 @@ example : disquotation ∈ tb := by
 -- /-
 -- Halbach's theorem 7.5 (conservativity of tb)
 -- -/
--- theorem conservativity_tb : ∀φ : Semiformula PA.lpa ℕ 0, ∀ψ: Semiformula lt ℕ 0, (φ = ψ) → (tb ⊢! ψ → PA.t_pa ⊢! φ) := by
+theorem conservativity_tb : ∀φ : Semiformula PA.lpa ℕ 0, ∀ψ: Semiformula lt ℕ 0, (φ = ψ) → (tb ⊢! ψ → PA.t_pa ⊢! φ) := by
+sorry
+
 -- intro φ
 -- intro ψ
 -- intro h
