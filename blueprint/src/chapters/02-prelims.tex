@@ -246,6 +246,20 @@ The encoding this results in is illustrated in Figure \ref{fig:pairing-table}.
     \label{fig:pairing-table}
 \end{figure}
 
+Accordingly, we also need a decoding function $\texttt{unpair} : \mathbb{N} \to \mathbb{N}^2$. 
+
+% \begin{definition}[\texttt{unpair}]\label{def:unpair}
+%     \lean{Nat.unpair}
+%     \leanok
+%     The unparing function \texttt{unpair}$: \mathbb{N} \to \mathbb{N}^2$ is defined as 
+%     \begin{align*}
+%         \texttt{unpair}(n) = \begin{cases}
+%             (0, \sqrt{n}) &\text{if } 0 < \sqrt{n} \\
+%             (\sqrt{n}, - \sqrt{n}) &\text{else}.     
+%         \end{cases}
+%     \end{align*}
+% \end{definition}
+
 Then, we can use this to have an encoding function $\texttt{toNat} : B_{\mathcal{L},\xi,n} \to \mathbb{N}$ from semiformulas to natural numbers.
 
 \begin{definition}[\texttt{toNat}]\label{def:toNat}
@@ -254,7 +268,7 @@ Then, we can use this to have an encoding function $\texttt{toNat} : B_{\mathcal
     Let $B_{\mathcal{L},\xi,\mathbb{N}}$ be a set of semiformulas. Then the function $\texttt{toNat} : B_{\mathcal{L},\xi,\mathbb{N}} \to \mathbb{N}$ is defined such that
     \begin{enumerate}
         \item \texttt{toNat}$(a,b)$
-
+        
     \end{enumerate}
 
 \end{definition}
