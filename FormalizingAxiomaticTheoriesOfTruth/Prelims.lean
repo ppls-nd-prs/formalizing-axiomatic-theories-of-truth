@@ -336,7 +336,7 @@ def to_lt_t {n : ℕ}: Semiterm PA.lpa ℕ n → Semiterm L_T.lt ℕ n
   | &x => &x
   | .func f v => .func (to_lt_func f) (fun i => to_lt_t (v i))
 
-def to_lt_vt {k n: ℕ} (v : Fin k → Semiterm PA.lpa ℕ n) : Fin k → Semiterm L_T.lt ℕ n :=
+def to_lt_vt {n: ℕ} (v : Fin k → Semiterm PA.lpa ℕ n) : Fin k → Semiterm L_T.lt ℕ n :=
   fun i => to_lt_t (v i)
 
 def to_lt_f {n : ℕ} : Semiformula PA.lpa ℕ n → Semiformula L_T.lt ℕ n
@@ -356,6 +356,73 @@ instance : Coe (Semiterm PA.lpa ℕ n) (Semiterm L_T.lt ℕ n) where
   coe t := to_lt_t t
 instance : Coe (Semiformula PA.lpa ℕ n) (Semiformula L_T.lt ℕ n) where
   coe φ := to_lt_f φ
+
+/-
+A partial translation function from lt to lpa
+-/
+def to_lpa_func {arity : ℕ} : (lt.Func arity) → (PA.lpa.Func arity)
+  | .zero => .zero
+  | .succ => .succ
+  | .add => .add
+  | .mult => .mult
+
+def to_lpa_rel {n : ℕ} : (lt.Rel n) → Option (PA.lpa.Rel n)
+  | .t => none
+  | .eq => some .eq
+
+def dflt_rel_2 : PA.Rel 2 := .eq
+
+def to_lpa_t {n : ℕ}: Semiterm lt ℕ n → Semiterm PA.lpa ℕ n
+  | #x => #x
+  | &x => &x
+  | .func f v => .func (to_lpa_func f) (fun i => to_lpa_t (v i))
+
+def to_lpa_vt {k n: ℕ} (v : Fin k → Semiterm lt ℕ n) : Fin k → Semiterm PA.lpa ℕ n :=
+  fun i => to_lpa_t (v i)
+
+def dflt {n : ℕ}: Semiformula PA.lpa ℕ n := ⊥ -- working with defaults is iffy but I dont see a way around it
+
+def to_lpa_f : Semiformula L_T.lt ℕ n → Option (Semiformula PA.lpa ℕ n)
+| .verum => some .verum
+| .falsum => some .falsum
+| .rel .eq v => some (.rel ((to_lpa_rel .eq).getD dflt_rel_2) (to_lpa_vt v))
+| .rel .t _ => none
+| .nrel .eq v => some (.nrel ((to_lpa_rel .eq).getD dflt_rel_2) (to_lpa_vt v))
+| .nrel .t _ => none
+| .and φ ψ => some (.and ((to_lpa_f φ).getD dflt) ((to_lpa_f ψ).getD dflt))
+| .or φ ψ => some (.or ((to_lpa_f φ).getD dflt) ((to_lpa_f ψ).getD dflt))
+| .all φ => some (.all ((to_lpa_f φ).getD dflt))
+| .ex φ => some (.ex ((to_lpa_f φ).getD dflt))
+
+def send_to_lpa (ψ : Semiformula L_T.lt ℕ 0) (_ : ψ = to_lt_f φ) : Semiformula PA.lpa ℕ 0 :=
+  (to_lpa_f ψ).getD dflt
+
+lemma exists_some_lpa : ∀φ:Semiformula PA.lpa ℕ 0,∃ψ:Semiformula L_T.lt ℕ 0, to_lpa_f ψ = some φ := by
+  intro φ
+  cases φ with
+  | verum =>
+    let step1 : Semiformula L_T.lt ℕ 0 := Semiformula.verum
+    have step2 : to_lpa_f step1 = some Semiformula.verum := by
+      rfl
+    apply Exists.intro step1 step2
+  | falsum =>
+    let step1 : Semiformula L_T.lt ℕ 0 := Semiformula.falsum
+    have step2 : to_lpa_f step1 = some Semiformula.falsum := by
+      rfl
+    apply Exists.intro step1 step2
+  | rel r v =>
+    cases r with
+    | eq =>
+      let step1 : Semiformula L_T.lt ℕ 0 := Semiformula.rel (to_lt_rel PA.Rel.eq) (to_lt_vt v)
+      have step2 : to_lpa_f step1 = some (Semiformula.rel PA.Rel.eq v) := by
+        sorry
+      sorry
+  | nrel => sorry
+  | and => sorry
+  | or => sorry
+  | all => sorry
+  | ex => sorry
+
 end L_T
 
 /-
@@ -460,7 +527,7 @@ def instance_first_PA : Semiformula lpa ℕ 1 :=
 
 open Semiterm
 /-
-# Goal have ¬=(S(S(S(0))),0) from PA axiom 1.
+# Goal: have that ¬=(S(S(S(0))),0) is provable from PA axiom 1.
 -/
 /-
 ## The intuitive one using tactics
@@ -480,6 +547,9 @@ def provable_instance : PA ⊢ instance_first_PA_ax := by
     exact step2
   apply Derivation.provableOfDerivable
   exact step3
+
+lemma instance_first_PA_ax_from_PA : PA ⊢! instance_first_PA_ax :=
+  Nonempty.intro provable_instance
 
   /-
 What print gives from the above (but that relies on that proof
