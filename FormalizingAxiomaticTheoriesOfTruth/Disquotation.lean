@@ -139,6 +139,12 @@ example : ∀φ : Semiformula PA.lpa ℕ 0, PA.t_pa φ → tb φ :=
   fun φ : Semiformula PA.lpa ℕ 0 => sorry
 
 
+/-
+Perhaps making our own definition of a proof in a system works.
+-/
+-- inductive A : (Semiformula L ℕ 0) → (Derivation T [f]) → Type
+--   Prf : A f d
+
   -- theorem ax_pa_sub_ax_tb :
 
 -- /-
