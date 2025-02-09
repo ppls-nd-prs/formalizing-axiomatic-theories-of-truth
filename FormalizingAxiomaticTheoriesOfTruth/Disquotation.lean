@@ -54,6 +54,10 @@ open PA
 /-
 # Trying to formalize the steps of Halbach's theorem 7.2 on the conservativity of TB
 -/
+
+
+
+
 lemma to_lt_phi_eq_phi_to_lt (φ : Semiformula lpa ℕ 1): to_lt_f (φ/[PA.zero_term].and (∀' (φ pt_imp φ/[PA.succ_var_term])) pt_imp ∀' φ) =
   (to_lt_f φ)/[PAT.zero_term].and (∀' (to_lt_f φ pt_imp (to_lt_f φ)/[PAT.succ_var_term])) pt_imp ∀' to_lt_f φ := by
     cases φ with
@@ -103,17 +107,54 @@ lemma lem2 (φ : Semiformula lpa ℕ 0) : t_pa φ → tb φ := by
     apply Or.intro_right
     sorry
 
-def derivation_tb_to_derivation_t_pa (φ : Semiformula lpa ℕ 0) : tb ⟹. to_lt_f φ → t_pa ⟹. φ := by
+def derivation_tb_to_derivation_t_pa (φ : Semiformula lpa ℕ 0) : tb ⟹ [to_lt_f φ] → t_pa ⟹. φ := by
   sorry
 
-def derivation_to_entails (L : Language)(T : Theory L)(φ : Semiformula L ℕ 0) : T ⟹. φ → T ⊢! φ := by
-  intro h
-  apply Derivation.provableOfDerivable at h
-  sorry
-  -- have step1 {F : Type} {S : Type} [System F S] (𝓢 : S) (f : F) : System.Provable φ := Nonempty (h)
+-- def derivation_to_entails (L : Language)(T : Theory L)(φ : Semiformula L ℕ 0) : T ⟹. φ → T ⊢! φ := by
+--   intro h
+--   apply Derivation.provableOfDerivable at h
+--   apply Nonempty.intro at h
+--   exact h
 
 lemma lem3 : Nonempty (Nat) :=
   Nonempty.intro Nat.zero
+
+example : ∀φ : Semiformula PA.lpa ℕ 0, PA.t_pa φ → tb φ :=
+  fun φ : Semiformula PA.lpa ℕ 0 => sorry
+
+variable (φ : Semiformula PA.lpa ℕ 0)
+lemma forall_pa_tb_is_pa (φ: Semiformula PA.lpa ℕ 0) : (φ = to_lt_f φ) := by
+  rfl
+
+def der_list_to_der_list (ψ : Semiformula L_T.lt ℕ 0) (h1 : ψ = to_lt_f φ) (h2 : send_to_lpa ψ h1 = φ) : tb ⟹ [ψ] → t_pa ⟹ [φ] := by
+  intro h3
+  cases h3 with
+    | verum =>
+      have step1 : φ = Semiformula.verum := by
+        exact h2.symm
+      have step2 : [φ] = [Semiformula.verum] := by
+        rw[step1]
+      rw[step2]
+      apply Derivation.verum
+    | or => sorry
+    | and     => sorry
+    | all     => sorry
+    | ex      => sorry
+    | wk      => sorry
+    | cut     => sorry
+    | root    => sorry
+
+-- def der_to_der : (ψ = to_lt_f φ) → tb ⟹. ψ → t_pa ⟹. φ := by
+--   intro h1
+--   intro h2
+--   apply der_list_to_der_list at h1
+--   apply h1
+--   exact h2
+
+def provable_to_provable : (L_T.to_lpa_f ψ = some φ) := by sorry
+
+theorem conservativity_tb : ∀φ : Semiformula PA.lpa ℕ 0, (ψ = to_lt_f φ) → (tb ⊢! ψ → PA.t_pa ⊢! φ) := by
+sorry
 
 -- variable (a : formula_eq_null ∈ tb)
 -- lemma lem5 : Nonempty (tb ⊢ (formula_eq_null)) := by
@@ -133,17 +174,8 @@ lemma lem3 : Nonempty (Nat) :=
 --   apply derivation_to_entails at h2
 --   apply derivation_tb_to_derivation_t_pa at h
 
---   sorry
+--   sorr
 
-example : ∀φ : Semiformula PA.lpa ℕ 0, PA.t_pa φ → tb φ :=
-  fun φ : Semiformula PA.lpa ℕ 0 => sorry
-
-
-/-
-Perhaps making our own definition of a proof in a system works.
--/
--- inductive A : (Semiformula L ℕ 0) → (Derivation T [f]) → Type
---   Prf : A f d
 
   -- theorem ax_pa_sub_ax_tb :
 
@@ -154,8 +186,6 @@ Perhaps making our own definition of a proof in a system works.
 -- /-
 -- Halbach's theorem 7.5 (conservativity of tb)
 -- -/
-theorem conservativity_tb : ∀φ : Semiformula PA.lpa ℕ 0, ∀ψ: Semiformula lt ℕ 0, (φ = ψ) → (tb ⊢! ψ → PA.t_pa ⊢! φ) := by
-sorry
 
 -- intro φ
 -- intro ψ
@@ -168,6 +198,12 @@ sorry
 -- |.root
 -- sorry
 
+
+/-
+-- Perhaps making our own definition of a proof in a system works.
+-- -/
+-- inductive A : (Semiformula L ℕ 0) → (Derivation T [f]) → Type
+--   Prf : A f d
 
 -- def to_lpa_func {arity : ℕ} : (lt.Func arity) → (lpa.Func arity)
 --   | .zero => .zero
