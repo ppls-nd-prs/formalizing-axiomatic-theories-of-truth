@@ -112,13 +112,32 @@ def derivation_to_entails (L : Language)(T : Theory L)(φ : Semiformula L ℕ 0)
   sorry
   -- have step1 {F : Type} {S : Type} [System F S] (𝓢 : S) (f : F) : System.Provable φ := Nonempty (h)
 
+lemma lem3 : Nonempty (Nat) :=
+  Nonempty.intro Nat.zero
 
-theorem conservativity_of_tb : ∀φ:Semiformula lpa ℕ 0, (tb ⊢! to_lt_f φ) → (t_pa ⊢! φ) := by
-  -- apply derivation_tb_to_derivation_t_pa
-  sorry
+-- variable (a : formula_eq_null ∈ tb)
+-- lemma lem5 : Nonempty (tb ⊢ (formula_eq_null)) := by
+--   have h1 : formula_eq_null ∈ tb := sorry
+--   have h2 : System (Semiformula lt ℕ 0) (Derivation tb [formula_eq_null]) :=
+--     System.Prf (Derivation.root h1) formula_eq_null
+--   apply Nonempty.intro (Derivation.root h1)
+
+-- #check System.Prf (Derivation.root a) (formula_eq_null)
+
+-- lemma lem2 : System.Provable PA.first_axiom tb :=
+
+
+-- theorem conservativity_of_tb : ∀φ:Semiformula lpa ℕ 0, (tb ⊢! to_lt_f φ) → (t_pa ⊢! φ) := by
+--   intro h1
+--   intro h2
+--   apply derivation_to_entails at h2
+--   apply derivation_tb_to_derivation_t_pa at h
+
+--   sorry
 
 example : ∀φ : Semiformula PA.lpa ℕ 0, PA.t_pa φ → tb φ :=
   fun φ : Semiformula PA.lpa ℕ 0 => sorry
+
 
   -- theorem ax_pa_sub_ax_tb :
 
