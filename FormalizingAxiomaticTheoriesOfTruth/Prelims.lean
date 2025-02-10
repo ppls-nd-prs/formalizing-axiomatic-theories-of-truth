@@ -16,6 +16,7 @@ inductive Func : ℕ → Type where
   | mult : Func 2
 
 inductive Rel : ℕ → Type where
+  | f : Rel 0
   | eq : Rel 2
 
 def lpa : Language where
@@ -50,7 +51,9 @@ instance : ToString (Func n) := ⟨funToStr⟩
 
 -- Printing formulas
 def relToStr {n} : Rel n → String
+| .f => "ERROR: TRIED TRANSLATING FROM LT FORMULA WITH T"
 | .eq => "="
+
 instance : ToString (Rel n) := ⟨relToStr⟩
 
 -- pairwise encoding functions for LPA.Func, LPA.Rel, LTr.Func
@@ -94,12 +97,17 @@ instance enc_f (k : ℕ) : Encodable (lpa.Func k) where
   encodek := Func_enc_dec
 
 def Rel_enc : Rel k → ℕ
+  | .f => Nat.pair 0 0 + 1
   | .eq => Nat.pair 2 0 + 1
 
 def Rel_dec : (n : ℕ) → Option (Rel k)
   | 0 => none
   | e + 1 =>
     match k with
+      | 0 =>
+        match e.unpair.2 with
+          | 0 => some (Rel.f)
+          | _ => none
       | 2 =>
         match e.unpair.2 with
           | 0 => some (Rel.eq)
@@ -109,6 +117,7 @@ def Rel_dec : (n : ℕ) → Option (Rel k)
 lemma Rel_enc_dec {k : ℕ}: ∀ f : Rel k, Rel_dec (Rel_enc f) = (some f) := by
   intro h
   induction h
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
   simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
 instance enc_r (k : ℕ) : Encodable (lpa.Rel k) where
@@ -145,13 +154,6 @@ def induction_schema (φ : Semiformula lpa ℕ 1) : SyntacticFormula lpa :=
     ∀' φ
 def induction_set (Γ : Semiformula lpa ℕ 1 → Prop) : (Semiformula lpa ℕ 0) → Prop :=
   fun ψ => ∃ φ : Semiformula lpa ℕ 1, Γ φ ∧ ψ = (induction_schema φ)
-
--- def axiom_set : Theory lpa := {first_ax,
---                         second_ax,
---                         third_ax,
---                         fourth_ax,
---                         fifth_ax,
---                         sixth_ax}
 
 inductive axiom_set : (Semiformula lpa ℕ 0) → Prop
   | first : axiom_set first_ax
@@ -213,8 +215,9 @@ inductive Func : ℕ → Type where
   | mult : Func 2
 
 inductive Rel : ℕ → Type where
-  | eq : Rel 2
+  | f : Rel 0
   | t : Rel 1
+  | eq : Rel 2
 
 def lt : Language where
   Func := Func
@@ -246,8 +249,9 @@ def funToStr {n}: Func n → String
 instance : ToString (Func n) := ⟨funToStr⟩
 
 def relToStr {n} : Rel n → String
-| .eq => "="
+| .f => "ERROR: TRIED TRANSLATING LT FORMULA WITH T TO LPA"
 | .t => "T"
+| .eq => "="
 
 instance : ToString (Rel n) := ⟨relToStr⟩
 
@@ -290,13 +294,18 @@ instance enc_f (k : ℕ) : Encodable (lt.Func k) where
   encodek := Func_enc_dec
 
 def Rel_enc : Rel k → ℕ
-  | .eq => Nat.pair 2 0 + 1
+  | .f => Nat.pair 0 0 + 1
   | .t => Nat.pair 1 0 + 1
+  | .eq => Nat.pair 2 0 + 1
 
 def Rel_dec : (n : ℕ) → Option (Rel k)
   | 0 => none
   | e + 1 =>
     match k with
+      | 0 =>
+        match e.unpair.2 with
+          | 0 => some .f
+          | _ => none
       | 1 =>
         match e.unpair.2 with
           | 0 => some .t
@@ -312,6 +321,8 @@ lemma Rel_enc_dec {k : ℕ}: ∀ f : Rel k, Rel_dec (Rel_enc f) = (some f) := by
   induction h
   simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
   simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
 
 instance enc_r (k : ℕ) : Encodable (lt.Rel k) where
   encode := Rel_enc
@@ -329,12 +340,13 @@ def to_lt_func {arity : ℕ} : (PA.lpa.Func arity) → (L_T.lt.Func arity)
   | .mult => .mult
 
 def to_lt_rel {n : ℕ} : (PA.lpa.Rel n) → (L_T.lt.Rel n)
+  | .f => .f
   | .eq => .eq
 
 def to_lt_t {n : ℕ}: Semiterm PA.lpa ℕ n → Semiterm L_T.lt ℕ n
   | #x => #x
   | &x => &x
-  | .func f v => .func (to_lt_func f) (fun i => to_lt_t (v i))
+  | .func (arity := n) f v => .func (to_lt_func f) (fun i : Fin n => to_lt_t (v i))
 
 def to_lt_vt {n: ℕ} (v : Fin k → Semiterm PA.lpa ℕ n) : Fin k → Semiterm L_T.lt ℕ n :=
   fun i => to_lt_t (v i)
@@ -352,9 +364,9 @@ def to_lt_f {n : ℕ} : Semiformula PA.lpa ℕ n → Semiformula L_T.lt ℕ n
 example {n : ℕ}: ∀φ:Semiformula PA.lpa ℕ n, ∃ψ:Semiformula L_T.lt ℕ n, ψ = to_lt_f φ :=
   fun a : Semiformula PA.lpa ℕ n => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
 
-instance : Coe (Semiterm PA.lpa ℕ n) (Semiterm L_T.lt ℕ n) where
+instance : Coe (Semiterm PA.lpa ℕ n) (Semiterm lt ℕ n) where
   coe t := to_lt_t t
-instance : Coe (Semiformula PA.lpa ℕ n) (Semiformula L_T.lt ℕ n) where
+instance : Coe (Semiformula PA.lpa ℕ n) (Semiformula lt ℕ n) where
   coe φ := to_lt_f φ
 
 /-
@@ -366,59 +378,130 @@ def to_lpa_func {arity : ℕ} : (lt.Func arity) → (PA.lpa.Func arity)
   | .add => .add
   | .mult => .mult
 
-def to_lpa_rel {n : ℕ} : (lt.Rel n) → Option (PA.lpa.Rel n)
-  | .t => none
-  | .eq => some .eq
-
-def dflt_rel_2 : PA.Rel 2 := .eq
-
 def to_lpa_t {n : ℕ}: Semiterm lt ℕ n → Semiterm PA.lpa ℕ n
   | #x => #x
   | &x => &x
-  | .func f v => .func (to_lpa_func f) (fun i => to_lpa_t (v i))
+  | .func (arity := n) f v => .func (to_lpa_func f) (fun i : Fin n => to_lpa_t (v i))
 
 def to_lpa_vt {k n: ℕ} (v : Fin k → Semiterm lt ℕ n) : Fin k → Semiterm PA.lpa ℕ n :=
   fun i => to_lpa_t (v i)
 
-def dflt {n : ℕ}: Semiformula PA.lpa ℕ n := ⊥ -- working with defaults is iffy but I dont see a way around it
+def to_lpa_f : Semiformula L_T.lt ℕ n → Semiformula PA.lpa ℕ n
+| .verum => .verum
+| .falsum => .falsum
+| .rel .eq v => .rel .eq (to_lpa_vt v)
+| .rel .t _ => .rel .f ![]
+| .rel .f v => .rel .f (to_lpa_vt v)
+| .nrel .eq v => .nrel .eq (to_lpa_vt v)
+| .nrel .t _ => .nrel .f ![]
+| .nrel .f v => .nrel .f (to_lpa_vt v)
+| .and φ ψ => .and (to_lpa_f φ) (to_lpa_f ψ)
+| .or φ ψ => .or (to_lpa_f φ) (to_lpa_f ψ)
+| .all φ => .all (to_lpa_f φ)
+| .ex φ => .ex (to_lpa_f φ)
 
-def to_lpa_f : Semiformula L_T.lt ℕ n → Option (Semiformula PA.lpa ℕ n)
-| .verum => some .verum
-| .falsum => some .falsum
-| .rel .eq v => some (.rel ((to_lpa_rel .eq).getD dflt_rel_2) (to_lpa_vt v))
-| .rel .t _ => none
-| .nrel .eq v => some (.nrel ((to_lpa_rel .eq).getD dflt_rel_2) (to_lpa_vt v))
-| .nrel .t _ => none
-| .and φ ψ => some (.and ((to_lpa_f φ).getD dflt) ((to_lpa_f ψ).getD dflt))
-| .or φ ψ => some (.or ((to_lpa_f φ).getD dflt) ((to_lpa_f ψ).getD dflt))
-| .all φ => some (.all ((to_lpa_f φ).getD dflt))
-| .ex φ => some (.ex ((to_lpa_f φ).getD dflt))
+def t_sentence : Semiformula lt ℕ 0 := .rel .t ![&1]
+def non_t_sentence : Semiformula lt ℕ 0 := .rel .eq ![&0,&1]
+def t_and_non_t_sentence : Semiformula lt ℕ 0 := .and (t_sentence) (non_t_sentence)
+#eval to_lpa_f t_sentence
+#eval to_lt_f (to_lpa_f t_sentence)
+#eval to_lpa_f non_t_sentence
+#eval to_lt_f (to_lpa_f non_t_sentence)
+#eval to_lpa_f t_and_non_t_sentence
+#eval to_lt_f (to_lpa_f t_and_non_t_sentence)
 
-def send_to_lpa (ψ : Semiformula L_T.lt ℕ 0) (_ : ψ = to_lt_f φ) : Semiformula PA.lpa ℕ 0 :=
-  (to_lpa_f ψ).getD dflt
+lemma func_is_func {n : ℕ}: ∀func: PA.Func n, to_lpa_func (to_lt_func func) = func := by
+  intro func
+  induction func
+  rfl
+  rfl
+  rfl
+  rfl
 
-lemma exists_some_lpa : ∀φ:Semiformula PA.lpa ℕ 0,∃ψ:Semiformula L_T.lt ℕ 0, to_lpa_f ψ = some φ := by
+lemma t_is_t : ∀φ:Semiterm PA.lpa ℕ 0, to_lpa_t (to_lt_t φ) = φ := by
+  intro h
+  induction h
+  case bvar x =>
+    rfl
+  case fvar x =>
+    rfl
+  case func f v q =>
+    induction f with
+    | zero =>
+      rw[to_lt_t,to_lpa_t,to_lt_func,to_lpa_func]
+      simp [q]
+    | succ =>
+      rw[to_lt_t,to_lpa_t,to_lt_func,to_lpa_func]
+      simp[q]
+    | add =>
+      rw[to_lt_t,to_lpa_t,to_lt_func,to_lpa_func]
+      simp[q]
+    | mult =>
+      rw[to_lt_t,to_lpa_t,to_lt_func,to_lpa_func]
+      simp[q]
+
+lemma vt_is_vt {k : ℕ}: ∀vt:Fin k → Semiterm PA.lpa ℕ 0, to_lpa_vt (to_lt_vt vt) = vt := by
+  intro vt
+  have step1 : (to_lt_vt vt) = (fun i => to_lt_t (vt i)) := by
+    rfl
+  have step2 (vt : Fin k → Semiterm lt ℕ 0): (to_lpa_vt vt) = (fun i => to_lpa_t (vt i)) := by
+    rfl
+  simp[step1,step2]
+  have step3 : vt = (fun i => vt i) := by
+    rfl
+  nth_rewrite 2 [step3]
+  have step4 (i : Fin k) : to_lpa_t (to_lt_t (vt i)) = vt i := by
+    apply t_is_t
+  simp[step4]
+
+lemma exists_some_lpa : ∀φ:Semiformula PA.lpa ℕ 0,∃ψ:Semiformula L_T.lt ℕ 0, to_lpa_f ψ = φ := by
   intro φ
   cases φ with
   | verum =>
     let step1 : Semiformula L_T.lt ℕ 0 := Semiformula.verum
-    have step2 : to_lpa_f step1 = some Semiformula.verum := by
+    have step2 : to_lpa_f step1 = Semiformula.verum := by
       rfl
     apply Exists.intro step1 step2
   | falsum =>
     let step1 : Semiformula L_T.lt ℕ 0 := Semiformula.falsum
-    have step2 : to_lpa_f step1 = some Semiformula.falsum := by
+    have step2 : to_lpa_f step1 = Semiformula.falsum := by
       rfl
     apply Exists.intro step1 step2
   | rel r v =>
     cases r with
     | eq =>
-      let step1 : Semiformula L_T.lt ℕ 0 := Semiformula.rel (to_lt_rel PA.Rel.eq) (to_lt_vt v)
-      have step2 : to_lpa_f step1 = some (Semiformula.rel PA.Rel.eq v) := by
-        sorry
-      sorry
-  | nrel => sorry
-  | and => sorry
+      let ψ : Semiformula L_T.lt ℕ 0 := Semiformula.rel .eq (to_lt_vt v)
+      have step2 : to_lpa_f ψ = Semiformula.rel PA.Rel.eq v := by
+        simp[ψ]
+        rw[to_lpa_f]
+        simp[vt_is_vt]
+      apply Exists.intro ψ step2
+    | f =>
+      let ψ : Semiformula L_T.lt ℕ 0 := Semiformula.rel .f (to_lt_vt v)
+      have step2 : to_lpa_f ψ = Semiformula.rel PA.Rel.f v := by
+        simp[ψ]
+        rw[to_lpa_f]
+        simp[vt_is_vt]
+      apply Exists.intro ψ step2
+  | nrel r v =>
+    cases r with
+    | eq =>
+      let ψ : Semiformula L_T.lt ℕ 0 := Semiformula.nrel .eq (to_lt_vt v)
+      have step2 : to_lpa_f ψ = Semiformula.nrel PA.Rel.eq v := by
+        simp[ψ]
+        rw[to_lpa_f]
+        simp[vt_is_vt]
+      apply Exists.intro ψ step2
+    | f =>
+      let ψ : Semiformula L_T.lt ℕ 0 := Semiformula.nrel .f (to_lt_vt v)
+      have step2 : to_lpa_f ψ = Semiformula.nrel PA.Rel.f v := by
+        simp[ψ]
+        rw[to_lpa_f]
+        simp[vt_is_vt]
+      apply Exists.intro ψ step2
+  | and δ π =>
+    let ψ : Semiformula L_T.lt ℕ 0 := Semiformula.and (to_lt_f δ) (to_lt_f π)
+    sorry
   | or => sorry
   | all => sorry
   | ex => sorry
@@ -476,7 +559,7 @@ def induction_set (Γ : Semiformula lt ℕ 1 → Prop) : (Semiformula lt ℕ 0) 
 -- }
 
 inductive axiom_set : (Semiformula lt ℕ 0) → Prop
-  | first : axiom_set PA.first_ax
+  | first : axiom_set (to_lt_f PA.first_ax)
   | second : axiom_set PA.second_ax
   | third : axiom_set PA.third_ax
   | fourth : axiom_set PA.fourth_ax

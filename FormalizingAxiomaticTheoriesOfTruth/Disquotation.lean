@@ -126,7 +126,7 @@ variable (φ : Semiformula PA.lpa ℕ 0)
 lemma forall_pa_tb_is_pa (φ: Semiformula PA.lpa ℕ 0) : (φ = to_lt_f φ) := by
   rfl
 
-def der_list_to_der_list (ψ : Semiformula L_T.lt ℕ 0) (h1 : ψ = to_lt_f φ) (h2 : send_to_lpa ψ h1 = φ) : tb ⟹ [ψ] → t_pa ⟹ [φ] := by
+def der_list_to_der_list (ψ : Semiformula L_T.lt ℕ 0) (h1 : ψ = to_lt_f φ) (h2 : to_lpa_f ψ = φ) : tb ⟹ [ψ] → t_pa ⟹ [φ] := by
   intro h3
   cases h3 with
     | verum =>
@@ -144,17 +144,18 @@ def der_list_to_der_list (ψ : Semiformula L_T.lt ℕ 0) (h1 : ψ = to_lt_f φ) 
     | cut     => sorry
     | root    => sorry
 
--- def der_to_der : (ψ = to_lt_f φ) → tb ⟹. ψ → t_pa ⟹. φ := by
---   intro h1
---   intro h2
---   apply der_list_to_der_list at h1
---   apply h1
---   exact h2
+-- sh
 
-def provable_to_provable : (L_T.to_lpa_f ψ = some φ) := by sorry
+def provable_to_provable : (L_T.to_lpa_f ψ = φ) := by sorry
+
+
 
 theorem conservativity_tb : ∀φ : Semiformula PA.lpa ℕ 0, (ψ = to_lt_f φ) → (tb ⊢! ψ → PA.t_pa ⊢! φ) := by
-sorry
+  intro φ
+  intro eq
+  intro psi_prov
+  rw[System.Provable,System.Prf] at psi_prov
+  sorry
 
 -- variable (a : formula_eq_null ∈ tb)
 -- lemma lem5 : Nonempty (tb ⊢ (formula_eq_null)) := by
