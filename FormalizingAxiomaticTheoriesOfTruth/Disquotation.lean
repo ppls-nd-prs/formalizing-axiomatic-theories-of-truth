@@ -49,8 +49,48 @@ example : tb disquotation := by
     apply step1.mpr step9
   exact step10
 
-open Sandbox
-open PA
+/-
+Formalizations of steps in Halbach's theorem 7.2
+-/
+def derivable_to_derivable (φ : Semiformula PA.lpa ℕ 0) (h : to_lpa_f ψ = φ) : Derivation tb [ψ] → Derivation PA.t_pa [φ] := by
+intro tb_der
+cases tb_der with
+  | verum   =>
+      simp[to_lpa_f] at h
+      rw[h.symm]
+      apply Derivation.verum
+  | or      => sorry
+  | and     => sorry
+  | all     => sorry
+  | ex      => sorry
+  | wk      => sorry
+  | cut     => sorry
+  | root    => sorry
+
+lemma non_empty_tb_non_empty_t_pa :∀φ:Semiformula PA.lpa ℕ 0, (to_lpa_f ψ = φ) → Nonempty (Derivation tb [ψ]) → Nonempty (Derivation PA.t_pa [φ]) := by
+  intro φ
+  intro eq
+  intro h
+  apply derivable_to_derivable at eq
+  apply Classical.choice at h
+  apply eq at h
+  apply Nonempty.intro at h
+  exact h
+
+theorem conservativity_tb : ∀φ : Semiformula PA.lpa ℕ 0, (to_lpa_f ψ = φ) → (tb ⊢! ψ → PA.t_pa ⊢! φ) := by
+intro φ
+intro eq
+intro psi_prov
+rw[System.Provable] at psi_prov
+have step1 : Tait.system.1 tb ψ = Derivation tb [ψ] := by
+  rfl
+rw[step1] at psi_prov
+apply non_empty_tb_non_empty_t_pa at eq
+apply eq at psi_prov
+exact psi_prov
+
+
+
 /-
 # Trying to formalize the steps of Halbach's theorem 7.2 on the conservativity of TB
 -/
@@ -58,104 +98,94 @@ open PA
 
 
 
-lemma to_lt_phi_eq_phi_to_lt (φ : Semiformula lpa ℕ 1): to_lt_f (φ/[PA.zero_term].and (∀' (φ pt_imp φ/[PA.succ_var_term])) pt_imp ∀' φ) =
-  (to_lt_f φ)/[PAT.zero_term].and (∀' (to_lt_f φ pt_imp (to_lt_f φ)/[PAT.succ_var_term])) pt_imp ∀' to_lt_f φ := by
-    cases φ with
-      | verum =>
-        have step1 : PA.zero_term = PAT.zero_term := by rfl
-        have step2 : PA.succ_var_term = PAT.succ_var_term := by rfl
-        have step3 {n : ℕ}(t : Semiterm lpa ℕ n) : Semiformula.verum/[t] = Semiformula.verum := by
-          rfl
-        rw[step3,step3]
-        have step4 {n : ℕ}(t : Semiterm lt ℕ n) : (to_lt_f Semiformula.verum)/[t] = (to_lt_f Semiformula.verum) := by
-          rfl
-        rw[step4,step4]
-        sorry
-      | falsum => sorry
-      | rel => sorry
-      | nrel => sorry
-      | and => sorry
-      | or => sorry
-      | all => sorry
-      | ex => sorry
+-- lemma to_lt_phi_eq_phi_to_lt (φ : Semiformula lpa ℕ 1): to_lt_f (φ/[PA.zero_term].and (∀' (φ pt_imp φ/[PA.succ_var_term])) pt_imp ∀' φ) =
+--   (to_lt_f φ)/[PAT.zero_term].and (∀' (to_lt_f φ pt_imp (to_lt_f φ)/[PAT.succ_var_term])) pt_imp ∀' to_lt_f φ := by
+--     cases φ with
+--       | verum =>
+--         have step1 : PA.zero_term = PAT.zero_term := by rfl
+--         have step2 : PA.succ_var_term = PAT.succ_var_term := by rfl
+--         have step3 {n : ℕ}(t : Semiterm lpa ℕ n) : Semiformula.verum/[t] = Semiformula.verum := by
+--           rfl
+--         rw[step3,step3]
+--         have step4 {n : ℕ}(t : Semiterm lt ℕ n) : (to_lt_f Semiformula.verum)/[t] = (to_lt_f Semiformula.verum) := by
+--           rfl
+--         rw[step4,step4]
+--         sorry
+--       | falsum => sorry
+--       | rel => sorry
+--       | nrel => sorry
+--       | and => sorry
+--       | or => sorry
+--       | all => sorry
+--       | ex => sorry
 
-lemma pa_ind_eq_pat_ind (φ : Semiformula lpa ℕ 1) : (PA.induction_schema φ) = (PAT.induction_schema φ) := by
-  rw[PA.induction_schema,PAT.induction_schema]
-  apply to_lt_phi_eq_phi_to_lt
+-- lemma pa_ind_eq_pat_ind (φ : Semiformula lpa ℕ 1) : (PA.induction_schema φ) = (PAT.induction_schema φ) := by
+--   rw[PA.induction_schema,PAT.induction_schema]
+--   apply to_lt_phi_eq_phi_to_lt
 
-lemma pa_ind_to_pat_ind (φ : Semiformula lpa ℕ 0) : (PA.induction_set Set.univ) φ → (PAT.induction_set Set.univ) φ := by
-  rw[PA.induction_set,PAT.induction_set]
-  intro h
-  have step1 (φ_1 : Semiformula lpa ℕ 1): (PA.induction_schema φ_1) = (PAT.induction_schema φ_1) := by
-    apply pa_ind_eq_pat_ind
-  sorry
-
-lemma all_pa_ind_pat_ind : ∀φ : Semiformula lpa ℕ 0,(PA.induction_set Set.univ) φ → (PAT.induction_set Set.univ) φ := by
-sorry
-
-lemma lem2 (φ : Semiformula lpa ℕ 0) : t_pa φ → tb φ := by
-  rw[t_pa,tb,t_pat]
-  intro h1
-  cases h1 with
-  | inl t =>
-    apply Or.intro_left
-    apply Or.intro_left
-    apply all_pa_ax_pat_ax
-    exact t
-  | inr t =>
-    apply Or.intro_left
-    apply Or.intro_right
-    sorry
-
-def derivation_tb_to_derivation_t_pa (φ : Semiformula lpa ℕ 0) : tb ⟹ [to_lt_f φ] → t_pa ⟹. φ := by
-  sorry
-
--- def derivation_to_entails (L : Language)(T : Theory L)(φ : Semiformula L ℕ 0) : T ⟹. φ → T ⊢! φ := by
+-- lemma pa_ind_to_pat_ind (φ : Semiformula lpa ℕ 0) : (PA.induction_set Set.univ) φ → (PAT.induction_set Set.univ) φ := by
+--   rw[PA.induction_set,PAT.induction_set]
 --   intro h
---   apply Derivation.provableOfDerivable at h
---   apply Nonempty.intro at h
---   exact h
+--   have step1 (φ_1 : Semiformula lpa ℕ 1): (PA.induction_schema φ_1) = (PAT.induction_schema φ_1) := by
+--     apply pa_ind_eq_pat_ind
+--   sorry
 
-lemma lem3 : Nonempty (Nat) :=
-  Nonempty.intro Nat.zero
+-- lemma all_pa_ind_pat_ind : ∀φ : Semiformula lpa ℕ 0,(PA.induction_set Set.univ) φ → (PAT.induction_set Set.univ) φ := by
+-- sorry
 
-example : ∀φ : Semiformula PA.lpa ℕ 0, PA.t_pa φ → tb φ :=
-  fun φ : Semiformula PA.lpa ℕ 0 => sorry
+-- lemma lem2 (φ : Semiformula lpa ℕ 0) : t_pa φ → tb φ := by
+--   rw[t_pa,tb,t_pat]
+--   intro h1
+--   cases h1 with
+--   | inl t =>
+--     apply Or.intro_left
+--     apply Or.intro_left
+--     apply all_pa_ax_pat_ax
+--     exact t
+--   | inr t =>
+--     apply Or.intro_left
+--     apply Or.intro_right
+--     sorry
 
-variable (φ : Semiformula PA.lpa ℕ 0)
-lemma forall_pa_tb_is_pa (φ: Semiformula PA.lpa ℕ 0) : (φ = to_lt_f φ) := by
-  rfl
+-- def derivation_tb_to_derivation_t_pa (φ : Semiformula lpa ℕ 0) : tb ⟹ [to_lt_f φ] → t_pa ⟹. φ := by
+--   sorry
 
-def der_list_to_der_list (ψ : Semiformula L_T.lt ℕ 0) (h1 : ψ = to_lt_f φ) (h2 : to_lpa_f ψ = φ) : tb ⟹ [ψ] → t_pa ⟹ [φ] := by
-  intro h3
-  cases h3 with
-    | verum =>
-      have step1 : φ = Semiformula.verum := by
-        exact h2.symm
-      have step2 : [φ] = [Semiformula.verum] := by
-        rw[step1]
-      rw[step2]
-      apply Derivation.verum
-    | or => sorry
-    | and     => sorry
-    | all     => sorry
-    | ex      => sorry
-    | wk      => sorry
-    | cut     => sorry
-    | root    => sorry
+-- -- def derivation_to_entails (L : Language)(T : Theory L)(φ : Semiformula L ℕ 0) : T ⟹. φ → T ⊢! φ := by
+-- --   intro h
+-- --   apply Derivation.provableOfDerivable at h
+-- --   apply Nonempty.intro at h
+-- --   exact h
 
--- sh
+-- lemma lem3 : Nonempty (Nat) :=
+--   Nonempty.intro Nat.zero
 
-def provable_to_provable : (L_T.to_lpa_f ψ = φ) := by sorry
+-- example : ∀φ : Semiformula PA.lpa ℕ 0, PA.t_pa φ → tb φ :=
+--   fun φ : Semiformula PA.lpa ℕ 0 => sorry
 
+-- lemma forall_pa_tb_is_pa (φ: Semiformula PA.lpa ℕ 0) : (φ = to_lt_f φ) := by
+--   rfl
 
+-- def der_list_to_der_list (ψ : Semiformula L_T.lt ℕ 0) (h1 : ψ = to_lt_f φ) (h2 : to_lpa_f ψ = φ) : tb ⟹ [ψ] → t_pa ⟹ [φ] := by
+--   intro h3
+--   cases h3 with
+--     | verum =>
+--       have step1 : φ = Semiformula.verum := by
+--         exact h2.symm
+--       have step2 : [φ] = [Semiformula.verum] := by
+--         rw[step1]
+--       rw[step2]
+--       apply Derivation.verum
+--     | or => sorry
+--     | and     => sorry
+--     | all     => sorry
+--     | ex      => sorry
+--     | wk      => sorry
+--     | cut     => sorry
+--     | root    => sorry
 
-theorem conservativity_tb : ∀φ : Semiformula PA.lpa ℕ 0, (ψ = to_lt_f φ) → (tb ⊢! ψ → PA.t_pa ⊢! φ) := by
-  intro φ
-  intro eq
-  intro psi_prov
-  rw[System.Provable,System.Prf] at psi_prov
-  sorry
+-- -- sh
+
+-- def provable_to_provable : (L_T.to_lpa_f ψ = φ) := by sorry
 
 -- variable (a : formula_eq_null ∈ tb)
 -- lemma lem5 : Nonempty (tb ⊢ (formula_eq_null)) := by
