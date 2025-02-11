@@ -14,6 +14,49 @@ def disquotation_schema (φ : Semiformula PA.lpa ℕ 0) : Semiformula lt ℕ 0 :
 def disquotation_set (Γ : Semiformula lt ℕ 0 → Prop) : Theory lt :=
   { ψ | ∃ φ : Semiformula PA.lpa ℕ 0, Γ φ ∧ ψ = (disquotation_schema φ)}
 def tb : Theory lt := {φ | t_pat φ ∨ (disquotation_set Set.univ) φ}
+
+lemma in_ax_set_pa_then_in_ax_set_tb : ∀φ:Semiformula PA.lpa ℕ 0, PA.axiom_set φ → PAT.axiom_set φ := by
+  sorry
+
+lemma pa_sub_tb :∀φ:Semiformula PA.lpa ℕ 0, PA.t_pa φ → tb (to_lt_f φ) := by
+  intro φ
+  rw[PA.t_pa]
+  have step1 : {φ | PA.axiom_set φ ∨ PA.induction_set Set.univ φ} = (fun φ => PA.axiom_set φ ∨ PA.induction_set Set.univ φ) := by
+    rfl
+  rw[step1]
+  rw[tb]
+  have step2 : {φ | t_pat φ ∨ disquotation_set Set.univ φ} = (fun φ => t_pat φ ∨ disquotation_set Set.univ φ) := by
+    rfl
+  rw[step2]
+  rw[t_pat]
+  have step3 : {φ | axiom_set φ ∨ induction_set Set.univ φ} = (fun φ => axiom_set φ ∨ induction_set Set.univ φ) := by
+    rfl
+  rw[step3]
+  simp
+  simp[PA.induction_set,PAT.induction_set]
+  cases φ with
+  | verum =>
+    intro h
+    apply Or.elim at h
+    -- case left
+    apply h
+    intro h2
+    apply Or.intro_left
+    apply Or.intro_left
+    apply in_ax_set_pa_then_in_ax_set_tb at h2
+    exact h2
+
+    -- case right
+    intro h3
+    sorry
+  | falsum => sorry
+  | rel => sorry
+  | nrel => sorry
+  | and => sorry
+  | or => sorry
+  | all => sorry
+  | ex => sorry
+
 end TB
 
 /-
@@ -53,19 +96,22 @@ example : tb disquotation := by
 Formalizations of steps in Halbach's theorem 7.2
 -/
 def derivable_to_derivable (φ : Semiformula PA.lpa ℕ 0) (h : to_lpa_f ψ = φ) : Derivation tb [ψ] → Derivation PA.t_pa [φ] := by
-intro tb_der
-cases tb_der with
+intro der_tb
+cases der_tb with
   | verum   =>
       simp[to_lpa_f] at h
       rw[h.symm]
       apply Derivation.verum
+  | root in_prop  =>
+
+      sorry
   | or      => sorry
   | and     => sorry
   | all     => sorry
   | ex      => sorry
   | wk      => sorry
   | cut     => sorry
-  | root    => sorry
+
 
 lemma non_empty_tb_non_empty_t_pa :∀φ:Semiformula PA.lpa ℕ 0, (to_lpa_f ψ = φ) → Nonempty (Derivation tb [ψ]) → Nonempty (Derivation PA.t_pa [φ]) := by
   intro φ
