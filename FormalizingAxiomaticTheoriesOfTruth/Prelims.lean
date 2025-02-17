@@ -1,6 +1,6 @@
 import Foundation.Logic.Predicate.Language
-import Foundation.FirstOrder.Arith.Theory
-import Foundation.FirstOrder.Arith.PeanoMinus
+import Foundation.Logic.Predicate.Term
+import Foundation.FirstOrder.Basic.Syntax.Formula
 
 open LO
 open FirstOrder
@@ -25,20 +25,24 @@ def signature : Language where
 /-
 # Useful notation
 -/
-prefix:60 "pt_succ" => Semiterm.func Func.succ
-prefix:60 "pt_eq" => Semiformula.rel Rel.eq
-prefix:60 "pt_zero" => Semiterm.func Func.zero
-prefix:60 "pt_add" => Semiterm.func Func.add
-prefix:60 "pt_mult" => Semiterm.func Func.mult
+prefix:60 "S" => Semiterm.func Func.succ
+prefix:60 "=" => Semiformula.rel Rel.eq
+prefix:60 "T" => Semiformula.rel Rel.t
+prefix:60 "zero" => Semiterm.func Func.zero
+prefix:60 "add" => Semiterm.func Func.add
+prefix:60 "times" => Semiterm.func Func.mult
+
 
 /-
 # Some useful terms
 -/
-def null : SyntacticTerm signature :=
-  pt_zero ![]
+def null : Semiterm signature ℕ 0 :=
+  zero ![]
 def numeral : ℕ → SyntacticTerm signature
-  | .zero => pt_zero ![]
-  | .succ n => pt_succ ![numeral n]
+  | .zero => zero ![]
+  | .succ n => S ![numeral n]
+
+notation "null" => null
 
 def funToStr {n}: Func n → String
   | .zero => "0"
@@ -139,32 +143,29 @@ def contains_T {n : ℕ}: (Semiformula signature ℕ n) → Bool
 -/
 namespace PAT
 open L_T
-infixr:60 " pt_bi_imp " => LogicalConnective.iff
-infixr:60 " pt_imp " => Arrow.arrow
+infixr:60 " ⇔  " => LogicalConnective.iff
+infixr:60 " ⇒  " => Arrow.arrow
 
 def psucc : (Fin 1 → Semiterm signature ξ n) → Semiterm signature ξ n := .func Func.succ
 def first_ax : Semiformula signature ℕ 0 :=
  .all (Semiformula.nrel Rel.eq ![Semiterm.func Func.succ
   ![#0],Semiterm.func Func.zero ![]])
 def second_ax : SyntacticFormula signature :=
-  ∀' ∀' ((pt_eq ![pt_succ ![#1],pt_succ ![#0]]) pt_imp (pt_eq ![#1,#0]))
+  ∀' ∀' ((= ![S ![#1],S ![#0]]) ⇔ (= ![#1,#0]))
 def third_ax : SyntacticFormula signature :=
-  ∀' (pt_eq ![pt_add ![#0, pt_zero ![]], #0])
+  ∀' (= ![add ![#0, zero ![]], #0])
 def fourth_ax : SyntacticFormula signature :=
-  ∀' ∀' (pt_eq ![pt_add ![#1,pt_succ ![#0]],pt_succ ![pt_add ![#1,#0]]])
+  ∀' ∀' (= ![add ![#1, S ![#0]], S ![add ![#1,#0]]])
 def fifth_ax : SyntacticFormula signature :=
-  ∀' (pt_eq ![pt_mult ![#0,pt_zero ![]], pt_zero ![]])
+  ∀' (= ![times ![#0, zero ![]], zero ![]])
 def sixth_ax : SyntacticFormula signature :=
-  ∀' ∀' (pt_eq ![pt_mult ![#1,pt_succ ![#0]],pt_add ![pt_mult ![#1,#0],#1]])
+  ∀' ∀' ( = ![times ![#1, S ![#0]], add ![ times ![#1,#0],#1]])
 
 def zero_term : Semiterm signature ℕ 0 := .func .zero ![]
 def succ_var_term : Semiterm signature ℕ 1 := .func .succ ![#0]
 
 def induction_schema (φ : Semiformula signature ℕ 1) : Semiformula signature ℕ 0 :=
-  (.and
-    (φ/[PAT.zero_term])
-    (∀' (φ pt_imp φ/[succ_var_term]))) pt_imp
-    ∀' φ
+  (Semiformula.and (φ/[null]) (∀' (φ ⇒ φ/[succ_var_term]))) ⇒ ∀' φ
 def induction_set (Γ : Semiformula signature ℕ 1 → Prop) : (Semiformula signature ℕ 0) → Prop :=
   fun ψ => ∃ φ : Semiformula signature ℕ 1, Γ φ ∧ ψ = (induction_schema φ)
 
@@ -201,5 +202,11 @@ example : ∀φ ∈ axiom_set, (not (contains_T φ)) := by
 def lt : Set (Semiformula signature ℕ 0) := Set.univ
 def lpa : Set (Semiformula signature ℕ 0) := {φ | ¬ contains_T φ}
 
+notation "ℒₜ" => lt
+notation "ℒₚₐ" => lpa
+
 def t_pat : Theory signature := axiom_set ∪ (induction_set Set.univ)
 def t_pa : Theory signature := t_pat ∩ lpa
+
+notation "𝐏𝐀𝐓" => t_pat
+notation "𝐏𝐀" => t_pa
