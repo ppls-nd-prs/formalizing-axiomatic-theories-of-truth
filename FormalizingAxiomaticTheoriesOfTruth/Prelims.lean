@@ -43,6 +43,17 @@ def numeral : ℕ → SyntacticSemiterm signature n
   | .zero => zero ![]
   | .succ n => S ![numeral n]
 
+def dflt : ℕ := 0
+def natural : SyntacticSemiterm signature n → Option ℕ
+  | .bvar _ => none
+  | .fvar _ => none
+  | .func f v =>
+    match f with
+    | .succ => some (((natural (v 0)).getD dflt) + 1)
+    | .zero => some 0
+    | .add => some (((natural (v 0)).getD dflt) + ((natural (v 1)).getD dflt))
+    | .mult => some (((natural (v 0)).getD dflt) * ((natural (v 1)).getD dflt))
+
 notation "zero" => null
 
 def funToStr {n}: Func n → String
