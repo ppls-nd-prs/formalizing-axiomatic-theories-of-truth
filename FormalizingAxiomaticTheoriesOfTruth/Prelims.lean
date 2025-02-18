@@ -37,9 +37,9 @@ prefix:60 "times" => Semiterm.func Func.mult
 /-
 # Some useful terms
 -/
-def null {n : ℕ}: Semiterm signature ℕ n :=
+def null {n : ℕ}: SyntacticSemiterm signature n :=
   zero ![]
-def numeral : ℕ → SyntacticTerm signature
+def numeral : ℕ → SyntacticSemiterm signature n
   | .zero => zero ![]
   | .succ n => S ![numeral n]
 
@@ -125,7 +125,7 @@ instance enc_r (k : ℕ) : Encodable (signature.Rel k) where
   decode := Rel_dec
   encodek := Rel_enc_dec
 
-def contains_T {n : ℕ}: (Semiformula signature ℕ n) → Bool
+def contains_T {n : ℕ}: (SyntacticSemiformula signature n) → Bool
 | .verum => false
 | .falsum => false
 | .rel .eq _ => false
@@ -137,8 +137,6 @@ def contains_T {n : ℕ}: (Semiformula signature ℕ n) → Bool
 | .all φ => (contains_T φ)
 | .ex φ => (contains_T φ)
 
-#eval not true
-
 /-
 # Definitions for the PAT theory
 -/
@@ -146,8 +144,6 @@ namespace PAT
 open L_T
 infixr:60 " ⇔ " => LogicalConnective.iff
 infixr:60 " ⇒ " => Arrow.arrow
-
-def psucc : (Fin 1 → Semiterm signature ξ n) → Semiterm signature ξ n := .func Func.succ
 
 def first_ax : Semiformula signature ℕ 0 :=
  ∀' (∼ (= ![S ![#0],zero]))
@@ -196,15 +192,17 @@ example : ∀φ ∈ axiom_set, (not (contains_T φ)) := by
           | inr h1 =>
             cases h1 with
             | refl => rfl
+end PAT
 
-def lt : Set (Semiformula signature ℕ 0) := Set.univ
-def lpa : Set (Semiformula signature ℕ 0) := {φ | ¬ contains_T φ}
+def lt : Set (SyntacticFormula signature) := Set.univ
+def lpa : Set (SyntacticFormula signature) := {φ | ¬ contains_T φ}
 
 notation "ℒₜ" => lt
 notation "ℒₚₐ" => lpa
 
+open PAT
 def t_pat : Theory signature := axiom_set ∪ (induction_set Set.univ)
-def t_pa : Theory signature := t_pat ∩ lpa
-
 notation "𝐏𝐀𝐓" => t_pat
+
+def t_pa : Theory signature := 𝐏𝐀𝐓 ∩ ℒₚₐ
 notation "𝐏𝐀" => t_pa

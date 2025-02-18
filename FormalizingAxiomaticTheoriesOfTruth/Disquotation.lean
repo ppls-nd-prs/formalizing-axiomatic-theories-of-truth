@@ -1,4 +1,6 @@
 import FormalizingAxiomaticTheoriesOfTruth.Prelims
+import Foundation.FirstOrder.Basic.Coding
+import Foundation.FirstOrder.Basic.Calculus
 
 open LO
 open FirstOrder
@@ -6,11 +8,14 @@ open L_T
 open PAT
 
 namespace TB
-def disquotation_schema (φ : Semiformula signature ℕ 0) : Semiformula signature ℕ 0 :=
-  (T ![numeral (Semiformula.toNat (φ))]) ↔  φ
-def disquotation_set (Γ : Semiformula signature ℕ 0 → Prop) : Theory signature :=
-  { ψ | ∃ φ : Semiformula signature ℕ 0, Γ φ ∧ ψ = (disquotation_schema φ)}
-def tb : Theory signature := {φ | t_pat φ ∨ (disquotation_set Set.univ) φ}
+
+notation:25 "⌜" φ:25 "⌝" => numeral (Semiformula.toNat φ)
+
+def disquotation_schema (φ : SyntacticFormula signature) : SyntacticFormula signature :=
+  (T ![⌜φ⌝]) ⇔  φ
+def disquotation_set (Γ : SyntacticFormula signature → Prop) : Theory signature :=
+  { ψ | ∃ φ : SyntacticFormula signature, Γ φ ∧ ψ = (disquotation_schema φ)}
+def tb : Theory signature := {φ | φ ∈ 𝐏𝐀𝐓 ∨ φ ∈ (disquotation_set Set.univ)}
 
 notation "𝐓𝐁" => tb
 
