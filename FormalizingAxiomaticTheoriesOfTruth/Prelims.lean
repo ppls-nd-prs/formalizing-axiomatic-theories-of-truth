@@ -1,6 +1,7 @@
 import Foundation.Logic.Predicate.Language
 import Foundation.Logic.Predicate.Term
 import Foundation.FirstOrder.Basic.Syntax.Formula
+import Foundation.FirstOrder.Basic.Syntax.Rew
 
 open LO
 open FirstOrder
@@ -36,13 +37,13 @@ prefix:60 "times" => Semiterm.func Func.mult
 /-
 # Some useful terms
 -/
-def null : Semiterm signature ℕ 0 :=
+def null {n : ℕ}: Semiterm signature ℕ n :=
   zero ![]
 def numeral : ℕ → SyntacticTerm signature
   | .zero => zero ![]
   | .succ n => S ![numeral n]
 
-notation "null" => null
+notation "zero" => null
 
 def funToStr {n}: Func n → String
   | .zero => "0"
@@ -143,29 +144,26 @@ def contains_T {n : ℕ}: (Semiformula signature ℕ n) → Bool
 -/
 namespace PAT
 open L_T
-infixr:60 " ⇔  " => LogicalConnective.iff
-infixr:60 " ⇒  " => Arrow.arrow
+infixr:60 " ⇔ " => LogicalConnective.iff
+infixr:60 " ⇒ " => Arrow.arrow
 
 def psucc : (Fin 1 → Semiterm signature ξ n) → Semiterm signature ξ n := .func Func.succ
+
 def first_ax : Semiformula signature ℕ 0 :=
- .all (Semiformula.nrel Rel.eq ![Semiterm.func Func.succ
-  ![#0],Semiterm.func Func.zero ![]])
+ ∀' (∼ (= ![S ![#0],zero]))
 def second_ax : SyntacticFormula signature :=
-  ∀' ∀' ((= ![S ![#1],S ![#0]]) ⇔ (= ![#1,#0]))
+  ∀' ∀' ((= ![S ![#1],S ![#0]]) ⇒ (= ![#1,#0]))
 def third_ax : SyntacticFormula signature :=
-  ∀' (= ![add ![#0, zero ![]], #0])
+  ∀' (= ![add ![#0, zero], #0])
 def fourth_ax : SyntacticFormula signature :=
   ∀' ∀' (= ![add ![#1, S ![#0]], S ![add ![#1,#0]]])
 def fifth_ax : SyntacticFormula signature :=
-  ∀' (= ![times ![#0, zero ![]], zero ![]])
+  ∀' (= ![times ![#0, zero], zero])
 def sixth_ax : SyntacticFormula signature :=
   ∀' ∀' ( = ![times ![#1, S ![#0]], add ![ times ![#1,#0],#1]])
 
-def zero_term : Semiterm signature ℕ 0 := .func .zero ![]
-def succ_var_term : Semiterm signature ℕ 1 := .func .succ ![#0]
-
 def induction_schema (φ : Semiformula signature ℕ 1) : Semiformula signature ℕ 0 :=
-  (Semiformula.and (φ/[null]) (∀' (φ ⇒ φ/[succ_var_term]))) ⇒ ∀' φ
+  ((φ/[null]) ⋏ (∀' (φ ⇒ φ/[S ![#0]]))) ⇒ ∀' φ
 def induction_set (Γ : Semiformula signature ℕ 1 → Prop) : (Semiformula signature ℕ 0) → Prop :=
   fun ψ => ∃ φ : Semiformula signature ℕ 1, Γ φ ∧ ψ = (induction_schema φ)
 
