@@ -14,7 +14,7 @@ notation:25 "⌜" φ:25 "⌝" => numeral (Semiformula.toNat φ)
 def disquotation_schema (φ : SyntacticFormula signature) : SyntacticFormula signature :=
   (T ![⌜φ⌝]) ⇔  φ
 def disquotation_set (Γ : SyntacticFormula signature → Prop) : Theory signature :=
-  { ψ | ∃ φ : SyntacticFormula signature, Γ φ ∧ ψ = (disquotation_schema φ)}
+  { ψ | ∃ φ ∈ ℒₚₐ, Γ φ ∧ ψ = (disquotation_schema φ)}
 def tb : Theory signature := {φ | φ ∈ 𝐏𝐀𝐓 ∨ φ ∈ (disquotation_set Set.univ)}
 
 notation "𝐓𝐁" => tb
