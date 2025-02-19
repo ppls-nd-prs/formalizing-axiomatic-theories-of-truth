@@ -39,8 +39,8 @@ def tau_base_case : Sequent signature → SyntacticFormula signature :=
       match head with
         | Semiformula.and (Semiformula.or (Semiformula.nrel Rel.t v) (φ₁)) (Semiformula.or (φ₂) (Semiformula.rel Rel.t w)) =>
           if φ₁ = ∼φ₂ ∧ v = w then Semiformula.or (Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)) (tau_base_case Γ) else Semiformula.or (⊤) (tau_base_case Γ)
-          | _ =>
-            Semiformula.or (⊤) (tau_base_case Γ))
+        | _ =>
+          Semiformula.or (⊤) (tau_base_case Γ))
 
 def wo_t : Fml := = ![&0,&0]
 def w_t : Fml := T ![S ![zero]]
@@ -51,16 +51,28 @@ def seq : Sequent signature := (wo_t :: [w_t,disq])
 def zero2 : Semiterm signature ℕ 1 := zero
 #eval (Rewriting.fix (tau_base_case seq))/[zero2]
 
-def tau : Derivation 𝐓𝐁 Γ → SyntacticFormula signature
-  | .axL Δ r v => tau_base_case Δ
-  | .verum Δ => tau_base_case Δ
-  | .or der => tau der
-  | .and der1 der2 => (tau der1) ⋎ (tau der2)
-  | .all der => tau der
-  | .ex t der => tau der
-  | .wk der sub => tau der
-  | .cut der1 der2 => (tau der1) ⋎ (tau der2)
-  | .root element => sorry
+def tau : Derivation 𝐓𝐁 Γ → SyntacticFormula signature :=
+  fun der_tb : Derivation 𝐓𝐁 Γ =>
+    match der_tb with
+      | Derivation.axL Δ r v => tau_base_case Δ
+      | Derivation.verum Δ => tau_base_case Δ
+      | Derivation.or der => tau der
+      | Derivation.and der1 der2 => (tau der1) ⋎ (tau der2)
+      | Derivation.all der => tau der
+      | Derivation.ex _ der => tau der
+      | Derivation.wk der sub => tau der
+      | Derivation.cut der1 der2 => (tau der1) ⋎ (tau der2)
+      | Derivation.root _ => tau_base_case Γ
+
+def der_some_disq : Derivation 𝐓𝐁 [disq] := by
+  have step1 : ⊤ ∈ ℒₜ := by
+    rw[lt]
+    trivial
+  --have step2 : ¬ (contains_T ⊤) := by
+    --rw[contains_T]
+  have step3 : ⊤ ∈ ℒₚₐ := by
+    sorry
+  sorry
 
 -- replace should replace in a derivation an atomic formula containing
 -- T with tau
