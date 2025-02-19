@@ -23,6 +23,11 @@ def signature : Language where
   Func := Func
   Rel := Rel
 
+instance (k) : DecidableEq (signature.Func k) := fun a b =>
+  by rcases a <;> rcases b <;> simp <;> try {exact instDecidableTrue} <;> try {exact instDecidableFalse}
+instance (k) : DecidableEq (signature.Rel k) := fun a b =>
+  by rcases a <;> rcases b <;> simp <;> try {exact instDecidableTrue} <;> try {exact instDecidableFalse}
+
 /-
 # Useful notation
 -/
@@ -33,6 +38,7 @@ prefix:60 "zero" => Semiterm.func Func.zero
 prefix:60 "add" => Semiterm.func Func.add
 prefix:60 "times" => Semiterm.func Func.mult
 
+abbrev Fml : Type _ := SyntacticFormula signature
 
 /-
 # Some useful terms

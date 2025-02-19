@@ -17,7 +17,7 @@ def disquotation_set (Γ : SyntacticFormula signature → Prop) : Theory signatu
   { ψ | ∃ φ ∈ ℒₚₐ, Γ φ ∧ ψ = (disquotation_schema φ)}
 def tb : Theory signature := {φ | φ ∈ 𝐏𝐀𝐓 ∨ φ ∈ (disquotation_set Set.univ)}
 
-def eq_zero : SyntacticFormula signature :=
+def eq_zero : Fml :=
   ⊤
 #eval disquotation_schema eq_zero
 
@@ -25,77 +25,35 @@ notation "𝐓𝐁" => tb
 
 end TB
 
-
--- tau should get, giving a certain derivation, the tau following
--- from the disquotation axioms used.
 def dflt_f : SyntacticFormula signature := = ![&0,&0]
 
 -- one should match is up to a disquotation scheme enirely
 -- bewaren voor later: apply Semiformula.or (Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)) (tau_base_case Γ)
 -- # Diepe dingen: er moet een matchup zijn tussen de predicaten
-def tau_base_case : Sequent signature → SyntacticFormula signature := by
-  intro h
-  cases h with
-    | nil =>
-      apply Semiformula.verum
-    | cons h Γ =>
-      cases h with
-        | and φ₁ φ₂ =>
-          cases φ₁ with
-          | or ψ₁ ψ₂ =>
-            cases ψ₁ with
-            | nrel r v =>
-              cases r with
-              | t =>
-                cases φ₂ with
-                | or π₁ π₂ =>
-                  cases π₂ with
-                  | rel r v =>
-                    cases r with
-                    | t =>
-                      cases ψ₂ with
-                      | verum =>
-                        cases π₁ with
-                        | falsum =>
-                          apply Semiformula.or (Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)) (tau_base_case Γ)
-                        | _ =>
-                          apply Semiformula.or (⊤) (tau_base_case Γ)
-                      | falsum =>
-                        cases π₁ with
-                        | verum =>
-                          apply Semiformula.or (Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)) (tau_base_case Γ)
-                        | _ =>
-                          apply Semiformula.or (⊤) (tau_base_case Γ)
-                      | rel r v =>
-                        cases r with
-                        | eq =>
-                          cases π₁ with
-                          | nrel r v =>
-                            sorry -- apply Semiformula.or (Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)) (tau_base_case Γ)
-                          | _ =>
-                            apply Semiformula.or (⊤) (tau_base_case Γ)
-                        | t =>
-                            apply Semiformula.or (⊤) (tau_base_case Γ)
-                      | _ =>
-                        apply Semiformula.or (⊤) (tau_base_case Γ)
-                    | _ =>
-                      apply Semiformula.or (⊤) (tau_base_case Γ)
-                  | _ =>
-                    apply Semiformula.or (⊤) (tau_base_case Γ)
-                | _ =>
-                  apply Semiformula.or (⊤) (tau_base_case Γ)
-              | _ =>
-                apply Semiformula.or (⊤) (tau_base_case Γ)
-            | _ =>
-              apply Semiformula.or (⊤) (tau_base_case Γ)
+def tau_base_case : Sequent signature → SyntacticFormula signature :=
+  fun h : Sequent signature =>
+  (match h with
+    | List.nil =>
+        Semiformula.verum
+    | List.cons head Γ =>
+      match head with
+        | Semiformula.and (Semiformula.or (Semiformula.nrel Rel.t v) (φ₁)) (Semiformula.or (φ₂) (Semiformula.rel Rel.t w)) =>
+          if φ₁ = ∼φ₂ ∧ v = w then Semiformula.or (Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)) (tau_base_case Γ) else Semiformula.or (⊤) (tau_base_case Γ)
           | _ =>
-            apply Semiformula.or (⊤) (tau_base_case Γ)
-        | _ =>
-          apply Semiformula.or (⊤) (tau_base_case Γ)
+            Semiformula.or (⊤) (tau_base_case Γ))
+
+def wo_t : Fml := = ![&0,&0]
+def w_t : Fml := T ![S ![zero]]
+def disq : Fml := TB.disquotation_schema ⊤
+def seq : Sequent signature := (wo_t :: [w_t,disq])
+
+#check Rewriting.fix (tau_base_case seq)
+def zero2 : Semiterm signature ℕ 1 := zero
+#eval (Rewriting.fix (tau_base_case seq))/[zero2]
 
 def tau : Derivation 𝐓𝐁 Γ → SyntacticFormula signature
-  | .axL Δ r v => sorry -- tau Δ
-  | .verum Δ => sorry -- tau Δ
+  | .axL Δ r v => tau_base_case Δ
+  | .verum Δ => tau_base_case Δ
   | .or der => tau der
   | .and der1 der2 => (tau der1) ⋎ (tau der2)
   | .all der => tau der
@@ -103,8 +61,6 @@ def tau : Derivation 𝐓𝐁 Γ → SyntacticFormula signature
   | .wk der sub => tau der
   | .cut der1 der2 => (tau der1) ⋎ (tau der2)
   | .root element => sorry
-
-
 
 -- replace should replace in a derivation an atomic formula containing
 -- T with tau
