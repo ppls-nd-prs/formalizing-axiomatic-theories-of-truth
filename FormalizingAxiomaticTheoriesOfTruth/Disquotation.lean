@@ -22,18 +22,18 @@ end TB
 
 def dflt_f : SyntacticFormula signature := = ![&0,&0]
 
-def der_to_disquoted_list (d : Derivation 𝐓𝐁 Γ): (List Fml) :=
+def der_to_disjunct_list (d : Derivation 𝐓𝐁 Γ): (List Fml) :=
   match d with
   | .axL Δ r v => []
   | .verum Δ => []
-  | .or der => der_to_disquoted_list der
+  | .or der => der_to_disjunct_list der
   | .and der₁ der₂ =>
-    if (der_to_disquoted_list der₁) ∩ (der_to_disquoted_list der₂) = ∅ then
-      (der_to_disquoted_list der₁) ++ (der_to_disquoted_list der₂) else
-      (der_to_disquoted_list der₁) ++ (List.diff (der_to_disquoted_list der₂) ((der_to_disquoted_list der₁) ∩ (der_to_disquoted_list der₂)))
-  | .all der => der_to_disquoted_list der
-  | .ex _ der => der_to_disquoted_list der
-  | .wk der _ => der_to_disquoted_list der
+    if (der_to_disjunct_list der₁) ∩ (der_to_disjunct_list der₂) = ∅ then
+      (der_to_disjunct_list der₁) ++ (der_to_disjunct_list der₂) else
+      (der_to_disjunct_list der₁) ++ (List.diff (der_to_disjunct_list der₂) ((der_to_disjunct_list der₁) ∩ (der_to_disjunct_list der₂)))
+  | .all der => der_to_disjunct_list der
+  | .ex _ der => der_to_disjunct_list der
+  | .wk der _ => der_to_disjunct_list der
   | .cut _ _ => []
   | .root _ =>
     match Γ with
@@ -54,7 +54,7 @@ def list2 : List ℕ := [4,5]
 #eval list1 ∩ list2 = ∅
 
 def tau (der : Derivation 𝐓𝐁 Γ) : Fml :=
-  build_tau_from_list (der_to_disquoted_list der)
+  build_tau_from_list (der_to_disjunct_list der)
 
 def disq : Fml := TB.disquotation_schema ⊤
 def double_disq : Fml := disq ⋏ disq
@@ -83,8 +83,8 @@ lemma disq_in_tb : disq ∈ 𝐓𝐁 := by
 def der : Derivation 𝐓𝐁 [disq] :=
   Derivation.root disq_in_tb
 
-#check der_to_disquoted_list der
-#eval der_to_disquoted_list der
+#check der_to_disjunct_list der
+#eval der_to_disjunct_list der
 
 #check tau der
 #eval tau der
@@ -95,8 +95,8 @@ def der_double_disq : Derivation 𝐓𝐁 [double_disq] := by
   apply der
   apply der
 
-#check der_to_disquoted_list der_double_disq
-#eval der_to_disquoted_list der_double_disq
+#check der_to_disjunct_list der_double_disq
+#eval der_to_disjunct_list der_double_disq
 
 #check tau der_double_disq
 #eval tau der_double_disq
