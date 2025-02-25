@@ -22,10 +22,22 @@ end TB
 
 def dflt_f : SyntacticFormula signature := = ![&0,&0]
 
+def sequent_to_disjunct_list : Sequent signature → (List Fml) :=
+  fun h : Sequent signature =>
+  (match h with
+    | List.nil =>
+        [Semiformula.verum]
+    | List.cons head Γ =>
+      match head with
+        | Semiformula.and (Semiformula.or (Semiformula.nrel Rel.t v) (φ₁)) (Semiformula.or (φ₂) (Semiformula.rel Rel.t w)) =>
+          if φ₁ = ∼φ₂ ∧ v = w then [Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)] else (sequent_to_disjunct_list Γ)
+        | _ =>
+          (sequent_to_disjunct_list Γ))
+
 def der_to_disjunct_list (d : Derivation 𝐓𝐁 Γ): (List Fml) :=
   match d with
-  | .axL Δ r v => []
-  | .verum Δ => []
+  | .axL Δ r v => sequent_to_disjunct_list Δ
+  | .verum Δ => sequent_to_disjunct_list Δ
   | .or der => der_to_disjunct_list der
   | .and der₁ der₂ =>
     if (der_to_disjunct_list der₁) ∩ (der_to_disjunct_list der₂) = ∅ then
@@ -33,8 +45,8 @@ def der_to_disjunct_list (d : Derivation 𝐓𝐁 Γ): (List Fml) :=
       (der_to_disjunct_list der₁) ++ (List.diff (der_to_disjunct_list der₂) ((der_to_disjunct_list der₁) ∩ (der_to_disjunct_list der₂)))
   | .all der => der_to_disjunct_list der
   | .ex _ der => der_to_disjunct_list der
-  | .wk der _ => der_to_disjunct_list der
-  | .cut _ _ => []
+  | .wk der sub => der_to_disjunct_list der ++ ((der_to_disjunct_list der) ∩ (sequent_to_disjunct_list Γ))
+  | .cut der _ => der_to_disjunct_list der
   | .root _ =>
     match Γ with
     | [φ] =>
@@ -53,8 +65,8 @@ def list1 : List ℕ := [1,2,3]
 def list2 : List ℕ := [4,5]
 #eval list1 ∩ list2 = ∅
 
-def tau (der : Derivation 𝐓𝐁 Γ) : Fml :=
-  build_tau_from_list (der_to_disjunct_list der)
+def tau (der : Derivation 𝐓𝐁 Γ) : SyntacticSemiformula signature 1 :=
+  Rewriting.fix (build_tau_from_list (der_to_disjunct_list der))
 
 def disq : Fml := TB.disquotation_schema ⊤
 def double_disq : Fml := disq ⋏ disq
@@ -66,9 +78,8 @@ lemma disq_in_tb : disq ∈ 𝐓𝐁 := by
   let φ : Fml := ⊤
   have step1 : φ ∈ ℒₚₐ := by
     rw[lpa]
-    simp
     simp[φ]
-    simp[contains_T]
+    trivial
   have step2 : Set.univ φ := by
     trivial
   have step3 : TB.disquotation_schema ⊤ = TB.disquotation_schema φ := by
@@ -101,28 +112,21 @@ def der_double_disq : Derivation 𝐓𝐁 [double_disq] := by
 #check tau der_double_disq
 #eval tau der_double_disq
 
+def zero_term : SyntacticSemiterm signature 0 := zero
+#check (tau der_double_disq)/[zero_term]
+#eval (tau der_double_disq)/[zero_term]
+
 -- one should match is up to a disquotation scheme enirely
 -- bewaren voor later: apply Semiformula.or (Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)) (tau_base_case Γ)
 -- # Diepe dingen: er moet een matchup zijn tussen de predicaten
-def tau_base_case : Sequent signature → SyntacticFormula signature :=
-  fun h : Sequent signature =>
-  (match h with
-    | List.nil =>
-        Semiformula.verum
-    | List.cons head Γ =>
-      match head with
-        | Semiformula.and (Semiformula.or (Semiformula.nrel Rel.t v) (φ₁)) (Semiformula.or (φ₂) (Semiformula.rel Rel.t w)) =>
-          if φ₁ = ∼φ₂ ∧ v = w then Semiformula.or (Semiformula.and (= ![&0,(v 0)]) ((Semiformula.ofNat 0 ((natural (v 0)).getD dflt)).getD dflt_f)) (tau_base_case Γ) else Semiformula.or (⊤) (tau_base_case Γ)
-        | _ =>
-          Semiformula.or (⊤) (tau_base_case Γ))
 
 def wo_t : Fml := = ![&0,&0]
 def w_t : Fml := T ![S ![zero]]
 def seq : Sequent signature := (wo_t :: [w_t,disq])
 
-#check Rewriting.fix (tau_base_case seq)
-def zero2 : Semiterm signature ℕ 1 := zero
-#eval (Rewriting.fix (tau_base_case seq))/[zero2]
+-- #check Rewriting.fix (sequent_to_disjunct_list seq)
+-- def zero2 : Semiterm signature ℕ 1 := zero
+-- #eval (Rewriting.fix (sequent_to_disjunct_list seq))/[zero2]
 
 -- def tau : Derivation 𝐓𝐁 Γ → SyntacticFormula signature :=
 --   fun der_tb : Derivation 𝐓𝐁 Γ =>
@@ -149,22 +153,26 @@ def der_some_disq : Derivation 𝐓𝐁 [disq] := by
 
 -- replace should replace in a derivation an atomic formula containing
 -- T with tau
+-- def list_contains_T : (List Fml) → Prop
+--   | .nil => false
+--   | .cons h Γ =>
+--     if not_contains_T h then true else false
+-- def lpa_sequent_set : Set (Sequent signature) :=
+  -- {Γ | sub_lpa Γ}
+-- notation "𝐒𝐞𝐪ₚₐ" => lpa_sequent_set
 
-def lpa_sequent_set : Set (Sequent signature) := Set.univ
-notation "𝐒𝐞𝐪ₚₐ" => lpa_sequent_set
-
-def der_to_der : ∀ψ∈ℒₜ, 𝐓𝐁 ⟹ ψ :: Γ → 𝐏𝐀 ⟹ φ :: Δ := by
+-- BUT SHOULD BE ∀Γ ⊆ ℒₚₐ, 𝐓𝐁 ⟹ Γ → 𝐏𝐀 ⟹ Γ
+def der_to_der : ∀φ ∈ ℒₚₐ, 𝐓𝐁 ⟹ (φ :: Γ) → 𝐏𝐀 ⟹ [φ] := by
   intro ψ
   intro in_lt
   intro h
+  let t := tau h
   cases h with
   | axL Γ r v =>
     cases r with
     | t =>
-        let tau : SyntacticFormula signature :=
-          sorry -- replace(Rel.t v,Γ)
 
-        sorry
+      sorry
     | eq => sorry
   | verum Γ =>
       sorry -- apply Derivation.verum
