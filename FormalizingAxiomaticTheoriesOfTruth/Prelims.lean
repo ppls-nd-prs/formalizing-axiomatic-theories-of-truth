@@ -9,6 +9,7 @@ open FirstOrder
 # Definitions for the language LPA and L_T
 -/
 namespace L_T
+
 inductive Func : ℕ → Type where
   | zero : Func 0
   | succ : Func 1
@@ -153,6 +154,7 @@ def not_contains_T {n} : (Semiformula signature ℕ n) → Prop
 | .or φ ψ => (not_contains_T φ) ∧ (not_contains_T ψ)
 | .all φ => (not_contains_T φ)
 | .ex φ => (not_contains_T φ)
+end L_T
 
 /-
 # Definitions for the PAT theory
@@ -211,59 +213,133 @@ example : ∀φ ∈ axiom_set, (not_contains_T φ) := by
             | refl => rfl
 end PAT
 
+namespace LPA
+inductive Func : ℕ → Type where
+  | zero : Func 0
+  | succ : Func 1
+  | add : Func 2
+  | mult : Func 2
+
+inductive Rel : ℕ → Type where
+  | eq : Rel 2
+
+def signature : Language where
+  Func := Func
+  Rel := Rel
+
+instance (k) : DecidableEq (signature.Func k) := fun a b =>
+  by rcases a <;> rcases b <;> simp <;> try {exact instDecidableTrue} <;> try {exact instDecidableFalse}
+instance (k) : DecidableEq (signature.Rel k) := fun a b =>
+  by rcases a ; rcases b ; simp ; try {exact instDecidableTrue}
+
+/-
+A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
+also lt formulas
+-/
+def to_lt_func {arity : ℕ} : (LPA.signature.Func arity) → (L_T.signature.Func arity)
+  | .zero => .zero
+  | .succ => .succ
+  | .add => .add
+  | .mult => .mult
+
+def to_lt_rel {n : ℕ} : (LPA.signature.Rel n) → (L_T.signature.Rel n)
+  | .eq => .eq
+
+def to_lt_t {n : ℕ}: Semiterm LPA.signature ℕ n → Semiterm L_T.signature ℕ n
+  | #x => #x
+  | &x => &x
+  | .func (arity := n) f v => .func (to_lt_func f) (fun i : Fin n => to_lt_t (v i))
+
+def to_lt_vt {n: ℕ} (v : Fin k → Semiterm LPA.signature ℕ n) : Fin k → Semiterm L_T.signature ℕ n :=
+  fun i => to_lt_t (v i)
+
+def to_lt_f {n : ℕ} : Semiformula LPA.signature ℕ n → Semiformula L_T.signature ℕ n
+| .verum => .verum
+| .falsum => .falsum
+| .rel r v => .rel (to_lt_rel r) (to_lt_vt v)
+| .nrel r v => .nrel (to_lt_rel r) (to_lt_vt v)
+| .and φ ψ => .and (to_lt_f φ) (to_lt_f ψ)
+| .or φ ψ => .or (to_lt_f φ) (to_lt_f ψ)
+| .all φ => .all (to_lt_f φ)
+| .ex φ => .ex (to_lt_f φ)
+
+example {n : ℕ}: ∀φ:Semiformula LPA.signature ℕ n, ∃ψ:Semiformula L_T.signature ℕ n, ψ = to_lt_f φ :=
+  fun a : Semiformula LPA.signature ℕ n => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
+end LPA
+
+namespace PA
+def induction_schema (φ : Semiformula LPA.signature ℕ 1) : Semiformula LPA.signature ℕ 0 :=
+  ((φ/[L_T.null]) ⋏ (∀' (φ ⇒ φ/[S ![#0]]))) ⇒ ∀' φ
+def induction_set (Γ : Semiformula signature ℕ 1 → Prop) : (Semiformula signature ℕ 0) → Prop :=
+  fun ψ => ∃ φ : Semiformula signature ℕ 1, Γ φ ∧ ψ = (induction_schema φ)
+
+def axiom_set : Theory signature := {
+  first_ax,
+  second_ax,
+  third_ax,
+  fourth_ax,
+  fifth_ax,
+  sixth_ax
+}
 
 
-def lt : Set (SyntacticFormula signature) := Set.univ
-def lpa : Set (Semiformula signature ℕ 0) := not_contains_T
+end PA
 
+def to_lt_s (s : Set (SyntacticFormula LPA.signature)) : Set (SyntacticFormula L_T.signature) :=
+
+
+instance : Coe (Semiterm LPA.signature ℕ n) (Semiterm L_T.signature ℕ n) where
+  coe t := to_lt_t t
+instance : Coe (Semiformula LPA.signature ℕ n) (Semiformula L_T.signature ℕ n) where
+  coe φ := to_lt_f φ
+instance : Coe (Set (SyntacticFormula LPA.signature)) (Set (SyntacticFormula L_T.signature)) where
+  coe S := to_lt_s S
+
+def lt : Set (SyntacticFormula L_T.signature) := Set.univ
 notation "ℒₜ" => lt
+def lpa : Set (SyntacticFormula LPA.signature) := Set.univ
 notation "ℒₚₐ" => lpa
-
-instance : DecidablePred (ℒₚₐ) := by
-  intro a
-  rw[lpa]
-  cases a with
-  | verum =>
-    apply Decidable.isTrue
-    trivial
-  | falsum =>
-    apply Decidable.isTrue
-    trivial
-  | rel r v =>
-    cases r with
-    | t =>
-      apply Decidable.isFalse
-      simp[not_contains_T]
-    | eq =>
-      apply Decidable.isTrue
-      simp[not_contains_T]
-  | nrel r v =>
-    cases r with
-    | t =>
-      apply Decidable.isFalse
-      simp[not_contains_T]
-    | eq =>
-      apply Decidable.isTrue
-      trivial
-  | and φ ψ =>
-    cases φ with
-    | rel r v =>
-      cases r with
-      | t =>
-        apply Decidable.isFalse
-        simp[not_contains_T]
-      | eq =>
-        apply Decidable.isTrue
-        simp[not_contains_T]
-        sorry
-    | _ => sorry
-  | or => sorry
-  | all => sorry
-  | ex => sorry
+--   | verum =>
+--     apply Decidable.isTrue
+--     trivial
+--   | falsum =>
+--     apply Decidable.isTrue
+--     trivial
+--   | rel r v =>
+--     cases r with
+--     | t =>
+--       apply Decidable.isFalse
+--       simp[not_contains_T]
+--     | eq =>
+--       apply Decidable.isTrue
+--       simp[not_contains_T]
+--   | nrel r v =>
+--     cases r with
+--     | t =>
+--       apply Decidable.isFalse
+--       simp[not_contains_T]
+--     | eq =>
+--       apply Decidable.isTrue
+--       trivial
+--   | and φ ψ =>
+--     cases φ with
+--     | rel r v =>
+--       cases r with
+--       | t =>
+--         apply Decidable.isFalse
+--         simp[not_contains_T]
+--       | eq =>
+--         apply Decidable.isTrue
+--         simp[not_contains_T]
+--         sorry
+--     | _ => sorry
+--   | or => sorry
+--   | all => sorry
+--   | ex => sorry
 
 open PAT
-def t_pat : Theory signature := axiom_set ∪ (induction_set Set.univ)
+def t_pat : Theory L_T.signature := axiom_set ∪ (induction_set Set.univ)
 notation "𝐏𝐀𝐓" => t_pat
 
-def t_pa : Theory signature := 𝐏𝐀𝐓 ∩ ℒₚₐ
+def t_pa : Theory L_T.signature := 𝐏𝐀𝐓 ∩ ℒₚₐ
 notation "𝐏𝐀" => t_pa
