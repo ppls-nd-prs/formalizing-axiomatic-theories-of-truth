@@ -3,7 +3,7 @@
   - [ ] flypitch
   - [X] signature: `FirstOrder.Language` from `Mathlib.ModelTheory.Basic`
   - [X] terms: `FirstOrder.Language.Term` from `Mathlib.ModelTheory.Syntax`
-  - [ ] shift
+  - [X] shift: `FirstOrder.Language.Term.liftAt` from `Mathlib.ModelTheory.Syntax`
   - [X] substitution: `FirstOrder.Language.Term.subst` from `Mathlib.ModelTheory.Syntax`
   - [X] formulas (de bruijn): `FirstOrder.Language.Formula` from `Mathlib.ModelTheory.Syntax`
   - [X] sentences: `FirstOrder.Language.Sentence` from `Mathlib.ModelTheory.Syntax`
@@ -11,7 +11,7 @@
   - [ ] including representation predicates $\texttt{Term, Formula}$ $\dot \land$ etc.
 - [ ] Proof theory
   - [ ] Hilbert calculus
-    - [ ] Theory
+    - [X] Theory: `FirstOrder.Language.Theory` from `Mathlib.ModelTheory.Syntax`
     - [ ] modus ponens (MP)
     - [ ] universal generalization ($\forall G$)
     - [ ] Derivations (as a type)
