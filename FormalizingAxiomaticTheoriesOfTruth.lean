@@ -1,3 +1,1 @@
-import FormalizingAxiomaticTheoriesOfTruth.Prelims
-import FormalizingAxiomaticTheoriesOfTruth.Disquotation
--- import FormalizingAxiomaticTheoriesOfTruth.ExamplesAndScratch
+import FormalizingAxiomaticTheoriesOfTruth.Basic
