@@ -26,7 +26,7 @@
   - [ ] representation
      
 # Planning
-| week | Bram | Yulan | Discuss Together |
+| week | Bram | Yu-Lan | Discuss Together |
 |---|---|---|---|
 | 10 | syntax or concrete  language (check FlyPitch) | figure what predicates | talk about proof theory and derivability |
 | 11 | concrete language  | toString function |  |
