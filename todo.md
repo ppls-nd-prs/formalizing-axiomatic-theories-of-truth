@@ -1,12 +1,12 @@
 # To Do
 - [ ] FOL-syntax
   - [ ] flypitch
-  - [ ] signature
-  - [ ] terms
+  - [X] signature: `FirstOrder.Language` from `Mathlib.ModelTheory.Basic`
+  - [X] terms: `FirstOrder.Language.Term` from `Mathlib.ModelTheory.Syntax`
   - [ ] shift
-  - [ ] substitution
-  - [ ] formulas (de bruijn)
-  - [ ] sentences
+  - [X] substitution: `FirstOrder.Language.Term.subst` from `Mathlib.ModelTheory.Syntax`
+  - [X] formulas (de bruijn): `FirstOrder.Language.Formula` from `Mathlib.ModelTheory.Syntax`
+  - [X] sentences: `FirstOrder.Language.Sentence` from `Mathlib.ModelTheory.Syntax`
 - [ ] The languages $\mathcal{L}_{PA}$ and $\mathcal{L}_T$  
   - [ ] including representation predicates $\texttt{Term, Formula}$ $\dot \land$ etc.
 - [ ] Proof theory
