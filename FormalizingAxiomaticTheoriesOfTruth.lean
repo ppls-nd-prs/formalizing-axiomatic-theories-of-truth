@@ -1,1 +1,1 @@
-import FormalizingAxiomaticTheoriesOfTruth.Basic
+import FormalizingAxiomaticTheoriesOfTruth.Prelims
