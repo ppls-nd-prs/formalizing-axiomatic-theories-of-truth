@@ -78,7 +78,7 @@ lemma disq_in_tb : disq ∈ 𝐓𝐁 := by
   let φ : Fml := ⊤
   have step1 : φ ∈ ℒₚₐ := by
     rw[lpa]
-    simp[φ]
+    simp[φ]  d
     trivial
   have step2 : Set.univ φ := by
     trivial
