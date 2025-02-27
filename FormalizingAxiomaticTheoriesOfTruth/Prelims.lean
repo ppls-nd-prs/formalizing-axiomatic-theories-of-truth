@@ -143,18 +143,23 @@ instance enc_r (k : ℕ) : Encodable (signature.Rel k) where
   decode := Rel_dec
   encodek := Rel_enc_dec
 
-def not_contains_T {n} : (Semiformula signature ℕ n) → Prop
-| .verum  => true
-| .falsum => true
-| .rel .eq _ => true
-| .rel .t _ => false
-| .nrel .eq _ => true
-| .nrel .t _ => false
-| .and φ ψ => (not_contains_T φ) ∧ (not_contains_T ψ)
-| .or φ ψ => (not_contains_T φ) ∧ (not_contains_T ψ)
-| .all φ => (not_contains_T φ)
-| .ex φ => (not_contains_T φ)
+def not_contains_T (n : ℕ) : (Semiformula signature ℕ n) → Prop
+  | .verum  => true
+  | .falsum => true
+  | .rel .eq _ => true
+  | .rel .t _ => false
+  | .nrel .eq _ => true
+  | .nrel .t _ => false
+  | .and φ ψ => (not_contains_T n φ) ∧ (not_contains_T n ψ)
+  | .or φ ψ => (not_contains_T n φ) ∧ (not_contains_T n ψ)
+  | .all φ => (not_contains_T (n+1) φ)
+  | .ex φ => (not_contains_T (n+1) φ)
+  deriving DecidablePred
 end L_T
+
+instance (n : ℕ): DecidablePred (L_T.not_contains_T n) := by
+
+
 
 /-
 # Definitions for the PAT theory
@@ -215,51 +220,8 @@ end PAT
 
 def lt : Set (SyntacticFormula L_T.signature) := Set.univ
 notation "ℒₜ" => lt
-variable (L : Language)(n : ℕ)
-def lpa : Set (Semiformula L ℕ n) := {φ | L_T.not_contains_T φ}
+def lpa : Set (SyntacticFormula L_T.signature) := {φ | L_T.not_contains_T φ}
 notation "ℒₚₐ" => lpa
-
-instance : DecidablePred (ℒₚₐ L_T.signature 0) := by
-  intro a
-  rw[lpa]
-  induction a with
-  | verum =>
-    apply Decidable.isTrue
-    trivial
-  | falsum =>
-    apply Decidable.isTrue
-    trivial
-  | rel r v =>
-    cases r with
-    | t =>
-      apply Decidable.isFalse
-      simp[L_T.not_contains_T]
-    | eq =>
-      apply Decidable.isTrue
-      simp[not_contains_T]
-  | nrel r v =>
-    cases r with
-    | t =>
-      apply Decidable.isFalse
-      simp[not_contains_T]
-    | eq =>
-      apply Decidable.isTrue
-      trivial
-  | and φ ψ =>
-    cases φ with
-    | rel r v =>
-      cases r with
-      | t =>
-        apply Decidable.isFalse
-        simp[not_contains_T]
-      | eq =>
-        apply Decidable.isTrue
-        simp[not_contains_T]
-        sorry
-    | _ => sorry
-  | or => sorry
-  | all => sorry
-  | ex => sorry
 
 open PAT
 def t_pat : Theory L_T.signature := axiom_set ∪ (induction_set Set.univ)

@@ -162,20 +162,23 @@ def der_some_disq : Derivation 𝐓𝐁 [disq] := by
 -- notation "𝐒𝐞𝐪ₚₐ" => lpa_sequent_set
 
 -- BUT SHOULD BE ∀Γ ⊆ ℒₚₐ, 𝐓𝐁 ⟹ Γ → 𝐏𝐀 ⟹ Γ
-def seq_sub_set : Sequent signature → (Set Fml) → Bool :=
+def seq_sub_set : Sequent signature → Prop :=
   fun seq : Sequent signature =>
-    fun set : Set Fml =>
-      ∀φ:Fml, if seq.contains φ → φ ∈ set then true else false
+      ∀φ:Fml, seq.contains φ → φ ∈ ℒₚₐ
 
 def sequent : Sequent signature := [disq]
-#eval seq_sub_set sequent ℒₚₐ
+-- #eval seq_sub_set sequent
+-- #eval ∀φ, φ∈ℒₚₐ → φ∈ℒₚₐ
 
-def der_to_der : ∀φ ∈ ℒₚₐ, 𝐓𝐁 ⟹ (φ :: Γ) → 𝐏𝐀 ⟹ [φ] := by
+-- USE ``
+
+
+def der_to_der : ∀φ ∈ ℒₚₐ, 𝐓𝐁 ⟹ Γ → 𝐏𝐀 ⟹ Γ := by
   intro ψ
   intro in_lt
   intro h
   let t := tau h
-  cases h with
+  induction h with
   | axL Γ r v =>
     cases r with
     | t =>
