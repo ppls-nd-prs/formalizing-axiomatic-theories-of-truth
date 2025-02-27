@@ -22,7 +22,7 @@
 - [ ] $\texttt{PA}$
   - [ ] proof theory
 - [ ] Syntax theory
-  - [ ] coding
+  - [ ] coding: perhaps we can use the pairwise encoding from FFL
   - [ ] representation
      
 # Planning
