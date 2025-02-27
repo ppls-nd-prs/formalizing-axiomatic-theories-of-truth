@@ -16,7 +16,7 @@
     - [ ] universal generalization ($\forall G$)
     - [ ] Derivations (as a type)
   - [ ] Sequent calculus
-    - [ ] theory
+    - [X] theory: `FirstOrder.Language.Theory` from `Mathlib.ModelTheory.Syntax`
     - [ ] rules
     - [ ] derivation (as a type)
 - [ ] $\texttt{PA}$
