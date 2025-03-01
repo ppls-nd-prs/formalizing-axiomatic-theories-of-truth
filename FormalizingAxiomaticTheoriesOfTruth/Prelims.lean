@@ -2,21 +2,37 @@ import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
 
 namespace Languages
+open FirstOrder
+open Language
 
   namespace LPA
-    open FirstOrder
-    open Language
-
     inductive Func : ℕ → Type u where
       | zero : Func 0
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
 
-    def language : Language :=
+    def signature : Language :=
       ⟨Func, fun _ => Empty⟩
 
-    notation "ℒₚₐ" => language
+    /-
+    Useful notation
+    -/
+    prefix:60 "S" => Term.func Func.succ
+    infix:60 "=" => Formula.equal
+    prefix:60 "zero" => Term.func Func.zero
+    prefix:60 "add" => Term.func Func.add
+    prefix:60 "times" => Term.func Func.mult
+    notation "ℒₚₐ" => signature
+
+    /-
+    Some useful terms
+    -/
+    def null : Term signature ℕ :=
+      zero ![]
+    def numeral : ℕ → Term signature ℕ
+      | .zero => zero ![]
+      | .succ n => S ![numeral n]
   end LPA
 
   namespace L_T
@@ -32,10 +48,57 @@ namespace Languages
     inductive Rel : ℕ → Type v where
       | t : Rel 1
 
-    def language : Language :=
+    def signature : Language :=
       ⟨Func, Rel⟩
 
-    notation "ℒₜ" => language
-
+    /-
+    Some useful notation
+    -/
+    prefix:60 "T" => Formula.rel Rel.t
+    notation "ℒₜ" => signature
   end L_T
+  /-- `Formula α` is the type of formulas with free variables indexed by `α` -/
+  inductive Formula (L: Language) : Type*
+    | falsum : Formula L
+    | equal (t₁ t₂ : L.Term ℕ) : Formula L
+    | rel {l : ℕ} (R : L.Relations l) (ts : Fin l → L.Term ℕ) : Formula L
+    | imp (f₁ f₂ : Formula L) : Formula L
+    | all (f : Formula L) : Formula L
+  /-
+  Some useful notation
+  -/
+  variable (l : Language)
+  abbrev Fml : Type _ := Formula l -- perhaps
+
+  /-
+  A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
+  also lt formulas
+  -/
+  def to_lt_func {arity : ℕ} : (LPA.Func arity) → (L_T.Func arity)
+    | .zero => .zero
+    | .succ => .succ
+    | .add => .add
+    | .mult => .mult
+
+  def to_lt_t: Term ℒₚₐ α → Term ℒₜ α
+    | .var α => .var α
+    | .func (l := n) f v => .func (to_lt_func f) (fun i : Fin n => to_lt_t (v i))
+
+  def to_lt_bf: BoundedFormula ℒₚₐ ℕ n → BoundedFormula ℒₜ ℕ n
+    | .falsum => .falsum
+    | .equal t₁ t₂ => .equal (to_lt_t t₁) (to_lt_t t₂)
+    | .imp f₁ f₂ => .imp (to_lt_bf f₁) (to_lt_bf f₂)
+    | .all f => .all (to_lt_bf f)
+
+  def to_lt_f (f : Formula ℒₜ ℕ): Fml ℒₚₐ:=
+    to_lt_bf (f)
+  example {n : ℕ}: ∀φ:Formula LPA.signature ℕ, ∃ψ:Semiformula L_T.lt ℕ n, ψ = to_lt_f φ :=
+    fun a : Semiformula PA.lpa ℕ n => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
+
+  instance : Coe (Semiterm PA.lpa ℕ n) (Semiterm lt ℕ n) where
+    coe t := to_lt_t t
+  instance : Coe (Semiformula PA.lpa ℕ n) (Semiformula lt ℕ n) where
+    coe φ := to_lt_f φ
+
+
 end Languages
