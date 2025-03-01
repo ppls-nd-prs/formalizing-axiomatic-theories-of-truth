@@ -1,10 +1,10 @@
 import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
 
-namespace Languages
 open FirstOrder
 open Language
 
+namespace Languages
   namespace LPA
     inductive Func : ℕ → Type _ where
       | zero : Func 0
@@ -91,5 +91,19 @@ open Language
     coe t := to_lt_t t
   instance : Coe (Fml ℒₚₐ) (Fml ℒₜ) where
     coe φ := to_lt_f φ
-
 end Languages
+
+namespace Calculus
+  open Languages
+  open BoundedFormula
+  inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
+  | axm Γ A : A ∈ Γ → prf Γ A
+  | impI Γ A B : prf (insert A Γ) B → prf Γ (A ⟹ B)
+  | impE Γ A B : prf Γ (A ⟹ B) → prf Γ A → prf Γ B
+  | falsumE Γ A : prf (insert ∼A Γ) ⊥ → prf Γ A
+  | allI Γ A : prf ((λf => liftAt 1 0 f) '' Γ) A → prf Γ (∀' A)
+  | allE₂ Γ A t : prf Γ (∀' A) → prf Γ (subst A ![t])
+  | ref Γ t : prf Γ (t = t')
+  | subst₂ Γ s t f : prf Γ (s = t) → prf Γ (subst f ![s]) → prf Γ (subst f ![t])
+
+end Calculus
