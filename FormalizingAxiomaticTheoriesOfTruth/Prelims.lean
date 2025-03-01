@@ -57,25 +57,25 @@ open Language
     prefix:60 "T" => Formula.rel Rel.t
     notation "ℒₜ" => signature
   end L_T
-  /-- A term on `α` is either a variable indexed by an element of `α`
-    or a function symbol applied to simpler terms. -/
-  inductive Term (L : Language) (α : Type _) : Type _
-    | var : α → Term L α
-    | func : ∀ {l : ℕ} (_f : L.Functions l) (_ts : Fin l → Term L α), Term L α
+  -- /-- A term on `α` is either a variable indexed by an element of `α`
+  --   or a function symbol applied to simpler terms. -/
+  -- inductive Term (L : Language) (α : Type _) : Type _
+  --   | var : α → Term L α
+  --   | func : ∀ {l : ℕ} (_f : L.Functions l) (_ts : Fin l → Term L α), Term L α
 
-  /-- `Formula α` is the type of formulas with free variables indexed by `α` -/
-  inductive Formula (L: Language) : Type*
-    | falsum : Formula L
-    | equal (t₁ t₂ : L.Term ℕ) : Formula L
-    | rel {l : ℕ} (R : L.Relations l) (ts : Fin l → L.Term ℕ) : Formula L
-    | imp (f₁ f₂ : Formula L) : Formula L
-    | all (f : Formula L) : Formula L
+  -- /-- `Formula α` is the type of formulas with free variables indexed by `α` -/
+  -- inductive Formula (L: Language) : Type*
+  --   | falsum : Formula L
+  --   | equal (t₁ t₂ : L.Term ℕ) : Formula L
+  --   | rel {l : ℕ} (R : L.Relations l) (ts : Fin l → L.Term ℕ) : Formula L
+  --   | imp (f₁ f₂ : Formula L) : Formula L
+  --   | all (f : Formula L) : Formula L
 
   /-
   Some useful notation
   -/
-  variable (l : Language)
-  abbrev Fml : Type _ := Formula l -- perhaps
+  -- variable (l : Language)
+  -- abbrev Fml : Type _ := Formula l -- perhaps
 
   /-
   A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
@@ -91,18 +91,18 @@ open Language
     | .var α => .var α
     | .func (l := n) f v => .func (to_lt_func f) (fun i : Fin n => to_lt_t (v i))
 
-  def to_lt_f: Formula ℒₚₐ → Formula ℒₜ
+  def to_lt_f: Formula ℒₚₐ ℕ → Formula ℒₜ ℕ
     | .falsum => .falsum
     | .equal t₁ t₂ => .equal (to_lt_t t₁) (to_lt_t t₂)
     | .imp f₁ f₂ => .imp (to_lt_f f₁) (to_lt_f f₂)
     | .all f => .all (to_lt_f f)
 
-  example : ∀φ:Formula ℒₚₐ, ∃ψ:Formula ℒₜ, ψ = to_lt_f φ :=
-    fun a : Formula ℒₚₐ => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
+  -- example : ∀φ:Formula ℒₚₐ, ∃ψ:Formula ℒₜ, ψ = to_lt_f φ :=
+  --   fun a : Formula ℒₚₐ => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
 
   instance : Coe (Term ℒₚₐ ℕ) (Term ℒₜ ℕ) where
     coe t := to_lt_t t
-  instance : Coe (Formula ℒₚₐ) (Formula ℒₜ) where
+  instance : Coe (Formula ℒₚₐ ℕ) (Formula ℒₜ ℕ) where
     coe φ := to_lt_f φ
 
 
