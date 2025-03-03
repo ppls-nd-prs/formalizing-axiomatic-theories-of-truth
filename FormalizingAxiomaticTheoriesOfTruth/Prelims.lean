@@ -1,10 +1,10 @@
 import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
 
-namespace Languages
 open FirstOrder
 open Language
 
+namespace Languages
   namespace LPA
     inductive Func : ℕ → Type _ where
       | zero : Func 0
@@ -19,7 +19,7 @@ open Language
     Useful notation
     -/
     prefix:60 "S" => Term.func Func.succ
-    infix:60 "=" => BoundedFormula.equal
+    infix:60 "≃" => BoundedFormula.equal
     prefix:60 "zero" => Term.func Func.zero
     prefix:60 "add" => Term.func Func.add
     prefix:60 "times" => Term.func Func.mult
@@ -91,5 +91,21 @@ open Language
     coe t := to_lt_t t
   instance : Coe (Fml ℒₚₐ) (Fml ℒₜ) where
     coe φ := to_lt_f φ
-
 end Languages
+
+namespace Calculus
+  open Languages
+  open BoundedFormula
+  notation f "↑'" n "#" m => liftAt n m f
+  notation f "↑" n => f ↑' n # 0
+  notation A "/[" t "]" => subst A ![t]
+  inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
+  | axm Γ A : A ∈ Γ → prf Γ A
+  | impI Γ A B : prf (insert A Γ) B → prf Γ (A ⟹ B)
+  | impE Γ A B : prf Γ (A ⟹ B) → prf Γ A → prf Γ B
+  | falsumE Γ A : prf (insert ∼A Γ) ⊥ → prf Γ A
+  | allI Γ A : prf ((λf => f ↑ 1) '' Γ) A → prf Γ (∀' A)
+  | allE₂ Γ A t : prf Γ (∀' A) → prf Γ (A/[t])
+  | ref Γ t : prf Γ (t ≃ t')
+  | subst₂ Γ s t f : prf Γ (s ≃ t) → prf Γ (f/[s]) → prf Γ (f/[t])
+end Calculus
