@@ -25,6 +25,14 @@
   - [ ] coding: perhaps we can use the pairwise encoding from FFL
   - [ ] representation
      
+# Predicates and Functions To Implement in $\mathcal{L}_{PA}$ and $\mathcal{L}_T$
+- [ ] Encoding function to encode an object of the language
+- [ ] Decoding function to decode an object of the language
+- [ ] Term(n), Formula(n) and Sentence(n) such that e.g. Term(n) holds when n is the code of a term of $\mathcal{L}_{PA}$ and $\mathcal{L}_T$
+- [ ] Tr(n) which holds when n is the code of a formula of $\mathcal{L}_{T}$ containing a truth predicate 
+- [ ] Dot function which takes each number to its numeral
+- [ ] Evaluation function which takes the code of a numeral and spits out the numeral
+     
 # Planning
 | week | Bram | Yu-Lan | Discuss Together |
 |---|---|---|---|
