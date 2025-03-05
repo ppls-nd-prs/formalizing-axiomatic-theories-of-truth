@@ -110,6 +110,9 @@ end Calculus
 namespace PA
   open Languages
   open LPA
+  /-
+  Running into trouble with the indexing typing in combination with substitution.
+  -/
   def succ_var_term : Term ℒₚₐ (ℕ ⊕ ℕ) :=
     S(Term.var 0)
   def eq_var : Formula ℒₚₐ ℕ :=
