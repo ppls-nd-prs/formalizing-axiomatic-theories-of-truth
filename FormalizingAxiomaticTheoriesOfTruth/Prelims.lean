@@ -113,12 +113,14 @@ namespace PA
   /-
   Running into trouble with the indexing typing in combination with substitution.
   -/
-  def succ_var_term : Term ℒₚₐ (ℕ ⊕ ℕ) :=
-    S(Term.var 0)
-  def eq_var : Formula ℒₚₐ ℕ :=
-    succ_var_term =' succ_var_term
+  def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
+    S(&0) =' S(&0)
+  #check eq_var.toFormula
   #check eq_var/[LPA.null]
-  #check ∀' (succ_var_term =' succ_var_term)
+  def replace : Sentence ℒₚₐ :=
+    ((S(&0) =' S(&0))/[LPA.null])
+  example : (eq_var/[LPA.null]) = (S(LPA.null) =' S(LPA.null)) :=
+  #check ∀' eq_var
   inductive axioms : Theory ℒₚₐ where
   | first : axioms (∀' ∼(LPA.null =' S(&0)))
   | second :axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
