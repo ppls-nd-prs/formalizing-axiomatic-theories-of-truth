@@ -14,7 +14,7 @@
       - [ ] Function symbols: $num,denote,neg,conj,disj,cond,forall,exists$
     - PA
       - [x] Predicates: $\emptyset$
-      - [ ] Terms: $add,mult,S,0$ 
+      - [ ] Terms: $add,mult,succ,null$ 
   - [ ] Specify the signatures of $\mathcal{L}_T$
   - [ ] Implement the homomorphism from $\mathcal{L}_{PA}\to \mathcal{L}_T$
   - [ ] including representation predicates $\texttt{Term, Formula}$ $\dot \land$ etc.
