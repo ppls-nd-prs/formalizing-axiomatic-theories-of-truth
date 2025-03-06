@@ -5,7 +5,7 @@ open FirstOrder
 open Language
 
 namespace Languages
-  namespace LPA
+  namespace LPA -- change to L
     inductive Func : ℕ → Type _ where
       | zero : Func 0
       | succ : Func 1
@@ -65,11 +65,14 @@ namespace Languages
   A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
   also lt formulas
   -/
-  def to_lt_func {arity : ℕ} : (LPA.Func arity) → (L_T.Func arity)
+  def to_lt_func ⦃n : ℕ⦄ : (LPA.signature.Functions n) → (L_T.signature.Functions n)
     | .zero => .zero
     | .succ => .succ
     | .add => .add
     | .mult => .mult
+
+  def to_lt_rel ⦃n : ℕ⦄ : (LPA.signature.Relations n) → (L_T.signature.Relations n) :=
+    Empty.casesOn -- i.e. there are no LPA relations
 
   def to_lt_t: Term ℒₚₐ α → Term ℒₜ α
     | .var α => .var α
@@ -84,10 +87,10 @@ namespace Languages
   example: ∀φ:Fml ℒₚₐ, ∃ψ:Fml ℒₜ, ψ = to_lt_f φ :=
     fun a : Fml ℒₚₐ => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
 
-  instance : Coe (Term ℒₚₐ α) (Term ℒₜ α) where
-    coe t := to_lt_t t
-  instance : Coe (Fml ℒₚₐ) (Fml ℒₜ) where
-    coe φ := to_lt_f φ
+  def ϕ : LHom ℒₚₐ ℒₜ where
+    onFunction := to_lt_func
+    onRelation := to_lt_rel
+
 end Languages
 
 namespace Calculus
@@ -121,9 +124,12 @@ namespace PA
     S((Term.var ∘ Sum.inl) 0) =' S(&0)
   #check eq_var.toFormula
   #check ℕ ⊕ (Fin 1)
-  def thing : BoundedFormula ℒₚₐ Empty 1 := eq_var/[LPA.null]
+  def thing : BoundedFormula ℒₚₐ (Fin 1) 1 := eq_var/[S(Term.var 0)]
   #check thing
   #check ∀' thing
+  def induction (φ : BoundedFormula ℒₚₐ (Fin 1) 1) : BoundedFormula ℒₚₐ (Fin 1) 1 :=
+    φ/[Term.var 0]
+
   inductive axioms : Theory ℒₚₐ where
   | first : axioms (∀' ∼(LPA.null =' S(&0)))
   | second :axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
@@ -131,7 +137,8 @@ namespace PA
   | fourth : axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
   | fifth : axioms (∀' ((&0 times LPA.null) =' LPA.null))
   | sixth : axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-  | induction φ : (axioms ((∼ (((φ/[LPA.null]) ⟹ ∼(∀'(φ/[&0] ⟹ φ/[S(&0)])))))))
+  | induction (φ : BoundedFormula ℒₚₐ (Fin 1) 1) : axioms (∼ (φ/[LPA.null] ⟹ (∼(∀'(φ/[&0] ⟹ φ/[S(&0)])))) ⟹ ∀'(φ))
+
   /-
   A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
   ℒₜ Axioms -/
@@ -141,6 +148,6 @@ namespace PA
     intro set
     intro φ
     sorry
-  inductive axioms : Theory ℒₚₐ where
-  | first :
+  -- inductive axioms : Theory ℒₚₐ where
+  -- | first :
 end PA
