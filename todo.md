@@ -46,4 +46,6 @@
 |---|---|---|---|
 | 10 | syntax or concrete  language (check FlyPitch) | figure what predicates | talk about proof theory and derivability |
 | 11 | concrete language  | toString function |  |
+
+hello
 | 12 | Proof theory | Syntax theory |  |
