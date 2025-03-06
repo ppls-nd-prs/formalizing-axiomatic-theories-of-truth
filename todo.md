@@ -11,7 +11,7 @@
   - [ ] Specify the signatures of $\mathcal{L}$:
     - Syntax:   
       - [ ] Predicates: $Term,Formula,Sentence$
-      - [ ] Function symbols: $num,neg,conj,disj,cond,forall,exists$
+      - [ ] Function symbols: $num,denote,neg,conj,disj,cond,forall,exists$
     - PA
       - [x] Predicates: $\emptyset$
       - [ ] Terms: $add,mult,S,0$ 
