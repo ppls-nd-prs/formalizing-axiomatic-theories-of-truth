@@ -7,8 +7,14 @@
   - [X] substitution: `FirstOrder.Language.Term.subst` from `Mathlib.ModelTheory.Syntax`
   - [X] formulas (de bruijn): `FirstOrder.Language.Formula` from `Mathlib.ModelTheory.Syntax`
   - [X] sentences: `FirstOrder.Language.Sentence` from `Mathlib.ModelTheory.Syntax`
-- [ ] The languages $\mathcal{L}_{PA}$ and $\mathcal{L}_T$
-  - [ ] Specify the signatures of $\mathcal{L}_{PA}$
+- [ ] The languages $\mathcal{L}$ and $\mathcal{L}_T$
+  - [ ] Specify the signatures of $\mathcal{L}$:
+    - Syntax:   
+      - [ ] Predicates: $Term,Formula,Sentence$
+      - [ ] Function symbols: $num,neg,conj,disj,cond,forall,exists$
+    - PA
+      - [x] Predicates: $\emptyset$
+      - [ ] Terms: $add,mult,S,0$ 
   - [ ] Specify the signatures of $\mathcal{L}_T$
   - [ ] Implement the homomorphism from $\mathcal{L}_{PA}\to \mathcal{L}_T$
   - [ ] including representation predicates $\texttt{Term, Formula}$ $\dot \land$ etc.
