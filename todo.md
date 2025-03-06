@@ -17,7 +17,6 @@
       - [ ] Terms: $add,mult,succ,null$ 
   - [ ] Specify the signatures of $\mathcal{L}_T$
   - [ ] Implement the homomorphism from $\mathcal{L}_{PA}\to \mathcal{L}_T$
-  - [ ] including representation predicates $\texttt{Term, Formula}$ $\dot \land$ etc.
 - [ ] Proof theory
   - [ ] Hilbert calculus
     - [X] Theory: `FirstOrder.Language.Theory` from `Mathlib.ModelTheory.Syntax`
