@@ -110,17 +110,20 @@ end Calculus
 namespace PA
   open Languages
   open LPA
+  open BoundedFormula
+
   /-
   Running into trouble with the indexing typing in combination with substitution.
   -/
+  def var : Term ℒₚₐ ℕ :=
+    Term.var 0
   def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
-    S(&0) =' S(&0)
+    S((Term.var ∘ Sum.inl) 0) =' S(&0)
   #check eq_var.toFormula
-  #check eq_var/[LPA.null]
-  def replace : Sentence ℒₚₐ :=
-    ((S(&0) =' S(&0))/[LPA.null])
-  example : (eq_var/[LPA.null]) = (S(LPA.null) =' S(LPA.null)) :=
-  #check ∀' eq_var
+  #check ℕ ⊕ (Fin 1)
+  def thing : BoundedFormula ℒₚₐ Empty 1 := eq_var/[LPA.null]
+  #check thing
+  #check ∀' thing
   inductive axioms : Theory ℒₚₐ where
   | first : axioms (∀' ∼(LPA.null =' S(&0)))
   | second :axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
@@ -128,11 +131,10 @@ namespace PA
   | fourth : axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
   | fifth : axioms (∀' ((&0 times LPA.null) =' LPA.null))
   | sixth : axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-  | induction φ : (axioms (∼ (((φ/[LPA.null]) ⟹ ∼(∀'(φ ⟹ φ/[succ_var_term]))) ⟹ ∀' φ)))
+  | induction φ : (axioms ((∼ (((φ/[LPA.null]) ⟹ ∼(∀'(φ/[&0] ⟹ φ/[S(&0)])))))))
   /-
   A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
   ℒₜ Axioms -/
-  def
   def to_lt_T : Theory ℒₚₐ → Theory ℒₜ := by
     repeat rewrite[Theory]
     repeat rewrite[Set]
