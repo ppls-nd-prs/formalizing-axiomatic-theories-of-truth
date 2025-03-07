@@ -4,6 +4,25 @@ import Mathlib.ModelTheory.Syntax
 open FirstOrder
 open Language
 
+section ToString
+variable {L : Language}{α : Type}
+-- variable [∀ k, ToString (L.Functions k)] [∀ k, ToString (L.Relations k)] [ToString ξ]
+
+def toStr {n} : BoundedFormula L α n → String
+  | falsum                    => "\\bot"
+  | equal   t₁ t₂                  => "(" ++ toString t₁ ++ " = " ++ toString t₂ ++ ")"
+  | rel                       => toString r ++ "(" ++ String.vecToStr (fun i => toString (v i)) ++ ")"
+  | rel (arity := 0) R _      => toString r
+  | imp f₁ f₂                 => "(" ++ toStr f₁ ++ " → " ++ toStr f₂ ++ ")"
+  | all φ                     => "∀x" ++ toString n ++ "}) " ++ toStr φ
+  | ex φ                      => "(\\exists x_{" ++ toString n ++ "}) " ++ toStr φ
+
+instance : Repr (BoundedFormula L α n) := ⟨fun t _ => toStr t⟩
+
+instance : ToString (BoundedFormula L α n) := ⟨toStr⟩
+
+end ToString
+
 namespace Languages
   namespace LPA -- change to L
     inductive Func : ℕ → Type _ where
@@ -122,13 +141,37 @@ namespace PA
     Term.var 0
   def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
     S((Term.var ∘ Sum.inl) 0) =' S(&0)
-  #check eq_var.toFormula
+  #print eq_var
+  def tof_eq_var : Formula ℒₚₐ (Fin 1 ⊕ Fin 1) :=
+    eq_var.toFormula
+  #print tof_eq_var
+
   #check ℕ ⊕ (Fin 1)
-  def thing : BoundedFormula ℒₚₐ (Fin 1) 1 := eq_var/[S(Term.var 0)]
+  def thing : BoundedFormula ℒₚₐ (Fin 1) 0 := eq_var/[S(Term.var 0)]
   #check thing
   #check ∀' thing
-  def induction (φ : BoundedFormula ℒₚₐ (Fin 1) 1) : BoundedFormula ℒₚₐ (Fin 1) 1 :=
-    φ/[Term.var 0]
+
+  def var_eq_var : BoundedFormula ℒₚₐ (Fin 2) 0 :=
+    ∀' ((&0) =' (&1))
+
+  #check subst var_eq_var ![LPA.null, Term.var 1]
+
+  def var_eq_var2 : BoundedFormula ℒₚₐ (Fin 2) 0 :=
+    ∀' ∀' ((&0) =' (&1))
+
+  #eval var_eq_var
+
+  def replace_bound_variable (φ : BoundedFormula ℒₚₐ (Fin 1) 1) (t : Term ℒₚₐ Empty) : Sentence ℒₚₐ :=
+    subst φ.toFormula (fun _ : Fin 1 ⊕ Fin 1 => t)
+  notation A "//[" t "]" => replace_bound_variable A t
+
+  def replace_bv_with_S_bv (φ : BoundedFormula ℒₚₐ (Fin 1 ⊕ Empty) 0) : BoundedFormula ℒₚₐ Empty 1 :=
+    (subst (φ ↑ 1) (fun _ : Fin 1 ⊕ Empty => S(&0)))
+
+  def replace_bv_with_bv_term (φ : BoundedFormula ℒₚₐ Empty 1) (t : Term ℒₚₐ (Fin 1)) : BoundedFormula ℒₚₐ Empty 1 :=
+    subst (φ.toFormula ↑ 1) (fun _ : Fin 1 ⊕ Empty => t)
+
+  def replace_bound
 
   inductive axioms : Theory ℒₚₐ where
   | first : axioms (∀' ∼(LPA.null =' S(&0)))
@@ -137,7 +180,7 @@ namespace PA
   | fourth : axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
   | fifth : axioms (∀' ((&0 times LPA.null) =' LPA.null))
   | sixth : axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-  | induction (φ : BoundedFormula ℒₚₐ (Fin 1) 1) : axioms (∼ (φ/[LPA.null] ⟹ (∼(∀'(φ/[&0] ⟹ φ/[S(&0)])))) ⟹ ∀'(φ))
+  | induction {n : ℕ} (φ : BoundedFormula ℒₚₐ (Fin 1) 1) : axioms (∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ φ/[S(&0)])))) ⟹ ∀'(φ))
 
   /-
   A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
