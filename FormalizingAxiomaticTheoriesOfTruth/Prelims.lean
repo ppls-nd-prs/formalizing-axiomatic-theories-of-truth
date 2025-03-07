@@ -5,21 +5,32 @@ open FirstOrder
 open Language
 
 section ToString
-variable {L : Language}{α : Type}
--- variable [∀ k, ToString (L.Functions k)] [∀ k, ToString (L.Relations k)] [ToString ξ]
+variable {L : Language} {α : Type}
+variable [∀ k, ToString (L.Functions k)] [ToString α]
 
-def toStr {n} : BoundedFormula L α n → String
-  | falsum                    => "\\bot"
-  | equal   t₁ t₂                  => "(" ++ toString t₁ ++ " = " ++ toString t₂ ++ ")"
-  | rel                       => toString r ++ "(" ++ String.vecToStr (fun i => toString (v i)) ++ ")"
-  | rel (arity := 0) R _      => toString r
-  | imp f₁ f₂                 => "(" ++ toStr f₁ ++ " → " ++ toStr f₂ ++ ")"
-  | all φ                     => "∀x" ++ toString n ++ "}) " ++ toStr φ
-  | ex φ                      => "(\\exists x_{" ++ toString n ++ "}) " ++ toStr φ
+def vecToStr : ∀ {n}, (Fin n → String) → String
+  | 0,     _ => ""
+  | n + 1, s => if n = 0 then s 0 else s 0 ++ ", " ++ @vecToStr n (fun i => s (Fin.succ i))
 
-instance : Repr (BoundedFormula L α n) := ⟨fun t _ => toStr t⟩
+def term_toStr : Term L (α ⊕ Fin n) → String
+  | .var k => toString k
+  | .func (l := 0) c _ => toString c
+  | .func (l := _ + 1) f ts => toString f ++ "(" ++ vecToStr (fun i => term_toStr (ts i)) ++ ")"
 
-instance : ToString (BoundedFormula L α n) := ⟨toStr⟩
+instance : ToString (Term L (α ⊕ Fin n)) := ⟨term_toStr⟩
+instance : Repr (Term L (α ⊕ Fin n)) := ⟨fun t _ => term_toStr t⟩
+
+variable [∀ k, ToString (L.Relations k)]
+
+def bf_toStr {n} : BoundedFormula L α n → String
+  | .falsum                    => "⊥"
+  | .equal t₁ t₂               => "(" ++ (toString t₁) ++ " = " ++ toString t₂ ++ ")"
+  | .rel R ts                  => toString R ++ "(" ++ vecToStr (fun i => toString (ts i)) ++ ")"
+  | .imp f₁ f₂                 => "(" ++ bf_toStr f₁ ++ " → " ++ bf_toStr f₂ ++ ")"
+  | .all f                     => "∀x" ++ toString n ++ "}) " ++ bf_toStr f
+
+instance : Repr (BoundedFormula L α n) := ⟨fun t _ => bf_toStr t⟩
+instance : ToString (BoundedFormula L α n) := ⟨bf_toStr⟩
 
 end ToString
 
@@ -30,6 +41,13 @@ namespace Languages
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
+
+    def funToStr {n}: Func n → String
+    | .zero => "0"
+    | .succ => "S"
+    | .add => "+"
+    | .mult => "×"
+    instance : ToString (Func n) := ⟨funToStr⟩
 
     def signature : Language :=
       ⟨Func, fun _ => Empty⟩
@@ -130,6 +148,7 @@ namespace Calculus
 end Calculus
 
 namespace PA
+  open ToString
   open Languages
   open LPA
   open BoundedFormula
@@ -137,16 +156,24 @@ namespace PA
   /-
   Running into trouble with the indexing typing in combination with substitution.
   -/
-  def var : Term ℒₚₐ ℕ :=
-    Term.var 0
+  def var : Term ℒₚₐ (Fin 1 ⊕ Fin 1) :=
+    &0
+  #eval var
   def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
     S((Term.var ∘ Sum.inl) 0) =' S(&0)
-  #print eq_var
+  #eval eq_var
   def tof_eq_var : Formula ℒₚₐ (Fin 1 ⊕ Fin 1) :=
     eq_var.toFormula
   #print tof_eq_var
 
   #check ℕ ⊕ (Fin 1)
+
+scoped[FirstOrder] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
+
+  def test1 : BoundedFormula ℒₚₐ ℕ 0 :=
+    (#0) =' (#0)
+  #check ∀' (test1 ↑ 1)
+
   def thing : BoundedFormula ℒₚₐ (Fin 1) 0 := eq_var/[S(Term.var 0)]
   #check thing
   #check ∀' thing
