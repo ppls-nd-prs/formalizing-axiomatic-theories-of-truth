@@ -12,13 +12,13 @@ def vecToStr : ∀ {n}, (Fin n → String) → String
   | 0,     _ => ""
   | n + 1, s => if n = 0 then s 0 else s 0 ++ ", " ++ @vecToStr n (fun i => s (Fin.succ i))
 
-def term_toStr : Term L (α ⊕ Fin n) → String
+def term_toStr : Term L α → String
   | .var k => toString k
   | .func (l := 0) c _ => toString c
   | .func (l := _ + 1) f ts => toString f ++ "(" ++ vecToStr (fun i => term_toStr (ts i)) ++ ")"
 
-instance : ToString (Term L (α ⊕ Fin n)) := ⟨term_toStr⟩
-instance : Repr (Term L (α ⊕ Fin n)) := ⟨fun t _ => term_toStr t⟩
+instance : ToString (Term L α) := ⟨term_toStr⟩
+instance : Repr (Term L α) := ⟨fun t _ => term_toStr t⟩
 
 variable [∀ k, ToString (L.Relations k)]
 
@@ -51,6 +51,10 @@ namespace Languages
 
     def signature : Language :=
       ⟨Func, fun _ => Empty⟩
+
+    def relToStr {n} : signature.Relations n → String :=
+      fun _ => ""
+    instance : ToString (signature.Relations n) := ⟨relToStr⟩
 
     /-
     Useful notation
@@ -156,9 +160,11 @@ namespace PA
   /-
   Running into trouble with the indexing typing in combination with substitution.
   -/
-  def var : Term ℒₚₐ (Fin 1 ⊕ Fin 1) :=
-    &0
+  def var {n m : ℕ} {β : Fin n} {α : Fin m} : Term ℒₚₐ (β ⊕ γ) :=
+    Term.var 0
   #eval var
+  def var_eq_var : BoundedFormula ℒₚₐ (Fin 1) 0 :=
+    var =' var
   def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
     S((Term.var ∘ Sum.inl) 0) =' S(&0)
   #eval eq_var
