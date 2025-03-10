@@ -14,17 +14,22 @@ namespace String
 end String
 
 namespace Term
-  variable {L : Language} {α : Type}
-  variable [∀ k, ToString (L.Functions k)] [ToString α]
+  variable {L : Language} {α β : Type}
+  variable [∀ k, ToString (L.Functions k)] [ToString α] [ToString β]
 
   section ToString
-    def toStr : Term L α → String
-      | .var k => toString k
-      | .func (l := 0) c _ => toString c
-      | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr (ts i)) ++ ")"
+    def toStr : Term L (α ⊕ β) → String :=
+      fun t : Term L (α ⊕ β) =>
+        match t with
+        | .var k =>
+          match k with
+            | (Sum.inl l) => "#" ++ toString l
+            | (Sum.inr l) => "&" ++ toString l
+        | .func (l := 0) c _ => toString c
+        | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr (ts i)) ++ ")"
 
-    instance : Repr (Term L α) := ⟨fun t _ => toStr t⟩
-    instance : ToString (Term L α) := ⟨toStr⟩
+    instance : Repr (Term L (α ⊕ β)) := ⟨fun t _ => toStr t⟩
+    instance : ToString (Term L (α ⊕ β)) := ⟨toStr⟩
   end ToString
 end Term
 
@@ -181,9 +186,12 @@ namespace PA
   -/
   scoped[FirstOrder] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
-  def v_eq_v_lpa : BoundedFormula ℒₚₐ (Fin 1) 1 :=
-    (#0) =' (&0)
-  #eval ∀' v_eq_v_lpa
+  def v_eq_v_lpa : BoundedFormula ℒₚₐ (ℕ) 1 :=
+    ((#0) =' (&0)) ⟹ ((#0) =' (&0))
+  #check ∀' v_eq_v_lpa
+  def zero_term : Term ℒₚₐ ℕ :=
+    LPA.null
+  #eval subst (∀' v_eq_v_lpa) (fun _ => zero_term)
   def v_eq_v_lt : Formula ℒₜ (Fin 1) :=
     LHom.onFormula ϕ v_eq_v_lpa
   def var {n m : ℕ} {β : Fin n} {α : Fin m} : Term ℒₚₐ (β ⊕ γ) :=
@@ -204,7 +212,7 @@ namespace PA
 
   def test1 : BoundedFormula ℒₚₐ ℕ 0 :=
     (#0) =' (#0)
-  #check ∀' (test1 ↑ 1)
+  #eval (∀' (test1 ↑ 1) ↑ 1)
 
   def thing : BoundedFormula ℒₚₐ (Fin 1) 0 := eq_var/[S(Term.var 0)]
   #check thing
