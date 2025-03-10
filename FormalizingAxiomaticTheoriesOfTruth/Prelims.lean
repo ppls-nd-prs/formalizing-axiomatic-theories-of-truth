@@ -4,38 +4,50 @@ import Mathlib.ModelTheory.Syntax
 open FirstOrder
 open Language
 
-section ToString
-variable {L : Language} {α : Type}
-variable [∀ k, ToString (L.Functions k)] [ToString α]
-
-def vecToStr : ∀ {n}, (Fin n → String) → String
+namespace String
+  def vecToStr : ∀ {n}, (Fin n → String) → String
   | 0,     _ => ""
   | n + 1, s => if n = 0 then s 0 else s 0 ++ ", " ++ @vecToStr n (fun i => s (Fin.succ i))
 
-def term_toStr : Term L α → String
-  | .var k => toString k
-  | .func (l := 0) c _ => toString c
-  | .func (l := _ + 1) f ts => toString f ++ "(" ++ vecToStr (fun i => term_toStr (ts i)) ++ ")"
+  #eval vecToStr !["a","b","c"]
 
-instance : ToString (Term L α) := ⟨term_toStr⟩
-instance : Repr (Term L α) := ⟨fun t _ => term_toStr t⟩
+end String
 
-variable [∀ k, ToString (L.Relations k)]
+namespace Term
+  variable {L : Language} {α : Type}
+  variable [∀ k, ToString (L.Functions k)] [ToString α]
 
-def bf_toStr {n} : BoundedFormula L α n → String
-  | .falsum                    => "⊥"
-  | .equal t₁ t₂               => "(" ++ (toString t₁) ++ " = " ++ toString t₂ ++ ")"
-  | .rel R ts                  => toString R ++ "(" ++ vecToStr (fun i => toString (ts i)) ++ ")"
-  | .imp f₁ f₂                 => "(" ++ bf_toStr f₁ ++ " → " ++ bf_toStr f₂ ++ ")"
-  | .all f                     => "∀x" ++ toString n ++ "}) " ++ bf_toStr f
+  section ToString
+    def term_toStr : Term L α → String
+      | .var k => toString k
+      | .func (l := 0) c _ => toString c
+      | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => term_toStr (ts i)) ++ ")"
 
-instance : Repr (BoundedFormula L α n) := ⟨fun t _ => bf_toStr t⟩
-instance : ToString (BoundedFormula L α n) := ⟨bf_toStr⟩
+    instance : Repr (Term L α) := ⟨fun t _ => term_toStr t⟩
+    instance : ToString (Term L α) := ⟨term_toStr⟩
+  end ToString
+end Term
 
-end ToString
+namespace BoundedFormula
+  section ToString
+    variable {L : Language} {α : Type}
+    variable [∀ k, ToString (L.Functions k)] [∀ k, ToString (L.Relations k)] [ToString α]
+
+    def bf_toStr {n} : BoundedFormula L α n → String
+      | .falsum                    => "⊥"
+      | .equal t₁ t₂               => "(" ++ (toString t₁) ++ " = " ++ toString t₂ ++ ")"
+      | .rel R ts                  => toString R ++ "(" ++ String.vecToStr (fun i => toString (ts i)) ++ ")"
+      | .imp f₁ f₂                 => "(" ++ bf_toStr f₁ ++ " → " ++ bf_toStr f₂ ++ ")"
+      | .all f                     => "∀x" ++ toString n ++ "}) " ++ bf_toStr f
+
+    instance : Repr (BoundedFormula L α n) := ⟨fun t _ => bf_toStr t⟩
+    instance : ToString (BoundedFormula L α n) := ⟨bf_toStr⟩
+  end ToString
+end BoundedFormula
 
 namespace Languages
   namespace LPA -- change to L
+  open ToString
     inductive Func : ℕ → Type _ where
       | zero : Func 0
       | succ : Func 1
@@ -64,6 +76,11 @@ namespace Languages
     notation n "add" m => Term.func Func.add ![n,m]
     notation n "times" m => Term.func Func.mult ![n,m]
     notation "ℒₚₐ" => signature
+
+    def falser : BoundedFormula ℒₚₐ Empty 0 :=
+      .falsum
+
+    #eval falser
 
     /-
     Some useful terms
@@ -165,10 +182,13 @@ namespace PA
   /-
   Running into trouble with the indexing typing in combination with substitution.
   -/
+  scoped[FirstOrder] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
+
   def v_eq_v_lpa : BoundedFormula ℒₚₐ (Fin 1) 1 :=
-    (&0) =' (&0)
-  def v_eq_v_lt : BoundedFormula ℒₜ (Fin 1) 1 :=
-    LHom.onBoundedFormula ϕ v_eq_v_lpa
+    (#0) =' (&0)
+  #eval ∀' v_eq_v_lpa
+  def v_eq_v_lt : Formula ℒₜ (Fin 1) :=
+    LHom.onFormula ϕ v_eq_v_lpa
   def var {n m : ℕ} {β : Fin n} {α : Fin m} : Term ℒₚₐ (β ⊕ γ) :=
     Term.var 0
   #eval var
@@ -184,7 +204,6 @@ namespace PA
 
   #check ℕ ⊕ (Fin 1)
 
-scoped[FirstOrder] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
   def test1 : BoundedFormula ℒₚₐ ℕ 0 :=
     (#0) =' (#0)
