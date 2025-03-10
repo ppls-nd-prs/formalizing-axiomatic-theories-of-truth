@@ -191,6 +191,7 @@ namespace PA
   #check ∀' v_eq_v_lpa
   def zero_term : Term ℒₚₐ ℕ :=
     LPA.null
+  #eval Term.toStr zero_term
   #eval subst (∀' v_eq_v_lpa) (fun _ => zero_term)
   def v_eq_v_lt : Formula ℒₜ (Fin 1) :=
     LHom.onFormula ϕ v_eq_v_lpa
