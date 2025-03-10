@@ -18,13 +18,13 @@ namespace Term
   variable [∀ k, ToString (L.Functions k)] [ToString α]
 
   section ToString
-    def term_toStr : Term L α → String
+    def toStr : Term L α → String
       | .var k => toString k
       | .func (l := 0) c _ => toString c
-      | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => term_toStr (ts i)) ++ ")"
+      | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr (ts i)) ++ ")"
 
-    instance : Repr (Term L α) := ⟨fun t _ => term_toStr t⟩
-    instance : ToString (Term L α) := ⟨term_toStr⟩
+    instance : Repr (Term L α) := ⟨fun t _ => toStr t⟩
+    instance : ToString (Term L α) := ⟨toStr⟩
   end ToString
 end Term
 
@@ -33,36 +33,38 @@ namespace BoundedFormula
     variable {L : Language} {α : Type}
     variable [∀ k, ToString (L.Functions k)] [∀ k, ToString (L.Relations k)] [ToString α]
 
-    def bf_toStr {n} : BoundedFormula L α n → String
+    def toStr {n} : BoundedFormula L α n → String
       | .falsum                    => "⊥"
-      | .equal t₁ t₂               => "(" ++ (toString t₁) ++ " = " ++ toString t₂ ++ ")"
+      | .equal t₁ t₂               => toString t₁ ++ " = " ++ toString t₂
       | .rel R ts                  => toString R ++ "(" ++ String.vecToStr (fun i => toString (ts i)) ++ ")"
-      | .imp f₁ f₂                 => "(" ++ bf_toStr f₁ ++ " → " ++ bf_toStr f₂ ++ ")"
-      | .all f                     => "∀x" ++ toString n ++ "}) " ++ bf_toStr f
+      | .imp f₁ f₂                 => "(" ++ toStr f₁ ++ " → " ++ toStr f₂ ++ ")"
+      | .all f                     => "∀" ++ toStr f
 
-    instance : Repr (BoundedFormula L α n) := ⟨fun t _ => bf_toStr t⟩
-    instance : ToString (BoundedFormula L α n) := ⟨bf_toStr⟩
+    instance : Repr (BoundedFormula L α n) := ⟨fun t _ => toStr t⟩
+    instance : ToString (BoundedFormula L α n) := ⟨toStr⟩
   end ToString
 end BoundedFormula
 
 namespace Languages
   namespace LPA -- change to L
-  open ToString
     inductive Func : ℕ → Type _ where
       | zero : Func 0
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
 
-    def funToStr {n}: Func n → String
-    | .zero => "0"
-    | .succ => "S"
-    | .add => "+"
-    | .mult => "×"
-    instance : ToString (Func n) := ⟨funToStr⟩
-
     def signature : Language :=
       ⟨Func, fun _ => Empty⟩
+
+    def funToStr {n}: Func n → String
+      | .zero => "0"
+      | .succ => "S"
+      | .add => "+"
+      | .mult => "×"
+    instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
+
+    instance : ToString (Empty) := -- necessary for string function relations
+      ⟨ Empty.casesOn ⟩
 
     def relToStr {n} : signature.Relations n → String :=
       fun _ => ""
@@ -76,11 +78,6 @@ namespace Languages
     notation n "add" m => Term.func Func.add ![n,m]
     notation n "times" m => Term.func Func.mult ![n,m]
     notation "ℒₚₐ" => signature
-
-    def falser : BoundedFormula ℒₚₐ Empty 0 :=
-      .falsum
-
-    #eval falser
 
     /-
     Some useful terms
