@@ -103,8 +103,13 @@ namespace Languages
   abbrev Fml : Type _ := Formula l ℕ -- perhaps
 
   /-
-  A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
-  also lt formulas
+  A homomorphism between PA.lpa and L_T.lt formulas is constructed, as all lpa formulas are
+  also lt formulas.
+  The homomorphism can be used to translate from ℒₚₐ BoundedFormulas to ℒₜ BoundedFormulas using:
+    - FirstOrder.Language.LHom.onBoundedFormula for BoundedFormulas
+    - FirstOrder.Language.LHom.onFormula for Formulas
+    - FirstOrder.Language.LHom.onSentence for Sentences and
+    - FirstOrder.Language.LHom.onTheory for Theories.
   -/
   def to_lt_func ⦃n : ℕ⦄ : (LPA.signature.Functions n) → (L_T.signature.Functions n)
     | .zero => .zero
@@ -160,11 +165,16 @@ namespace PA
   /-
   Running into trouble with the indexing typing in combination with substitution.
   -/
+  def v_eq_v_lpa : BoundedFormula ℒₚₐ (Fin 1) 1 :=
+    (&0) =' (&0)
+  def v_eq_v_lt : BoundedFormula ℒₜ (Fin 1) 1 :=
+    LHom.onBoundedFormula ϕ v_eq_v_lpa
   def var {n m : ℕ} {β : Fin n} {α : Fin m} : Term ℒₚₐ (β ⊕ γ) :=
     Term.var 0
   #eval var
   def var_eq_var : BoundedFormula ℒₚₐ (Fin 1) 0 :=
     var =' var
+  def var_eq_var
   def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
     S((Term.var ∘ Sum.inl) 0) =' S(&0)
   #eval eq_var
