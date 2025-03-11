@@ -11,6 +11,14 @@ namespace Languages
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
+      | num : Func 1
+      | neg : Func 1
+      | conj : Func 2
+      | disj : Func 2
+      | cond : Func 2
+      | forall : Func 1
+      | exists : Func 1
+      | denote : Func 2
 
     def signature : Language :=
       ⟨Func, fun _ => Empty⟩
@@ -41,9 +49,21 @@ namespace Languages
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
+      | num : Func 1
+      | neg : Func 1
+      | conj : Func 2
+      | disj : Func 2
+      | cond : Func 2
+      | forall : Func 1
+      | exists : Func 1
+      | denote : Func 2
 
     inductive Rel : ℕ → Type _ where
       | t : Rel 1
+      | Term : Rel 1
+      | Form : Rel 1
+      | Sentence : Rel 1
+      | Proof : Rel 2
 
     def signature : Language :=
       ⟨Func, Rel⟩
@@ -70,6 +90,14 @@ namespace Languages
     | .succ => .succ
     | .add => .add
     | .mult => .mult
+    | .num => .num
+    | .neg => .neg
+    | .conj => .conj
+    | .disj => .disj
+    | .cond => .cond
+    | .forall => .forall
+    | .exists => .exists
+    | .denote => .denote
 
   def to_lt_t: Term ℒₚₐ α → Term ℒₜ α
     | .var α => .var α
