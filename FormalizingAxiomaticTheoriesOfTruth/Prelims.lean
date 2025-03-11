@@ -187,7 +187,6 @@ namespace Calculus
 end Calculus
 
 namespace PA
-  open ToString
   open Languages
   open LPA
   open BoundedFormula
@@ -216,10 +215,14 @@ namespace PA
   | induction (φ) : peano_arithmetic (induction φ)
 
   notation "𝐏𝐀" => peano_arithmetic
+end PA
+
+namespace PAT
+
+end PAT
 
   /-- Proof that 𝐏𝐀 is also an ℒₜ Theory -/
-  example : Theory ℒₜ :=
-    LHom.onTheory ϕ 𝐏𝐀
+  example : Theory ℒₜ := LHom.onTheory Languages.ϕ 𝐏𝐀
 
   /-- A coercion from 𝐏𝐀 Axioms to 𝐏𝐀𝐓 Axioms as all 𝐏𝐀 Axioms are also
   𝐏𝐀𝐓 Axioms -/
@@ -231,4 +234,3 @@ namespace PA
     sorry
   -- inductive axioms : Theory ℒₚₐ where
   -- | first :
-end PA
