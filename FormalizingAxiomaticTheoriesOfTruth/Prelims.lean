@@ -83,7 +83,6 @@ namespace Languages
     notation "ℒₜ" => signature
   end L_T
 
-
   namespace LPA -- change to L
     inductive Func : ℕ → Type _ where
       | zero : Func 0
@@ -193,6 +192,31 @@ namespace PA
   open LPA
   open BoundedFormula
 
+  /-- Auxillary functions and definitions -/
+  def succ_var : Term ℒₚₐ (Empty ⊕ Fin 1) :=
+    S(&0)
+  def replace_bound_variable (φ : BoundedFormula ℒₚₐ Empty 1) (t : Term ℒₚₐ Empty) : Sentence ℒₚₐ :=
+    subst φ.toFormula (fun _ : Empty ⊕ Fin 1 => t)
+  notation A "//[" t "]" => replace_bound_variable A t
+  def g : (Empty ⊕ Fin 1) → Empty ⊕ Fin 1 :=
+    fun t => t
+
+  /-- The induction function -/
+  def induction (φ : BoundedFormula ℒₚₐ Empty 1) : Sentence ℒₚₐ :=
+    ∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ (relabel g (φ.toFormula/[succ_var])))))) ⟹ ∀'(φ)
+
+  /-- Peano arithemtic -/
+  inductive peano_arithmetic : Theory ℒₚₐ where
+  | first : peano_arithmetic (∀' ∼(LPA.null =' S(&0)))
+  | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
+  | third : peano_arithmetic (∀' ((&0 add LPA.null) =' &0))
+  | fourth : peano_arithmetic (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
+  | fifth : peano_arithmetic (∀' ((&0 times LPA.null) =' LPA.null))
+  | sixth : peano_arithmetic (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
+  | induction (φ) : peano_arithmetic (induction φ)
+
+  notation "𝐏𝐀" => peano_arithmetic
+
   /-
   Running into trouble with the indexing typing in combination with substitution.
   -/
@@ -235,27 +259,22 @@ namespace PA
   def var_eq_var2 : BoundedFormula ℒₚₐ ℕ 0 :=
     ∀' ∀' ((&0) =' (&1))
 
-  def replace_bound_variable (φ : BoundedFormula ℒₚₐ ℕ 1) (t : Term ℒₚₐ Empty) : Sentence ℒₚₐ :=
-    subst φ.toFormula (fun _ : ℕ ⊕ Fin 1 => t)
-  notation A "//[" t "]" => replace_bound_variable A t
+  def var_eq_var3 : BoundedFormula ℒₚₐ Empty 1 :=
+    (&0) =' (&0)
 
-  def replace_bv_with_S_bv (φ : BoundedFormula ℒₚₐ (Fin 1 ⊕ Empty) 0) : BoundedFormula ℒₚₐ Empty 1 :=
-    (subst (φ ↑ 1) (fun _ : Fin 1 ⊕ Empty => S(&0)))
+  #eval var_eq_var3.toFormula
+  #check var_eq_var3.toFormula
+  #eval (var_eq_var3.toFormula/[succ_var])
+  #check (var_eq_var3.toFormula/[succ_var])
+  #check relabel g (var_eq_var3.toFormula/[succ_var])
+  #eval relabel g (var_eq_var3.toFormula/[succ_var])
+  #eval (var_eq_var3.toFormula/[succ_var]) ↑ 1
+  #check (var_eq_var3.toFormula/[succ_var]) ↑ 1
 
-  def replace_bv_with_bv_term (φ : BoundedFormula ℒₚₐ Empty 1) (t : Term ℒₚₐ (Fin 1)) : BoundedFormula ℒₚₐ Empty 1 :=
-    subst (φ.toFormula ↑ 1) (fun _ : Fin 1 ⊕ Empty => t)
-
-  def induction (φ : BoundedFormula ℒₚₐ ℕ 1) : Sentence ℒₚₐ :=
-    (∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ φ/[S(&0)])))) ⟹ ∀'(φ))
-
-  inductive axioms : Theory ℒₚₐ where
-  | first : axioms (∀' ∼(LPA.null =' S(&0)))
-  | second :axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-  | third : axioms (∀' ((&0 add LPA.null) =' &0))
-  | fourth : axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-  | fifth : axioms (∀' ((&0 times LPA.null) =' LPA.null))
-  | sixth : axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-  | induction {n : ℕ} (φ : BoundedFormula ℒₚₐ Empty 1) : axioms (∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ φ/[S(&0)])))) ⟹ ∀'(φ))
+  def φ : BoundedFormula ℒₚₐ Empty 1 :=
+    (&0) =' (&0)
+  #eval (∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ (relabel g (φ.toFormula/[succ_var])))))) ⟹ ∀'(φ)) --output: (((0 = 0 → (∀(&0 = &0 → S(&0) = S(&0)) → ⊥)) → ⊥) → ∀&0 = &0)
+  #eval induction φ
 
   /-
   A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
