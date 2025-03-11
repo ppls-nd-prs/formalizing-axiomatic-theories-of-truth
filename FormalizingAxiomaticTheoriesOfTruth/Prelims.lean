@@ -51,6 +51,39 @@ namespace BoundedFormula
 end BoundedFormula
 
 namespace Languages
+  namespace L_T
+
+    inductive Func : ℕ → Type _ where
+      | zero : Func 0
+      | succ : Func 1
+      | add : Func 2
+      | mult : Func 2
+
+    inductive Rel : ℕ → Type _ where
+      | t : Rel 1
+
+    def signature : Language :=
+      ⟨Func, Rel⟩
+
+    def funToStr {n}: Func n → String
+      | .zero => "0"
+      | .succ => "S"
+      | .add => "+"
+      | .mult => "×"
+    instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
+
+    def relToStr {n} : signature.Relations n → String
+      | .t => "T"
+    instance : ToString (signature.Relations n) := ⟨relToStr⟩
+
+    /-
+    Some useful notation
+    -/
+    prefix:60 "T" => Formula.rel Rel.t
+    notation "ℒₜ" => signature
+  end L_T
+
+
   namespace LPA -- change to L
     inductive Func : ℕ → Type _ where
       | zero : Func 0
@@ -93,27 +126,6 @@ namespace Languages
       | .zero => zero
       | .succ n => S(numeral n)
   end LPA
-
-  namespace L_T
-
-    inductive Func : ℕ → Type _ where
-      | zero : Func 0
-      | succ : Func 1
-      | add : Func 2
-      | mult : Func 2
-
-    inductive Rel : ℕ → Type _ where
-      | t : Rel 1
-
-    def signature : Language :=
-      ⟨Func, Rel⟩
-
-    /-
-    Some useful notation
-    -/
-    prefix:60 "T" => Formula.rel Rel.t
-    notation "ℒₜ" => signature
-  end L_T
 
   /-
   Some useful notation
@@ -163,7 +175,7 @@ namespace Calculus
   open BoundedFormula
   notation f "↑'" n "#" m => liftAt n m f
   notation f "↑" n => f ↑' n # 0
-  notation A "/[" t "]" => subst A ![t]
+  notation A "/[" t "]" => subst A (fun _ => t)
   inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
   | axm Γ A : A ∈ Γ → prf Γ A
   | impI Γ A B : prf (insert A Γ) B → prf Γ (A ⟹ B)
@@ -186,51 +198,45 @@ namespace PA
   -/
   scoped[FirstOrder] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
-  def v_eq_v_lpa : BoundedFormula ℒₚₐ (ℕ) 1 :=
+  def v_eq_v_lpa : BoundedFormula ℒₚₐ ℕ 1 :=
     ((#0) =' (&0)) ⟹ ((#0) =' (&0))
   #check ∀' v_eq_v_lpa
+  #eval ∀' v_eq_v_lpa
   def zero_term : Term ℒₚₐ ℕ :=
     LPA.null
-  #eval Term.toStr zero_term
-  #eval subst (∀' v_eq_v_lpa) (fun _ => zero_term)
-  def v_eq_v_lt : Formula ℒₜ (Fin 1) :=
-    LHom.onFormula ϕ v_eq_v_lpa
-  def var {n m : ℕ} {β : Fin n} {α : Fin m} : Term ℒₚₐ (β ⊕ γ) :=
-    Term.var 0
-  #eval var
-  def var_eq_var : BoundedFormula ℒₚₐ (Fin 1) 0 :=
-    var =' var
-  def var_eq_var
-  def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
-    S((Term.var ∘ Sum.inl) 0) =' S(&0)
+  #eval (∀' v_eq_v_lpa)/[zero_term]
+  def v_eq_v_lt : Formula ℒₜ ℕ :=
+    LHom.onFormula ϕ (∀' v_eq_v_lpa)
+  #check v_eq_v_lt
+  #eval v_eq_v_lt
+  def eq_var : BoundedFormula ℒₚₐ ℕ 1 :=
+    S(#0) =' S(&0)
   #eval eq_var
-  def tof_eq_var : Formula ℒₚₐ (Fin 1 ⊕ Fin 1) :=
+  def tof_eq_var : Formula ℒₚₐ (ℕ ⊕ Fin 1) :=
     eq_var.toFormula
-  #print tof_eq_var
-
-  #check ℕ ⊕ (Fin 1)
+  #eval tof_eq_var -- output: S(#(inl 0)) = S(#(inr 0))
 
 
-  def test1 : BoundedFormula ℒₚₐ ℕ 0 :=
-    (#0) =' (#0)
-  #eval (∀' (test1 ↑ 1) ↑ 1)
+  def test1 : BoundedFormula ℒₚₐ ℕ 1 :=
+    (&0) =' (#0)
+  #check ∀' ∀' (∀' (test1 ↑ 1) ↑ 1)
+  #eval ∀' ∀' (∀' (test1 ↑ 1) ↑ 1)
 
-  def thing : BoundedFormula ℒₚₐ (Fin 1) 0 := eq_var/[S(Term.var 0)]
+  def thing : BoundedFormula ℒₚₐ ℕ 0 := (∀' eq_var)/[S(Term.var 0)]
   #check thing
-  #check ∀' thing
+  #eval thing
 
-  def var_eq_var : BoundedFormula ℒₚₐ (Fin 2) 0 :=
-    ∀' ((&0) =' (&1))
+  def var_eq_var_pleh : BoundedFormula ℒₚₐ ℕ 0 :=
+    ∀' ((#0) =' (&0))
 
-  #check subst var_eq_var ![LPA.null, Term.var 1]
+  #check var_eq_var_pleh/[zero_term]
+  #eval var_eq_var_pleh/[zero_term] --output: var_eq_var_pleh/[zero_term]
 
-  def var_eq_var2 : BoundedFormula ℒₚₐ (Fin 2) 0 :=
+  def var_eq_var2 : BoundedFormula ℒₚₐ ℕ 0 :=
     ∀' ∀' ((&0) =' (&1))
 
-  #eval var_eq_var
-
-  def replace_bound_variable (φ : BoundedFormula ℒₚₐ (Fin 1) 1) (t : Term ℒₚₐ Empty) : Sentence ℒₚₐ :=
-    subst φ.toFormula (fun _ : Fin 1 ⊕ Fin 1 => t)
+  def replace_bound_variable (φ : BoundedFormula ℒₚₐ ℕ 1) (t : Term ℒₚₐ Empty) : Sentence ℒₚₐ :=
+    subst φ.toFormula (fun _ : ℕ ⊕ Fin 1 => t)
   notation A "//[" t "]" => replace_bound_variable A t
 
   def replace_bv_with_S_bv (φ : BoundedFormula ℒₚₐ (Fin 1 ⊕ Empty) 0) : BoundedFormula ℒₚₐ Empty 1 :=
@@ -239,7 +245,8 @@ namespace PA
   def replace_bv_with_bv_term (φ : BoundedFormula ℒₚₐ Empty 1) (t : Term ℒₚₐ (Fin 1)) : BoundedFormula ℒₚₐ Empty 1 :=
     subst (φ.toFormula ↑ 1) (fun _ : Fin 1 ⊕ Empty => t)
 
-  def replace_bound
+  def induction (φ : BoundedFormula ℒₚₐ ℕ 1) : Sentence ℒₚₐ :=
+    (∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ φ/[S(&0)])))) ⟹ ∀'(φ))
 
   inductive axioms : Theory ℒₚₐ where
   | first : axioms (∀' ∼(LPA.null =' S(&0)))
@@ -248,7 +255,7 @@ namespace PA
   | fourth : axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
   | fifth : axioms (∀' ((&0 times LPA.null) =' LPA.null))
   | sixth : axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-  | induction {n : ℕ} (φ : BoundedFormula ℒₚₐ (Fin 1) 1) : axioms (∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ φ/[S(&0)])))) ⟹ ∀'(φ))
+  | induction {n : ℕ} (φ : BoundedFormula ℒₚₐ Empty 1) : axioms (∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ φ/[S(&0)])))) ⟹ ∀'(φ))
 
   /-
   A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
