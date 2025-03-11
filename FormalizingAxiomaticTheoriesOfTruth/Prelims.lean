@@ -217,9 +217,12 @@ namespace PA
 
   notation "𝐏𝐀" => peano_arithmetic
 
-  /-
-  A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
-  ℒₜ Axioms -/
+  /-- Proof that 𝐏𝐀 is also an ℒₜ Theory -/
+  example : Theory ℒₜ :=
+    LHom.onTheory ϕ 𝐏𝐀
+
+  /-- A coercion from 𝐏𝐀 Axioms to 𝐏𝐀𝐓 Axioms as all 𝐏𝐀 Axioms are also
+  𝐏𝐀𝐓 Axioms -/
   def to_lt_T : Theory ℒₚₐ → Theory ℒₜ := by
     repeat rewrite[Theory]
     repeat rewrite[Set]
