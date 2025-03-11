@@ -218,65 +218,6 @@ namespace PA
   notation "𝐏𝐀" => peano_arithmetic
 
   /-
-  Running into trouble with the indexing typing in combination with substitution.
-  -/
-  scoped[FirstOrder] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
-
-  def v_eq_v_lpa : BoundedFormula ℒₚₐ ℕ 1 :=
-    ((#0) =' (&0)) ⟹ ((#0) =' (&0))
-  #check ∀' v_eq_v_lpa
-  #eval ∀' v_eq_v_lpa
-  def zero_term : Term ℒₚₐ ℕ :=
-    LPA.null
-  #eval (∀' v_eq_v_lpa)/[zero_term]
-  def v_eq_v_lt : Formula ℒₜ ℕ :=
-    LHom.onFormula ϕ (∀' v_eq_v_lpa)
-  #check v_eq_v_lt
-  #eval v_eq_v_lt
-  def eq_var : BoundedFormula ℒₚₐ ℕ 1 :=
-    S(#0) =' S(&0)
-  #eval eq_var
-  def tof_eq_var : Formula ℒₚₐ (ℕ ⊕ Fin 1) :=
-    eq_var.toFormula
-  #eval tof_eq_var -- output: S(#(inl 0)) = S(#(inr 0))
-
-
-  def test1 : BoundedFormula ℒₚₐ ℕ 1 :=
-    (&0) =' (#0)
-  #check ∀' ∀' (∀' (test1 ↑ 1) ↑ 1)
-  #eval ∀' ∀' (∀' (test1 ↑ 1) ↑ 1)
-
-  def thing : BoundedFormula ℒₚₐ ℕ 0 := (∀' eq_var)/[S(Term.var 0)]
-  #check thing
-  #eval thing
-
-  def var_eq_var_pleh : BoundedFormula ℒₚₐ ℕ 0 :=
-    ∀' ((#0) =' (&0))
-
-  #check var_eq_var_pleh/[zero_term]
-  #eval var_eq_var_pleh/[zero_term] --output: var_eq_var_pleh/[zero_term]
-
-  def var_eq_var2 : BoundedFormula ℒₚₐ ℕ 0 :=
-    ∀' ∀' ((&0) =' (&1))
-
-  def var_eq_var3 : BoundedFormula ℒₚₐ Empty 1 :=
-    (&0) =' (&0)
-
-  #eval var_eq_var3.toFormula
-  #check var_eq_var3.toFormula
-  #eval (var_eq_var3.toFormula/[succ_var])
-  #check (var_eq_var3.toFormula/[succ_var])
-  #check relabel g (var_eq_var3.toFormula/[succ_var])
-  #eval relabel g (var_eq_var3.toFormula/[succ_var])
-  #eval (var_eq_var3.toFormula/[succ_var]) ↑ 1
-  #check (var_eq_var3.toFormula/[succ_var]) ↑ 1
-
-  def φ : BoundedFormula ℒₚₐ Empty 1 :=
-    (&0) =' (&0)
-  #eval (∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ (relabel g (φ.toFormula/[succ_var])))))) ⟹ ∀'(φ)) --output: (((0 = 0 → (∀(&0 = &0 → S(&0) = S(&0)) → ⊥)) → ⊥) → ∀&0 = &0)
-  #eval induction φ
-
-  /-
   A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
   ℒₜ Axioms -/
   def to_lt_T : Theory ℒₚₐ → Theory ℒₜ := by
