@@ -30,6 +30,14 @@ namespace Languages
     notation "zero" => Term.func Func.zero ![]
     notation n "add" m => Term.func Func.add ![n,m]
     notation n "times" m => Term.func Func.mult ![n,m]
+    notation n "and" m => Term.func Func.conj ![n,m]
+    notation n "or" m => Term.func Func.disj ![n,m]
+    notation "num(" n ")" => Term.func Func.num ![n]
+    notation "not" n => Term.func Func.neg ![n]
+    notation n "then" m => Term.func Func.cond ![n,m]
+    notation "forall" n => Term.func Func.forall ![n]
+    notation "exists" n => Term.func Func.exists ![n]
+    notation n "denotes" m => Term.func Func.denote ![m,n]
     notation "ℒₚₐ" => signature
 
     /-
@@ -138,9 +146,20 @@ end Calculus
 namespace PA
   open Languages
   open LPA
+  open L_T
   /-
   Running into trouble with the indexing typing in combination with substitution.
   -/
+
+  def add_assoc : BoundedFormula ℒₚₐ (Fin 1) 0 :=
+    ∀' ∀' ∀' (((&0 add &1) add &2) =' (&0 add (&1 add &2)))
+
+  def commutative : BoundedFormula ℒₚₐ (Fin 1) 0 :=
+    ∀' ∀' ((&0 and &1) =' (&1 and &0))
+
+  def eq_forall : BoundedFormula ℒₚₐ (Fin 1) 1 :=
+    ∀'(&0 =' forall &0)
+
   def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
     S(&0) =' S(&0)
   #check eq_var.toFormula
