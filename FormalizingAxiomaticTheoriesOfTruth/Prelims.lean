@@ -18,7 +18,7 @@ namespace Languages
       | cond : Func 2
       | forall : Func 1
       | exists : Func 1
-      | denote : Func 2
+      | denote : Func 1
 
     def signature : Language :=
       ⟨Func, fun _ => Empty⟩
@@ -37,7 +37,7 @@ namespace Languages
     notation n "then" m => Term.func Func.cond ![n,m]
     notation "forall" n => Term.func Func.forall ![n]
     notation "exists" n => Term.func Func.exists ![n]
-    notation n "denotes" m => Term.func Func.denote ![m,n]
+    notation n "°" => Term.func Func.denote ![n]
     notation "ℒₚₐ" => signature
 
     /-
@@ -64,7 +64,7 @@ namespace Languages
       | cond : Func 2
       | forall : Func 1
       | exists : Func 1
-      | denote : Func 2
+      | denote : Func 1
 
     inductive Rel : ℕ → Type _ where
       | t : Rel 1
@@ -80,6 +80,10 @@ namespace Languages
     Some useful notation
     -/
     prefix:60 "T" => Formula.rel Rel.t
+    notation "Term(" t ")" => Formula.rel Rel.Term ![t]
+    notation "Form(" t ")" => Formula.rel Rel.Form ![t]
+    notation "sentence(" t ")" => Formula.rel Rel.Sentence ![t]
+    notation "Proof(" t "," s ")" => Formula.rel Rel.Proof ![t,s]
     notation "ℒₜ" => signature
   end L_T
 
@@ -147,18 +151,24 @@ namespace PA
   open Languages
   open LPA
   open L_T
+
   /-
-  Running into trouble with the indexing typing in combination with substitution.
+  Playing around
   -/
 
-  def add_assoc : BoundedFormula ℒₚₐ (Fin 1) 0 :=
-    ∀' ∀' ∀' (((&0 add &1) add &2) =' (&0 add (&1 add &2)))
+  def and_assoc : BoundedFormula ℒₚₐ (Fin 1) 0 :=
+    ∀' ∀' ∀' (((&0 and &1) and &2) =' (&0 and (&1 and &2)))
 
   def commutative : BoundedFormula ℒₚₐ (Fin 1) 0 :=
     ∀' ∀' ((&0 and &1) =' (&1 and &0))
 
   def eq_forall : BoundedFormula ℒₚₐ (Fin 1) 1 :=
     ∀'(&0 =' forall &0)
+
+
+  /-
+  Running into trouble with the indexing typing in combination with substitution.
+  -/
 
   def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
     S(&0) =' S(&0)
