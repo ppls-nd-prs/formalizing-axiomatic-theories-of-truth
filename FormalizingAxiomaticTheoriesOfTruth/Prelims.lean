@@ -155,7 +155,7 @@ end Calculus
 
 namespace PA
   open Languages
-  open LPA
+  open L
   open L_T
 
   /-
