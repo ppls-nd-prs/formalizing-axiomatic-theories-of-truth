@@ -20,8 +20,12 @@ namespace Languages
       | exists : Func 1
       | denote : Func 1
 
+    inductive Rel : ℕ → Type _ where
+      | variable : Rel 1
+      | constant : Rel 1
+
     def signature : Language :=
-      ⟨Func, fun _ => Empty⟩
+      ⟨Func, Rel⟩
 
     /-
     Useful notation
