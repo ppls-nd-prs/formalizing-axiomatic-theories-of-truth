@@ -1,4 +1,4 @@
-# Hello To Do
+# To Do
 - [x] FOL-syntax
   - [X] signature: `FirstOrder.Language` from `Mathlib.ModelTheory.Basic`
   - [X] terms: `FirstOrder.Language.Term` from `Mathlib.ModelTheory.Syntax`
@@ -9,7 +9,7 @@
 - [ ] The languages $\mathcal{L}$ and $\mathcal{L}_T$
   - [ ] Specify the signatures of $\mathcal{L}$:
     - Syntax:   
-      - [ ] Predicates: $Term,Formula,Sentence$
+      - [ ] Predicates: $Variable, Constant, Closed_Term, Term, Formula, Sentence$
       - [ ] Function symbols: $num,denote,neg,conj,disj,cond,forall,exists$
     - PA
       - [x] Predicates: $\emptyset$
