@@ -10,7 +10,7 @@
   - [ ] Specify the signatures of $\mathcal{L}$:
     - Syntax:   
       - [ ] Predicates: $Variable, Constant, Closed\_Term, Term, Formula, Sentence$
-      - [ ] Function symbols: $num,denote,neg,conj,disj,cond,forall,exists$
+      - [ ] Function symbols: $num^1, denote^1, neg^1, conj^2, disj^2, cond^2, forall^1, exists^1, subs^3$
     - PA
       - [x] Predicates: $\emptyset$
       - [ ] Terms: $add,mult,succ,null$ 
