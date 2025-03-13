@@ -7,14 +7,20 @@
   - [X] formulas (de bruijn): `FirstOrder.Language.Formula` from `Mathlib.ModelTheory.Syntax`
   - [X] sentences: `FirstOrder.Language.Sentence` from `Mathlib.ModelTheory.Syntax`
 - [ ] The languages $\mathcal{L}$ and $\mathcal{L}_T$
-  - [ ] Specify the signatures of $\mathcal{L}$:
-    - Syntax:   
-      - [ ] Predicates: $Variable^1, Constant^1, Closed\\_Term^1, Term^1, Formula^1, Sentence^1$
+  - [ ] Specify the signature of $\mathcal{L}$:
+    - Syntax theory:   
+      - [ ] Predicates: $Variable^1, Constant^1, Closed\\_Term^1, Term^1, Formula\\_T^1, Sentence\\_T^1, Formula\\_LT^1, Sentence\\_LT^1$
       - [ ] Function symbols: $num^1, denote^1, neg^1, conj^2, disj^2, cond^2, forall^1, exists^1, subs^3$
     - PA
       - [x] Predicates: $\emptyset$
       - [ ] Terms: $add,mult,succ,null$ 
-  - [ ] Specify the signatures of $\mathcal{L}_T$
+  - [ ] Specify the signature of $\mathcal{L}_T$
+      - Syntax theory:   
+      - [ ] Predicates: $Variable^1, Constant^1, Closed\\_Term^1, Term^1, Formula\\_T^1, Sentence\\_T^1, Formula\\_LT^1, Sentence\\_LT^1$
+      - [ ] Function symbols: $num^1, denote^1, neg^1, conj^2, disj^2, cond^2, forall^1, exists^1, subs^3$
+    - PA
+      - [x] Predicates: $Tr$
+      - [ ] Terms: $add,mult,succ,null$ 
   - [ ] Implement the homomorphism from $\mathcal{L}_{PA}\to \mathcal{L}_T$
 - [ ] Get encoding functions
 - [ ] Proof theory
