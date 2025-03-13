@@ -5,7 +5,7 @@ open FirstOrder
 open Language
 
 namespace Languages
-  namespace LPA
+  namespace L
     inductive Func : ℕ → Type _ where
       | zero : Func 0
       | succ : Func 1
@@ -47,7 +47,7 @@ namespace Languages
     notation "forall" n => Term.func Func.forall ![n]
     notation "exists" n => Term.func Func.exists ![n]
     notation n "°" => Term.func Func.denote ![n]
-    notation "ℒₚₐ" => signature
+    notation "ℒ" => signature
 
     /-
     Some useful terms
@@ -57,7 +57,7 @@ namespace Languages
     def numeral : ℕ → Term signature α
       | .zero => zero
       | .succ n => S(numeral n)
-  end LPA
+  end L
 
   namespace L_T
 
@@ -108,7 +108,7 @@ namespace Languages
   A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
   also lt formulas
   -/
-  def to_lt_func ⦃arity : ℕ⦄ : (LPA.Func arity) → (L_T.Func arity)
+  def to_lt_func ⦃arity : ℕ⦄ : (L.Func arity) → (L_T.Func arity)
     | .zero => .zero
     | .succ => .succ
     | .add => .add
@@ -122,7 +122,7 @@ namespace Languages
     | .exists => .exists
     | .denote => .denote
 
-  def to_lt_rel ⦃n : ℕ⦄ : (LPA.signature.Relations n) → (L_T.signature.Relations n)
+  def to_lt_rel ⦃n : ℕ⦄ : (L.signature.Relations n) → (L_T.signature.Relations n)
       | .var => .var
       | .const => .const
       | .t => .t
@@ -131,7 +131,7 @@ namespace Languages
       | .Sentence => .Sentence
       | .Proof => .Proof
 
-  def ϕ : LHom ℒₚₐ ℒₜ where
+  def ϕ : LHom ℒ ℒₜ where
       onFunction := to_lt_func
       onRelation := to_lt_rel
 end Languages
@@ -162,13 +162,13 @@ namespace PA
   Playing around
   -/
 
-  def and_assoc : BoundedFormula ℒₚₐ (Fin 1) 0 :=
+  def and_assoc : BoundedFormula ℒ (Fin 1) 0 :=
     ∀' ∀' ∀' (((&0 and &1) and &2) =' (&0 and (&1 and &2)))
 
-  def commutative : BoundedFormula ℒₚₐ (Fin 1) 0 :=
+  def commutative : BoundedFormula ℒ (Fin 1) 0 :=
     ∀' ∀' ((&0 and &1) =' (&1 and &0))
 
-  def eq_forall : BoundedFormula ℒₚₐ (Fin 1) 1 :=
+  def eq_forall : BoundedFormula ℒ (Fin 1) 1 :=
     ∀'(&0 =' forall &0)
 
 
@@ -176,32 +176,32 @@ namespace PA
   Running into trouble with the indexing typing in combination with substitution.
   -/
 
-  def eq_var : BoundedFormula ℒₚₐ (Fin 1) 1 :=
+  def eq_var : BoundedFormula ℒ (Fin 1) 1 :=
     S(&0) =' S(&0)
   #check eq_var.toFormula
-  #check eq_var/[LPA.null]
-  def replace : Sentence ℒₚₐ :=
-    ((S(&0) =' S(&0))/[LPA.null])
-  example : (eq_var/[LPA.null]) = (S(LPA.null) =' S(LPA.null)) :=
+  #check eq_var/[L.null]
+  def replace : Sentence ℒ :=
+    ((S(&0) =' S(&0))/[L.null])
+  example : (eq_var/[L.null]) = (S(L.null) =' S(L.null)) :=
   #check ∀' eq_var
-  inductive axioms : Theory ℒₚₐ where
-  | first : axioms (∀' ∼(LPA.null =' S(&0)))
+  inductive axioms : Theory ℒ where
+  | first : axioms (∀' ∼(L.null =' S(&0)))
   | second :axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-  | third : axioms (∀' ((&0 add LPA.null) =' &0))
+  | third : axioms (∀' ((&0 add L.null) =' &0))
   | fourth : axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-  | fifth : axioms (∀' ((&0 times LPA.null) =' LPA.null))
+  | fifth : axioms (∀' ((&0 times L.null) =' L.null))
   | sixth : axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-  | induction φ : (axioms (∼ (((φ/[LPA.null]) ⟹ ∼(∀'(φ ⟹ φ/[succ_var_term]))) ⟹ ∀' φ)))
+  | induction φ : (axioms (∼ (((φ/[L.null]) ⟹ ∼(∀'(φ ⟹ φ/[succ_var_term]))) ⟹ ∀' φ)))
   /-
   A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
   ℒₜ Axioms -/
   def
-  def to_lt_T : Theory ℒₚₐ → Theory ℒₜ := by
+  def to_lt_T : Theory ℒ → Theory ℒₜ := by
     repeat rewrite[Theory]
     repeat rewrite[Set]
     intro set
     intro φ
     sorry
-  inductive axioms : Theory ℒₚₐ where
+  inductive axioms : Theory ℒ where
   | first :
 end PA
