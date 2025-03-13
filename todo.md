@@ -1,6 +1,5 @@
 # Hello To Do
-- [ ] FOL-syntax
-  - [ ] flypitch
+- [x] FOL-syntax
   - [X] signature: `FirstOrder.Language` from `Mathlib.ModelTheory.Basic`
   - [X] terms: `FirstOrder.Language.Term` from `Mathlib.ModelTheory.Syntax`
   - [X] shift: `FirstOrder.Language.Term.liftAt` from `Mathlib.ModelTheory.Syntax`
