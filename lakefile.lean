@@ -9,7 +9,7 @@ package «formalizing-axiomatic-theories-of-truth» where
   -- add any additional package configuration options here
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "d1fa45bcb0bb5ae74fc38931a796fba555e94e41"
+  "https://github.com/leanprover-community/mathlib4.git" @ "master"
 
 @[default_target]
 lean_lib «FormalizingAxiomaticTheoriesOfTruth» where
@@ -17,6 +17,5 @@ lean_lib «FormalizingAxiomaticTheoriesOfTruth» where
 
 require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 
-meta if get_config? env = some "dev" then
 require «doc-gen4» from git
   "https://github.com/leanprover/doc-gen4" @ "main"
