@@ -4,6 +4,29 @@ import Mathlib.ModelTheory.Syntax
 open FirstOrder
 open Language
 
+namespace Syntax
+  variable (L : Language.{u, v}) {L' : Language}
+  /-- A term on `α` is either a variable indexed by an element of `α`
+    or a function symbol applied to simpler terms. -/
+  inductive Term (n : ℕ): Type max u u'
+    | var (m : Fin n): Term n
+    | func : ∀ {l : ℕ} (_f : L.Functions l) (_ts : Fin l → Term (n)), Term n
+
+  variable (L : Language)
+  /-- `BoundedFormula α n` is the type of formulas with free variables indexed by `α` and up to `n`
+    additional free variables. -/
+  inductive Formula : ℕ → Type _ where
+    | falsum : Formula 0
+    | equal {n}: Syntax.Term L n → Syntax.Term L n →  Formula n
+    | rel {n} (R : L.Relations l) (ts : Fin l → Syntax.Term L n) : Formula n
+    | imp {n} (f₁ f₂ : Formula n) : Formula n
+    | all {n} (f : Formula (n+1)) : Formula n
+
+  abbrev Sentence :=
+    Syntax.Formula L 0
+
+end Syntax
+
 namespace String
   def vecToStr : ∀ {n}, (Fin n → String) → String
   | 0,     _ => ""
@@ -79,7 +102,7 @@ namespace Languages
     /-
     Some useful notation
     -/
-    prefix:60 "T" => Formula.rel Rel.t
+    notation "T(" t ")" => Formula.rel Rel.t ![t]
     notation "ℒₜ" => signature
   end L_T
 
@@ -94,10 +117,10 @@ namespace Languages
       ⟨Func, fun _ => Empty⟩
 
     def funToStr {n}: Func n → String
-      | .zero => "0"
-      | .succ => "S"
-      | .add => "+"
-      | .mult => "×"
+      | .zero => L_T.funToStr L_T.Func.zero
+      | .succ => L_T.funToStr L_T.Func.succ
+      | .add => L_T.funToStr L_T.Func.add
+      | .mult => L_T.funToStr L_T.Func.mult
     instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
 
     instance : ToString (Empty) := -- necessary for string function relations
@@ -124,13 +147,14 @@ namespace Languages
     def numeral : ℕ → Term signature α
       | .zero => zero
       | .succ n => S(numeral n)
-  end LPA
 
-  /-
-  Some useful notation
-  -/
-  variable (l : Language)
-  abbrev Fml : Type _ := Formula l ℕ -- perhaps
+    def var_eq_var : Syntax.Formula ℒₚₐ 2 :=
+      Syntax.Formula.equal (Syntax.Term.var 1) (Syntax.Term.var 2)
+
+    def var_eq_var_sent : Syntax.Sentence ℒₚₐ :=
+      Syntax.Formula.all (Syntax.Formula.all var_eq_var)
+
+  end LPA
 
   /-
   A homomorphism between PA.lpa and L_T.lt formulas is constructed, as all lpa formulas are
@@ -160,49 +184,36 @@ namespace Languages
     | .imp f₁ f₂ => .imp (to_lt_f f₁) (to_lt_f f₂)
     | .all f => .all (to_lt_f f)
 
-  example: ∀φ:Fml ℒₚₐ, ∃ψ:Fml ℒₜ, ψ = to_lt_f φ :=
-    fun a : Fml ℒₚₐ => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
+  example: ∀φ:Formula ℒₚₐ ℕ, ∃ψ:Formula ℒₜ ℕ, ψ = to_lt_f φ :=
+    fun a : Formula ℒₚₐ ℕ => Exists.intro (to_lt_f a) (Eq.refl (to_lt_f a))
 
   def ϕ : LHom ℒₚₐ ℒₜ where
     onFunction := to_lt_func
     onRelation := to_lt_rel
 
-end Languages
-
-namespace Calculus
-  open Languages
+  /- Useful notation for formula operations -/
   open BoundedFormula
   notation f "↑'" n "#" m => liftAt n m f
   notation f "↑" n => f ↑' n # 0
-  notation A "/[" t "]" => subst A (fun _ => t)
-  inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
-  | axm Γ A : A ∈ Γ → prf Γ A
-  | impI Γ A B : prf (insert A Γ) B → prf Γ (A ⟹ B)
-  | impE Γ A B : prf Γ (A ⟹ B) → prf Γ A → prf Γ B
-  | falsumE Γ A : prf (insert ∼A Γ) ⊥ → prf Γ A
-  | allI Γ A : prf ((λf => f ↑ 1) '' Γ) A → prf Γ (∀' A)
-  | allE₂ Γ A t : prf Γ (∀' A) → prf Γ (A/[t])
-  | ref Γ t : prf Γ (t =' t')
-  | subst₂ Γ s t f : prf Γ (s =' t) → prf Γ (f/[s]) → prf Γ (f/[t])
-end Calculus
+  notation A "/[" t "]" => subst A (fun k => t)
+
+  variable {L : Language}
+  def replace_bound_variable (φ : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
+    subst φ.toFormula (fun _ : Empty ⊕ Fin 1 => t)
+  notation A "//[" t "]" => replace_bound_variable A t
+  def g : (Empty ⊕ Fin 1) → Empty ⊕ Fin 1 :=
+    fun t => t
+
+end Languages
 
 namespace PA
   open Languages
   open LPA
   open BoundedFormula
 
-  /-- Auxillary functions and definitions -/
-  def succ_var : Term ℒₚₐ (Empty ⊕ Fin 1) :=
-    S(&0)
-  def replace_bound_variable (φ : BoundedFormula ℒₚₐ Empty 1) (t : Term ℒₚₐ Empty) : Sentence ℒₚₐ :=
-    subst φ.toFormula (fun _ : Empty ⊕ Fin 1 => t)
-  notation A "//[" t "]" => replace_bound_variable A t
-  def g : (Empty ⊕ Fin 1) → Empty ⊕ Fin 1 :=
-    fun t => t
-
-  /-- The induction function -/
+  /-- The induction function for ℒₚₐ -/
   def induction (φ : BoundedFormula ℒₚₐ Empty 1) : Sentence ℒₚₐ :=
-    ∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ (relabel g (φ.toFormula/[succ_var])))))) ⟹ ∀'(φ)
+    ∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ (relabel g (φ.toFormula/[S(&0)])))))) ⟹ ∀'(φ)
 
   /-- Peano arithemtic -/
   inductive peano_arithmetic : Theory ℒₚₐ where
@@ -218,10 +229,67 @@ namespace PA
 end PA
 
 namespace PAT
+  open Languages
+  open LPA
+  open BoundedFormula
 
+  /-- The induction function for ℒₜ-/
+  def induction (φ : BoundedFormula ℒₜ Empty 1) : Sentence ℒₜ :=
+    ∼ (φ//[LHom.onTerm ϕ LPA.null] ⟹ (∼(∀'(φ ⟹ (relabel g (φ.toFormula/[LHom.onTerm ϕ S(&0)])))))) ⟹ ∀'(φ)
+
+  /-- Peano arithemtic -/
+  inductive peano_arithmetic_with_t : Theory ℒₜ where
+  | first : peano_arithmetic_with_t (LHom.onSentence ϕ (∀' ∼(LPA.null =' S(&0))))
+  | second :peano_arithmetic_with_t (LHom.onSentence ϕ (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0))))
+  | third : peano_arithmetic_with_t (LHom.onSentence ϕ (∀' ((&0 add LPA.null) =' &0)))
+  | fourth : peano_arithmetic_with_t (LHom.onSentence ϕ (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0))))
+  | fifth : peano_arithmetic_with_t (LHom.onSentence ϕ (∀' ((&0 times LPA.null) =' LPA.null)))
+  | sixth : peano_arithmetic_with_t (LHom.onSentence ϕ (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1)))
+  | induction (φ) : peano_arithmetic_with_t (induction φ)
+
+  notation "𝐏𝐀𝐓" => peano_arithmetic_with_t
 end PAT
 
-  /-- Proof that 𝐏𝐀 is also an ℒₜ Theory -/
+namespace Calculus
+  open Languages
+  inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
+  | axm {A} : A ∈ Γ → prf Γ A
+  | impI {Γ A B} : prf (insert A Γ) B → prf Γ (A ⟹ B)
+  | impE {Γ A B} : prf Γ (A ⟹ B) → prf Γ A → prf Γ B
+  | falsumE {Γ A} : prf (insert ∼A Γ) ⊥ → prf Γ A
+  | allI {Γ A} : prf ((λf => f ↑ 1) '' Γ) A → prf Γ (∀' A)
+  | allE₂ {Γ A} (t) : prf Γ (∀' A) → prf Γ (A//[t])
+  | ref {Γ t} : prf Γ (t =' t')
+  | subst₂ {Γ} {s : Term L (α ⊕ Fin n)} {t : Term L (α ⊕ Fin n)} {f : BoundedFormula L α m} : prf Γ (s =' t) → prf Γ (BoundedFormula.subst f (fun _ : α => t)) → prf Γ (BoundedFormula.subst f (fun _ : α => s))
+
+  /-- Proof that ∼ (LPA.null =' SSS(3)) is provable from 𝐏𝐀 -/
+  def to_prove : Sentence ℒₚₐ :=
+    ∼(Languages.LPA.null =' S(S(S(Languages.LPA.null))))
+  example : Calculus.prf 𝐏𝐀 to_prove := by
+    let f1 : BoundedFormula ℒₚₐ Empty 0 := (∀' ∼(Languages.LPA.null =' S(&0)))
+    have step1 : f1 ∈ 𝐏𝐀 := by
+      apply PA.peano_arithmetic.first
+    have step2 : prf 𝐏𝐀 f1 := by
+      apply prf.axm step1
+    let t1 : Term ℒₚₐ Empty :=
+      S(S(LPA.null))
+    let f2 : BoundedFormula ℒₚₐ Empty 1 :=
+      (∼(LPA.null =' func LPA.Func.succ ![&0]))
+    let f3 : BoundedFormula ℒₚₐ Empty 0 :=
+      ∼ (LPA.null =' func LPA.Func.succ ![func LPA.Func.succ ![func LPA.Func.succ ![LPA.null] ] ])
+    have step4 :  f2//[t1] = f3 := by
+      simp[f2,t1,f3]
+      simp[replace_bound_variable,BoundedFormula.subst,BoundedFormula.not]
+      rfl
+      sorry
+    have step3 : prf 𝐏𝐀 to_prove := by
+      rw[to_prove]
+      apply prf.allE₂ t1 step2
+
+    sorry
+end Calculus
+
+  /-- Proof that there is a homomorphism between 𝐏𝐀 and some Theory of ℒₜ -/
   example : Theory ℒₜ := LHom.onTheory Languages.ϕ 𝐏𝐀
 
   /-- A coercion from 𝐏𝐀 Axioms to 𝐏𝐀𝐓 Axioms as all 𝐏𝐀 Axioms are also
