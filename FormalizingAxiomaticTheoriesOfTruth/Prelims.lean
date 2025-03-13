@@ -172,36 +172,36 @@ namespace PA
     ∀'(&0 =' forall &0)
 
 
-  /-
-  Running into trouble with the indexing typing in combination with substitution.
-  -/
+  -- /-
+  -- Running into trouble with the indexing typing in combination with substitution.
+  -- -/
 
-  def eq_var : BoundedFormula ℒ (Fin 1) 1 :=
-    S(&0) =' S(&0)
-  #check eq_var.toFormula
-  #check eq_var/[L.null]
-  def replace : Sentence ℒ :=
-    ((S(&0) =' S(&0))/[L.null])
-  example : (eq_var/[L.null]) = (S(L.null) =' S(L.null)) :=
-  #check ∀' eq_var
-  inductive axioms : Theory ℒ where
-  | first : axioms (∀' ∼(L.null =' S(&0)))
-  | second :axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-  | third : axioms (∀' ((&0 add L.null) =' &0))
-  | fourth : axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-  | fifth : axioms (∀' ((&0 times L.null) =' L.null))
-  | sixth : axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-  | induction φ : (axioms (∼ (((φ/[L.null]) ⟹ ∼(∀'(φ ⟹ φ/[succ_var_term]))) ⟹ ∀' φ)))
-  /-
-  A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
-  ℒₜ Axioms -/
-  def
-  def to_lt_T : Theory ℒ → Theory ℒₜ := by
-    repeat rewrite[Theory]
-    repeat rewrite[Set]
-    intro set
-    intro φ
-    sorry
-  inductive axioms : Theory ℒ where
-  | first :
+  -- def eq_var : BoundedFormula ℒ (Fin 1) 1 :=
+  --   S(&0) =' S(&0)
+  -- #check eq_var.toFormula
+  -- #check eq_var/[L.null]
+  -- def replace : Sentence ℒ :=
+  --   ((S(&0) =' S(&0))/[L.null])
+  -- example : (eq_var/[L.null]) = (S(L.null) =' S(L.null)) :=
+  -- #check ∀' eq_var
+  -- inductive axioms : Theory ℒ where
+  -- | first : axioms (∀' ∼(L.null =' S(&0)))
+  -- | second :axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
+  -- | third : axioms (∀' ((&0 add L.null) =' &0))
+  -- | fourth : axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
+  -- | fifth : axioms (∀' ((&0 times L.null) =' L.null))
+  -- | sixth : axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
+  -- | induction φ : (axioms (∼ (((φ/[L.null]) ⟹ ∼(∀'(φ ⟹ φ/[succ_var_term]))) ⟹ ∀' φ)))
+  -- /-
+  -- A coercion from ℒₚₐ Axioms to ℒₜ Axioms as all ℒₚₐ Axioms are also
+  -- ℒₜ Axioms -/
+  -- def
+  -- def to_lt_T : Theory ℒ → Theory ℒₜ := by
+  --   repeat rewrite[Theory]
+  --   repeat rewrite[Set]
+  --   intro set
+  --   intro φ
+  --   sorry
+  -- inductive axioms : Theory ℒ where
+  -- | first :
 end PA
