@@ -9,7 +9,7 @@
 - [ ] The languages $\mathcal{L}$ and $\mathcal{L}_T$
   - [ ] Specify the signatures of $\mathcal{L}$:
     - Syntax:   
-      - [ ] Predicates: $Variable, Constant, Closed_Term, Term, Formula, Sentence$
+      - [ ] Predicates: $Variable, Constant, Closed\_Term, Term, Formula, Sentence$
       - [ ] Function symbols: $num,denote,neg,conj,disj,cond,forall,exists$
     - PA
       - [x] Predicates: $\emptyset$
