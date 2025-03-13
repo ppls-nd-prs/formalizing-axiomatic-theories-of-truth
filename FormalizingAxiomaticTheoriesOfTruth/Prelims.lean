@@ -23,7 +23,6 @@ namespace Languages
     inductive Rel : ℕ → Type _ where
       | var : Rel 1
       | const : Rel 1
-      | t : Rel 1
       | Term : Rel 1
       | Form : Rel 1
       | Sentence : Rel 1
@@ -125,7 +124,6 @@ namespace Languages
   def to_lt_rel ⦃n : ℕ⦄ : (L.signature.Relations n) → (L_T.signature.Relations n)
       | .var => .var
       | .const => .const
-      | .t => .t
       | .Term => .Term
       | .Form => .Form
       | .Sentence => .Sentence
@@ -135,6 +133,10 @@ namespace Languages
       onFunction := to_lt_func
       onRelation := to_lt_rel
 end Languages
+
+namespace encoding
+
+end encoding
 
 namespace Calculus
   open Languages
