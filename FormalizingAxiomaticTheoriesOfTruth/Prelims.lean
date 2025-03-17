@@ -4,6 +4,77 @@ import Mathlib.ModelTheory.Syntax
 open FirstOrder
 open Language
 
+namespace Matrix
+  variable {m : Type u → Type v} [Monad m] {α : Type w} {β : Type u}
+  def getM : {n : ℕ} → {β : Fin n → Type u} → ((i : Fin n) → m (β i)) → m ((i : Fin n) → β i)
+    | 0,     _, _ => pure finZeroElim
+    | _ + 1, _, f => Fin.cases <$> f 0 <*> getM (f ·.succ)
+end Matrix
+
+namespace Coding
+  variable {L : Language} [(k : ℕ) → Encodable (L.Functions k)]
+  variable {α : Type*} [Encodable α]
+
+  open Encodable
+
+  def vecToNat : {n : ℕ} → (Fin n → ℕ) → ℕ
+  | 0,     _ => 0
+  | _ + 1, v => Nat.pair (v 0) (vecToNat $ v ∘ Fin.succ) + 1
+
+  def natToVec : ℕ → (n : ℕ) → Option (Fin n → ℕ)
+  | 0,     0     => some Matrix.vecEmpty
+  | e + 1, n + 1 => natToVec e.unpair.2 n |>.map (Matrix.vecCons e.unpair.1 ·)
+  | _,     _     => none
+
+  variable {n : ℕ}
+  lemma lt_of_eq_natToVec {e : ℕ} {v : Fin n → ℕ} (h : natToVec e n = some v) (i : Fin n) : v i < e := by
+    induction' n with n ih generalizing e
+    · exact i.elim0
+    · cases' e with e
+      · simp [natToVec] at h
+      · simp only [natToVec, Option.map_eq_some'] at h
+        rcases h with ⟨v, hnv, rfl⟩
+        cases' i using Fin.cases with i
+        · simp [lt_succ, unpair_left_le]
+        · simp only [cons_val_succ]
+          exact lt_trans (ih hnv i) (lt_succ.mpr <| unpair_right_le e)
+
+
+  namespace Term
+    def toNat : Term L α → ℕ :=
+      fun t : Term L α =>
+        match t with
+          | .var n    => Nat.pair 0 (encode n) + 1
+          | .func (l := l) f ts => (Nat.pair 1 <| Nat.pair l <| Nat.pair (encode f) <| vecToNat fun i ↦ toNat (ts i)) + 1
+
+    def ofNat (n : ℕ) : ℕ → Option (Term L α)
+      | 0 => none
+      | e + 1 =>
+        match e.unpair.1 with
+        | 0 => (decode e.unpair.2).map (Term.var ·)
+        | 1 =>
+          let arity := e.unpair.2.unpair.1
+          let ef := e.unpair.2.unpair.2.unpair.1
+          let ev := e.unpair.2.unpair.2.unpair.2
+          match hv : natToVec ev arity with
+          | some v' =>
+            (decode ef).bind fun f : L.Functions arity ↦
+            (Matrix.getM fun i ↦
+              have : v' i < e + 1 :=
+                Nat.lt_succ.mpr
+                  <| le_trans (le_of_lt <| Nat.lt_of_eq_natToVec hv i)
+                  <| le_trans (Nat.unpair_right_le _)
+                  <| le_trans (Nat.unpair_right_le _)
+                  <| Nat.unpair_right_le _
+              ofNat n (v' i)).map fun v : Fin arity → Semiterm L ξ n ↦
+            func f v
+          | none => none
+        | _ => none
+
+  end Term
+
+end Coding
+
 namespace Syntax
   variable (L : Language.{u, v}) {L' : Language}
   /-- A term on `α` is either a variable indexed by an element of `α`
