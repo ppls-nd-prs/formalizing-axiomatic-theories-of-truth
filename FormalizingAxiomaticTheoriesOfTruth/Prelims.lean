@@ -1,5 +1,6 @@
 import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
+import Mathlib.ModelTheory.Encoding
 
 open FirstOrder
 open Language
@@ -185,11 +186,11 @@ namespace Languages
     /-
     Some useful notation
     -/
-    prefix:60 "T" => Formula.rel Rel.t
-    notation "Term(" t ")" => Formula.rel Rel.Term ![t]
-    notation "Form(" t ")" => Formula.rel Rel.Form ![t]
-    notation "sentence(" t ")" => Formula.rel Rel.Sentence ![t]
-    notation "Proof(" t "," s ")" => Formula.rel Rel.Proof ![t,s]
+    prefix:60 "T" => BoundedFormula.rel Rel.t
+    notation "Term(" t ")" => BoundedFormula.rel Rel.Term ![t]
+    notation "Form(" t ")" => BoundedFormula.rel Rel.Form ![t]
+    notation "sentence(" t ")" => BoundedFormula.rel Rel.Sentence ![t]
+    notation "Proof(" t "," s ")" => BoundedFormula.rel Rel.Proof ![t,s]
     notation "ℒₜ" => signature
   end L_T
 
@@ -303,3 +304,131 @@ namespace PA
   -- inductive axioms : Theory ℒ where
   -- | first :
 end PA
+
+
+open Languages
+def zero_term : Term ℒ (ℕ ⊕ Fin 0) :=
+  S(L.null)
+
+def f1 : BoundedFormula ℒ ℕ 0 :=
+  S(S(zero_term)) =' zero_term
+#eval f1
+
+
+open FirstOrder
+open Language
+open Term
+open BoundedFormula
+#check Term.listEncode zero_term
+#eval Term.listEncode zero_term
+#eval Term.listDecode (Term.listEncode zero_term)
+#check Encodable.encodeList [1,2,3]
+#eval Encodable.encodeList [1,2,3]
+
+def Func_enc : L.signature.Functions k → ℕ
+  | .zero => Nat.pair 0 0 + 1
+  | .succ => Nat.pair 1 0 + 1
+  | .denote => Nat.pair 1 1 + 1
+  | .exists => Nat.pair 1 2 + 1
+  | .forall => Nat.pair 1 3 + 1
+  | .neg => Nat.pair 1 4 + 1
+  | .num => Nat.pair 1 5 + 1
+  | .add => Nat.pair 2 0 + 1
+  | .mult => Nat.pair 2 1 + 1
+  | .cond => Nat.pair 2 2 + 1
+  | .disj => Nat.pair 2 3 + 1
+  | .conj => Nat.pair 2 4 + 1
+
+def Func_dec : (n : ℕ) → Option (L.signature.Functions k)
+  | 0 => none
+  | e + 1 =>
+    match k with
+      | 0 =>
+        match e.unpair.2 with
+          | 0 => some (L.Func.zero)
+          | _ => none
+      | 1 =>
+        match e.unpair.2 with
+          | 0 => some (L.Func.succ)
+          | 1 => some (L.Func.denote)
+          | 2 => some (L.Func.exists)
+          | 3 => some (L.Func.forall)
+          | 4 => some (L.Func.neg)
+          | 5 => some (L.Func.num)
+          | _ => none
+      | 2 =>
+        match e.unpair.2 with
+          | 0 => some (L.Func.add)
+          | 1 => some (L.Func.mult)
+          | 2 => some (L.Func.cond)
+          | 3 => some (L.Func.disj)
+          | 4 => some (L.Func.conj)
+          | _ => none
+      | _ => none
+
+lemma Func_enc_dec {k : ℕ}: ∀ f : L.signature.Functions k, Func_dec (Func_enc f) = (some f) := by
+  intro h
+  induction h
+  simp [Func_enc,Nat.pair,Func_dec]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+instance enc_f (k : ℕ) : Encodable (L.signature.Functions k) where
+  encode := Func_enc
+  decode := Func_dec
+  encodek := Func_enc_dec
+
+def Rel_enc : L.signature.Relations k → ℕ
+  | .var => Nat.pair 1 0 + 1
+  | .const => Nat.pair 1 1 + 1
+  | .Term => Nat.pair 1 2 + 1
+  | .Form => Nat.pair 1 3 + 1
+  | .Sentence => Nat.pair 1 4 + 1
+  | .Proof => Nat.pair 2 0 + 1
+
+def Rel_dec : (n : ℕ) → Option (L.signature.Relations k)
+  | 0 => none
+  | e + 1 =>
+    match k with
+      | 1 =>
+        match e.unpair.2 with
+          | 0 => some .var
+          | 1 => some .const
+          | 2 => some .Term
+          | 3 => some .Form
+          | 4 => some .Sentence
+          | _ => none
+      | 2 =>
+        match e.unpair.2 with
+          | 0 => some .Proof
+          | _ => none
+      | _ => none
+
+lemma Rel_enc_dec {k : ℕ}: ∀ f : L.signature.Relations k, Rel_dec (Rel_enc f) = (some f) := by
+  intro h
+  induction h
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+  simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+instance enc_r (k : ℕ) : Encodable (L.signature.Relations k) where
+  encode := Rel_enc
+  decode := Rel_dec
+  encodek := Rel_enc_dec
+
+#check Encodable.encodeList (Term.listEncode zero_term)
+#eval Encodable.encodeList (Term.listEncode zero_term)
+#check Encodable.encodeList (BoundedFormula.listEncode f1)
+#eval Encodable.encodeList (BoundedFormula.listEncode f1)
