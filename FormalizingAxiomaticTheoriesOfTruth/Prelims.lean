@@ -4,6 +4,52 @@ import Mathlib.ModelTheory.Syntax
 open FirstOrder
 open Language
 
+namespace String
+  def vecToStr : ∀ {n}, (Fin n → String) → String
+  | 0,     _ => ""
+  | n + 1, s => if n = 0 then s 0 else s 0 ++ ", " ++ @vecToStr n (fun i => s (Fin.succ i))
+
+  #eval vecToStr !["a","b","c"]
+
+end String
+
+namespace Term
+  variable {L : Language} {α β : Type}
+  variable [∀ k, ToString (L.Functions k)] [ToString α] [ToString β]
+
+  section ToString
+    def toStr : Term L (α ⊕ β) → String :=
+      fun t : Term L (α ⊕ β) =>
+        match t with
+        | .var k =>
+          match k with
+            | (Sum.inl l) => "#" ++ toString l
+            | (Sum.inr l) => "&" ++ toString l
+        | .func (l := 0) c _ => toString c
+        | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr (ts i)) ++ ")"
+
+    instance : Repr (Term L (α ⊕ β)) := ⟨fun t _ => toStr t⟩
+    instance : ToString (Term L (α ⊕ β)) := ⟨toStr⟩
+  end ToString
+end Term
+
+namespace BoundedFormula
+  section ToString
+    variable {L : Language} {α : Type}
+    variable [∀ k, ToString (L.Functions k)] [∀ k, ToString (L.Relations k)] [ToString α]
+
+    def toStr {n} : BoundedFormula L α n → String
+      | .falsum                    => "⊥"
+      | .equal t₁ t₂               => toString t₁ ++ " = " ++ toString t₂
+      | .rel R ts                  => toString R ++ "(" ++ String.vecToStr (fun i => toString (ts i)) ++ ")"
+      | .imp f₁ f₂                 => "(" ++ toStr f₁ ++ " → " ++ toStr f₂ ++ ")"
+      | .all f                     => "∀" ++ toStr f
+
+    instance : Repr (BoundedFormula L α n) := ⟨fun t _ => toStr t⟩
+    instance : ToString (BoundedFormula L α n) := ⟨toStr⟩
+  end ToString
+end BoundedFormula
+
 namespace Languages
   namespace L
     inductive Func : ℕ → Type _ where
@@ -31,6 +77,30 @@ namespace Languages
     def signature : Language :=
       ⟨Func, Rel⟩
 
+    def funToStr {n}: Func n → String
+      | .zero => "0"
+      | .succ => "S"
+      | .add => "+"
+      | .mult => "×"
+      | .num => "𝑛𝑢𝑚"
+      | .neg => "𝑛𝑒𝑔"
+      | .conj => "𝑐𝑜𝑛𝑗"
+      | .disj => "𝑑𝑖𝑠𝑗"
+      | .cond => "𝑐𝑜𝑛𝑑"
+      | .forall => "𝑎𝑙𝑙"
+      | .exists => "𝑒𝑥"
+      | .denote => "𝑑𝑒𝑛"
+    instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
+
+    def relToStr {n} : signature.Relations n → String
+      | .var => "𝑣𝑎𝑟"
+      | .const => "𝑐𝑜𝑛𝑠𝑡"
+      | .Term => "𝑡𝑒𝑟𝑚"
+      | .Form => "𝑓𝑜𝑟𝑚"
+      | .Sentence => "𝑠𝑒𝑛𝑡"
+      | .Proof => "𝑝𝑟𝑜𝑜𝑓"
+    instance : ToString (signature.Relations n) := ⟨relToStr⟩
+
     /-
     Useful notation
     -/
@@ -47,6 +117,7 @@ namespace Languages
     notation "exists" n => Term.func Func.exists ![n]
     notation n "°" => Term.func Func.denote ![n]
     notation "ℒ" => signature
+    scoped[Languages] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
     /-
     Some useful terms
@@ -85,6 +156,31 @@ namespace Languages
 
     def signature : Language :=
       ⟨Func, Rel⟩
+
+    def funToStr {n}: Func n → String
+      | .zero => "0"
+      | .succ => "S"
+      | .add => "+"
+      | .mult => "×"
+      | .num => "𝑛𝑢𝑚"
+      | .neg => "𝑛𝑒𝑔"
+      | .conj => "𝑐𝑜𝑛𝑗"
+      | .disj => "𝑑𝑖𝑠𝑗"
+      | .cond => "𝑐𝑜𝑛𝑑"
+      | .forall => "𝑎𝑙𝑙"
+      | .exists => "𝑒𝑥"
+      | .denote => "𝑑𝑒𝑛"
+    instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
+
+    def relToStr {n} : signature.Relations n → String
+      | .var => "𝑣𝑎𝑟"
+      | .const => "𝑐𝑜𝑛𝑠𝑡"
+      | .t => "T"
+      | .Term => "𝑡𝑒𝑟𝑚"
+      | .Form => "𝑓𝑜𝑟𝑚"
+      | .Sentence => "𝑠𝑒𝑛𝑡"
+      | .Proof => "𝑝𝑟𝑜𝑜𝑓"
+    instance : ToString (signature.Relations n) := ⟨relToStr⟩
 
     /-
     Some useful notation
@@ -141,8 +237,8 @@ end encoding
 namespace Calculus
   open Languages
   open BoundedFormula
-  notation f "↑'  " n "#" m => liftAt n m f
-  notation f "↑" n => f ↑' n # 0
+  notation f " ↑' " n " at "  m => liftAt n m f
+  notation f "↑" n => f ↑' n at 0
   notation A "/[" t "]" => subst A ![t]
   inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
   | axm Γ A : A ∈ Γ → prf Γ A
