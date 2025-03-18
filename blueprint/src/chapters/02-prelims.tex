@@ -1,6 +1,6 @@
 \chapter{Preliminaries}
 \section{Syntax}
-The ordinary definition of a first-order language $\mathcal{L}$ proceeds from the specification of a signature $\mathcal{S}$ and then an inductive definition of the way formulas can be build with elements from $\mathcal{S}$, the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature. For reasons of conceptual compactness that is the approach \cite{ffl} have used for the specification of a language.
+The ordinary definition of a first-order language $\mathcal{L}$ proceeds from the specification of a signature $\mathcal{S}$ and then an inductive definition of the way formulas can be build with elements from $\mathcal{S}$, the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature.
 
 % \begin{definition}[formal language] \label{def:formal-language}
 %     Let $\Sigma$ be a set of symbols. Then a formal language $\mathcal{L}$ is a subset of $\Sigma^*$.
@@ -166,7 +166,7 @@ A \texttt{Formula} is defined as a \texttt{BoundedFormula} that has no variables
 
 A \texttt{Sentence} is then defined as a \texttt{Formula} that has no free variables.
 
-\begin{definition}[Formula]\label{def:formula}
+\begin{definition}[Sentence]\label{def:sentence}
     \uses{def:fol,def:bf}
     \lean{FirstOrder.Language.Formula}
     \leanok
