@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+  MathJax = { 
+    tex: {
+		    inlineMath: [['$','$'], ['\\(','\\)']]
+	} }
+</script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+<meta name="generator" content="plasTeX" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Preliminaries</title>
+<link rel="next" href="sect0003.html" title="Disquotation" />
+<link rel="prev" href="sect0001.html" title="Notes on notation" />
+<link rel="up" href="index.html" title="Formalizing Axiomatic Theories of Truth" />
+<link rel="stylesheet" href="styles/theme-white.css" />
+<link rel="stylesheet" href="styles/amsthm.css" />
+<link rel="stylesheet" href="styles/showmore.css" />
+<link rel="stylesheet" href="styles/blueprint.css" />
+<link rel="stylesheet" href="styles/extra_styles.css" />
+</head>
+
+<body>
+<header>
+<svg  id="toc-toggle" class="icon icon-list-numbered "><use xlink:href="symbol-defs.svg#icon-list-numbered"></use></svg>
+<h1 id="doc_title"><a href="index.html">Formalizing Axiomatic Theories of Truth</a></h1>
+</header>
+
+<div class="wrapper">
+<nav class="toc">
+<ul class="sub-toc-0">
+<li class="">
+  <a href="sect0001.html"><span class="toc_ref">1</span> <span class="toc_entry">Notes on notation</span></a>
+ </li>
+<li class=" active current">
+  <a href="sect0002.html"><span class="toc_ref">2</span> <span class="toc_entry">Preliminaries</span></a>
+  <span class="expand-toc">▼</span>
+  <ul class="sub-toc-1 active">
+     <li class="">
+  <a href="sect0002.html#a0000000009"><span class="toc_ref">2.1</span> <span class="toc_entry">Syntax</span></a>
+ </li>
+
+  </ul>
+ </li>
+<li class="">
+  <a href="sect0003.html"><span class="toc_ref">3</span> <span class="toc_entry">Disquotation</span></a>
+ </li>
+<li class="">
+  <a href="sect0004.html"><span class="toc_ref">4</span> <span class="toc_entry">Examples</span></a>
+ </li>
+<li class="">
+  <a href="sect0005.html"><span class="toc_ref">5</span> <span class="toc_entry">Bibliography</span></a>
+ </li>
+<li ><a href="dep_graph_document.html">Dependency graph</a></li>
+</ul>
+</nav>
+
+<div class="content">
+<div class="content-wrapper">
+
+
+<div class="main-text">
+<h1 id="a0000000003">2 Preliminaries</h1>
+<h1 id="a0000000009">2.1 Syntax</h1>
+<p> The ordinary definition of a first-order language \(\mathcal{L}\) proceeds from the specification of a signature \(\mathcal{S}\) and then an inductive definition of the way formulas can be build with elements from \(\mathcal{S}\), the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature. For reasons of conceptual compactness that is the approach <span class="cite">
+	[
+	<a href="sect0005.html#ffl" >3</a>
+	]
+</span> have used for the specification of a language. </p>
+<div class="definition_thmwrapper theorem-style-definition" id="def:fol">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">1</span>
+    <span class="definition_thmtitle">first-order language</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0002.html#def:fol">#</a>
+    
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://ppls-nd-prs.github.io/formalizing-axiomatic-theories-of-truth/docs/find/#doc/FirstOrder.Language" class="lean_decl">FirstOrder.Language</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>  Let \(A\) be a set of function symbols and \(B\) a set of predicate symbols. Then, a first-order language is a structure \(\langle F, R \rangle \), where </p>
+<ol class="enumerate">
+  <li><p>\(F : \mathbb {N} \to A\) and </p>
+</li>
+  <li><p>\(R : \mathbb {N} \to B\). </p>
+</li>
+</ol>
+
+  </div>
+</div>
+<p>Note that this defines a language as consisting only of functions and relations, whereas traditionally a language also contains a set of constants. Observe, however, that constants can be modelled as \(0\)-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to \(F_i\) and \(R_i\) we obtain a specific language. </p>
+<p>We will be implementing the languages \(\mathcal{L}\) and \(\mathcal{L}_T\) that are necessary for the proof of Halbach’s <span class="cite">
+	[
+	<a href="sect0005.html#halbach2011" >1</a>
+	]
+</span> Theorem 7.5 of the conservativity of <span class="ttfamily">TB</span> and <span class="ttfamily">UTB</span> over <span class="ttfamily">PA</span>. </p>
+<div class="definition_thmwrapper theorem-style-definition" id="def:l">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">2</span>
+    <span class="definition_thmtitle">\(\mathcal{L}\): the language of peano arithmetic with syntactic functions and predicates</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0002.html#def:l">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0002.html#def:fol">Definition 1</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://ppls-nd-prs.github.io/formalizing-axiomatic-theories-of-truth/docs/find/#doc/Languages.L.signature" class="lean_decl">Languages.L.signature</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>   The language of peano arithmetic including syntactic functions and predicates is the first-order language \(\mathcal{L} = \langle F, R \rangle \), where </p>
+<ol class="enumerate">
+  <li><p>\(F\) is defined by </p>
+<ol class="enumerate">
+  <li><p>\(F(0) = \{ \texttt{null}\} \), </p>
+</li>
+  <li><p>\(F(1) = \{ \texttt{succ},\texttt{num}¸\texttt{neg},\texttt{forall},\texttt{exists},\texttt{denote}\} \), </p>
+</li>
+  <li><p>\(F(2) = \{ \texttt{add},\texttt{mult},\texttt{conj},\texttt{disj},\texttt{cond}\} \) and </p>
+</li>
+  <li><p>\(F(3) = \{ \texttt{subs}\} \) and </p>
+</li>
+</ol>
+</li>
+  <li><p>\(R\) is defined by </p>
+</li>
+  <li><p>\(R(1) = \{ \texttt{Variable},\texttt{Constant},\texttt{Closed\_ Term},\texttt{Term},\texttt{Formula}_{\mathcal{L}}, \texttt{Sentence}_{\mathcal{L}},\texttt{Formula}_{\mathcal{L}_T},\texttt{Sentence}_{\mathcal{L}_T}\} \). </p>
+</li>
+</ol>
+
+  </div>
+</div>
+<div class="definition_thmwrapper theorem-style-definition" id="def:lt">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">3</span>
+    <span class="definition_thmtitle">\(\mathcal{L}_{T}\): the language of peano arithmetic including the truth predicate symbol</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0002.html#def:lt">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0002.html#def:fol">Definition 1</a></li>
+          
+          <li><a href="sect0002.html#def:l">Definition 2</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://ppls-nd-prs.github.io/formalizing-axiomatic-theories-of-truth/docs/find/#doc/Languages.L_T.signature" class="lean_decl">Languages.L_T.signature</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>   Let \(\mathcal{L} = \langle F_{\mathcal{L}},R_{\mathcal{L}} \rangle \) be the language of peano arithmetic including syntactic functions symbols and predicates. Then, the language \(\mathcal{L}_T\) is the first-order language \(\mathcal{L}_T = \langle F, R \rangle \), where </p>
+<ol class="enumerate">
+  <li><p>\(F = F_{\mathcal{L}}\) and </p>
+</li>
+  <li><p>\(R\) is defined by \(R(1) = R_{\mathcal{L}}(1) \cup \{ \texttt{Tr}\} \). </p>
+</li>
+</ol>
+
+  </div>
+</div>
+<p>We can then work our way up, first to the level of terms and then that of formulas. For this, we use <span class="ttfamily">mathlib</span>’s implementation of <span class="ttfamily">Term</span>s and <span class="ttfamily">BoundedFormula</span>s. </p>
+<div class="definition_thmwrapper theorem-style-definition" id="def:term">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">4</span>
+    <span class="definition_thmtitle">Term</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0002.html#def:term">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0002.html#def:fol">Definition 1</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://ppls-nd-prs.github.io/formalizing-axiomatic-theories-of-truth/docs/find/#doc/FirstOrder.Language.Term" class="lean_decl">FirstOrder.Language.Term</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>   Let \(\mathcal{L} = \langle F, R \rangle \) be a first-order language and \(\alpha \) a set used to index free variables. Then the set of terms with respect to \(\mathcal{L}\) and \(\alpha \) denoted \(\mathcal{T}(\mathcal{L},\alpha )\) is the smallest set such that </p>
+<ol class="enumerate">
+  <li><p>the set of variables with respect to \(\alpha \) denoted \(\mathcal{V}(\alpha ) = \{ x_i | i \in \alpha \}  \subseteq \mathcal{T}(\mathcal{L},\alpha )\) and </p>
+</li>
+  <li><p>for all \(i \in \mathbb {N}\), if \(f \in F(i)\) and \(x_1,...,x_i \in \mathcal{T}(\mathcal{L},\alpha )\), then \(f(x_1,...,x_i) \in \mathcal{T}(\mathcal{L},\alpha )\). </p>
+</li>
+</ol>
+
+  </div>
+</div>
+<p>The concept of <span class="ttfamily">Term</span> is used to define the concept <span class="ttfamily">BoundedFormula</span>. </p>
+<div class="definition_thmwrapper theorem-style-definition" id="def:bf">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">5</span>
+    <span class="definition_thmtitle">BoundedFormula</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0002.html#def:bf">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0002.html#def:fol">Definition 1</a></li>
+          
+          <li><a href="sect0002.html#def:term">Definition 4</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://ppls-nd-prs.github.io/formalizing-axiomatic-theories-of-truth/docs/find/#doc/FirstOrder.Language.BoundedFormula" class="lean_decl">FirstOrder.Language.BoundedFormula</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>   Let \(\mathcal{L} = \langle F, R \rangle \) be a first-order language, \(\alpha \) a set indexing free variables, \(n\) the intended number of variables bound by a quantifier and \(\mathcal{T}(\mathcal{L}, \alpha \cup \{ x_1,...,x_n\} )\) a set of terms. Then, the set of bounded formulas with respect to these variables \(\mathcal{B}(\mathcal{L},\alpha ,n)\) is the smallest set such that </p>
+<ol class="enumerate">
+  <li><p>\(\bot \in \mathcal{B}(\mathcal{L},\alpha ,n)\), </p>
+</li>
+  <li><p>if \(t_1,t_2 \in \mathcal{T}(\mathcal{L}, \alpha \cup \{ x_1,...,x_n\} )\), then \(t_1 = t_2 \in \mathcal{B}(\mathcal{L},\alpha ,n)\), </p>
+</li>
+  <li><p>for all \(i \in \mathbb {N}\), if \(P \in R(i)\) and \(t_1,...,t_i \in \mathcal{T}(\mathcal{L}, \alpha \cup \{ x_1,...,x_n\} )\), then \(P(t_1,...,t_i) \in \mathcal{B}(\mathcal{L},\alpha ,n)\), </p>
+</li>
+  <li><p>if \(f_1,f_2 \in \mathcal{B}(\mathcal{L},\alpha ,n)\), then \((f_1 \Rightarrow f_2) \in \mathcal{B}(\mathcal{L},\alpha ,n)\) and </p>
+</li>
+  <li><p>if \(f \in \mathcal{B}(\mathcal{L},\alpha ,n+1)\), then \(\forall f \in \mathcal{B}(\mathcal{L},\alpha ,n)\). </p>
+</li>
+</ol>
+
+  </div>
+</div>
+<p>A <span class="ttfamily">Formula</span> is defined as a <span class="ttfamily">BoundedFormula</span> that has no variables that still need to be bound. </p>
+<div class="definition_thmwrapper theorem-style-definition" id="def:formula">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">6</span>
+    <span class="definition_thmtitle">Formula</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0002.html#def:formula">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0002.html#def:fol">Definition 1</a></li>
+          
+          <li><a href="sect0002.html#def:bf">Definition 5</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://ppls-nd-prs.github.io/formalizing-axiomatic-theories-of-truth/docs/find/#doc/FirstOrder.Language.Formula" class="lean_decl">FirstOrder.Language.Formula</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>   Let \(\mathcal{L}\) be a first-order language and \(\alpha \) a set indexing variables. Then the set of formulas with respect to \(\mathcal{L}\) and \(\alpha \) denoted \(\mathcal{F}(\mathcal{L},\alpha )\) is defined as the set of bounded formulas \(\mathcal{B}(\mathcal{L},\alpha ,0)\). </p>
+
+  </div>
+</div>
+<p>A <span class="ttfamily">Sentence</span> is then defined as a <span class="ttfamily">Formula</span> that has no free variables. </p>
+<div class="definition_thmwrapper theorem-style-definition" id="def:formula">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">7</span>
+    <span class="definition_thmtitle">Formula</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0002.html#def:formula">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0002.html#def:fol">Definition 1</a></li>
+          
+          <li><a href="sect0002.html#def:bf">Definition 5</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://ppls-nd-prs.github.io/formalizing-axiomatic-theories-of-truth/docs/find/#doc/FirstOrder.Language.Formula" class="lean_decl">FirstOrder.Language.Formula</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>   Let \(\mathcal{L}\) be a first-order language. Then the set of sentences with respect to \(\mathcal{L}\) denoted \(\mathcal{S}(\mathcal{L})\) is defined as the set of formulas \(\mathcal{F}(\mathcal{L},\emptyset )\). </p>
+
+  </div>
+</div>
+
+</div> <!--main-text -->
+</div> <!-- content-wrapper -->
+</div> <!-- content -->
+</div> <!-- wrapper -->
+
+<nav class="prev_up_next">
+  <svg  id="showmore-minus" class="icon icon-eye-minus showmore"><use xlink:href="symbol-defs.svg#icon-eye-minus"></use></svg>
+
+  <svg  id="showmore-plus" class="icon icon-eye-plus showmore"><use xlink:href="symbol-defs.svg#icon-eye-plus"></use></svg>
+
+  <a href="sect0001.html" title="Notes on notation"><svg  class="icon icon-arrow-left "><use xlink:href="symbol-defs.svg#icon-arrow-left"></use></svg>
+</a>
+  <a href="index.html" title="Formalizing Axiomatic Theories of Truth"><svg  class="icon icon-arrow-up "><use xlink:href="symbol-defs.svg#icon-arrow-up"></use></svg>
+</a>
+  <a href="sect0003.html" title="Disquotation"><svg  class="icon icon-arrow-right "><use xlink:href="symbol-defs.svg#icon-arrow-right"></use></svg>
+</a>
+</nav>
+
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/plastex.js"></script>
+<script type="text/javascript" src="js/svgxuse.js"></script>
+<script type="text/javascript" src="js/js.cookie.min.js"></script>
+<script type="text/javascript" src="js/showmore.js"></script>
+</body>
+</html>

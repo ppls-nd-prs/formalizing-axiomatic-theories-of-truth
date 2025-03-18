@@ -1,4 +1,4 @@
-Mathlib.ModelTheory.Basic.FirstOrder.Language
+FirstOrder.Language
 Languages.L.signature
 Languages.L_T.signature
 FirstOrder.Language.Term
