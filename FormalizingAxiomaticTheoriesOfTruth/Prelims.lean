@@ -57,22 +57,25 @@ namespace Languages
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
-      | num : Func 1
       | neg : Func 1
       | conj : Func 2
       | disj : Func 2
       | cond : Func 2
       | forall : Func 1
       | exists : Func 1
+      | num : Func 1
       | denote : Func 1
+      | subs : Func 3
 
     inductive Rel : ℕ → Type _ where
       | var : Rel 1
       | const : Rel 1
-      | Term : Rel 1
-      | Form : Rel 1
-      | Sentence : Rel 1
-      | Proof : Rel 2
+      | term : Rel 1
+      | clterm: Rel 1
+      | forml : Rel 1
+      | sentencel: Rel 1
+      | formlt : Rel 1
+      | sentencelt : Rel 1
 
     def signature : Language :=
       ⟨Func, Rel⟩
@@ -82,23 +85,26 @@ namespace Languages
       | .succ => "S"
       | .add => "+"
       | .mult => "×"
-      | .num => "𝑛𝑢𝑚"
       | .neg => "𝑛𝑒𝑔"
       | .conj => "𝑐𝑜𝑛𝑗"
       | .disj => "𝑑𝑖𝑠𝑗"
       | .cond => "𝑐𝑜𝑛𝑑"
       | .forall => "𝑎𝑙𝑙"
       | .exists => "𝑒𝑥"
+      | .num => "𝑛𝑢𝑚"
       | .denote => "𝑑𝑒𝑛"
+      | .subs => "𝑠𝑢𝑏𝑠"
     instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
 
     def relToStr {n} : signature.Relations n → String
       | .var => "𝑣𝑎𝑟"
       | .const => "𝑐𝑜𝑛𝑠𝑡"
-      | .Term => "𝑡𝑒𝑟𝑚"
-      | .Form => "𝑓𝑜𝑟𝑚"
-      | .Sentence => "𝑠𝑒𝑛𝑡"
-      | .Proof => "𝑝𝑟𝑜𝑜𝑓"
+      | .term => "𝑡𝑒𝑟𝑚"
+      | .clterm => "𝑐𝑙𝑡𝑒𝑟𝑚"
+      | .forml => "𝑓𝑜𝑟𝑚𝑙"
+      | .sentencel => "𝑠𝑒𝑛𝑡𝑙"
+      | .formlt => "𝑓𝑜𝑟𝑚𝑙𝑡"
+      | .sentencelt => "𝑠𝑒𝑛𝑡𝑙𝑡"
     instance : ToString (signature.Relations n) := ⟨relToStr⟩
 
     /-
@@ -110,12 +116,21 @@ namespace Languages
     notation n "times" m => Term.func Func.mult ![n,m]
     notation n "and" m => Term.func Func.conj ![n,m]
     notation n "or" m => Term.func Func.disj ![n,m]
-    notation "num(" n ")" => Term.func Func.num ![n]
     notation "not" n => Term.func Func.neg ![n]
     notation n "then" m => Term.func Func.cond ![n,m]
     notation "forall" n => Term.func Func.forall ![n]
     notation "exists" n => Term.func Func.exists ![n]
+    notation "num(" n ")" => Term.func Func.num ![n]
     notation n "°" => Term.func Func.denote ![n]
+    notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n, x, t]
+    notation "Var(" x ")" => Formula.rel Rel.var ![x]
+    notation "Const(" c ")" => Formula.rel Rel.const ![c]
+    notation "Term(" t ")" => Formula.rel Rel.term ![t]
+    notation "ClosedTerm(" t")" => Formula.rel Rel.clterm ![t]
+    notation "FormL(" t ")" => Formula.rel Rel.forml ![t]
+    notation "SentenceL(" t ")" => Formula.rel Rel.sentencel ![t]
+    notation "FormLT(" t ")" => Formula.rel Rel.formlt ![t]
+    notation "SentenceLT(" t ")" => Formula.rel Rel.sentencelt ![t]
     notation "ℒ" => signature
     scoped[Languages] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
@@ -136,23 +151,26 @@ namespace Languages
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
-      | num : Func 1
       | neg : Func 1
       | conj : Func 2
       | disj : Func 2
       | cond : Func 2
       | forall : Func 1
       | exists : Func 1
+      | num : Func 1
       | denote : Func 1
+      | subs : Func 3
 
     inductive Rel : ℕ → Type _ where
       | var : Rel 1
       | const : Rel 1
       | t : Rel 1
-      | Term : Rel 1
-      | Form : Rel 1
-      | Sentence : Rel 1
-      | Proof : Rel 2
+      | term : Rel 1
+      | clterm: Rel 1
+      | forml : Rel 1
+      | sentencel: Rel 1
+      | formlt : Rel 1
+      | sentencelt : Rel 1
 
     def signature : Language :=
       ⟨Func, Rel⟩
@@ -162,34 +180,54 @@ namespace Languages
       | .succ => "S"
       | .add => "+"
       | .mult => "×"
-      | .num => "𝑛𝑢𝑚"
       | .neg => "𝑛𝑒𝑔"
       | .conj => "𝑐𝑜𝑛𝑗"
       | .disj => "𝑑𝑖𝑠𝑗"
       | .cond => "𝑐𝑜𝑛𝑑"
       | .forall => "𝑎𝑙𝑙"
       | .exists => "𝑒𝑥"
+      | .num => "𝑛𝑢𝑚"
       | .denote => "𝑑𝑒𝑛"
+      | .subs => "𝑠𝑢𝑏𝑠"
     instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
 
     def relToStr {n} : signature.Relations n → String
       | .var => "𝑣𝑎𝑟"
       | .const => "𝑐𝑜𝑛𝑠𝑡"
       | .t => "T"
-      | .Term => "𝑡𝑒𝑟𝑚"
-      | .Form => "𝑓𝑜𝑟𝑚"
-      | .Sentence => "𝑠𝑒𝑛𝑡"
-      | .Proof => "𝑝𝑟𝑜𝑜𝑓"
+      | .term => "𝑡𝑒𝑟𝑚"
+      | .clterm => "𝑐𝑙𝑡𝑒𝑟𝑚"
+      | .forml => "𝑓𝑜𝑟𝑚𝑙"
+      | .sentencel => "𝑠𝑒𝑛𝑡𝑙"
+      | .formlt => "𝑓𝑜𝑟𝑚𝑙𝑡"
+      | .sentencelt => "𝑠𝑒𝑛𝑡𝑙𝑡"
     instance : ToString (signature.Relations n) := ⟨relToStr⟩
 
     /-
     Some useful notation
     -/
     prefix:60 "T" => Formula.rel Rel.t
-    notation "Term(" t ")" => Formula.rel Rel.Term ![t]
-    notation "Form(" t ")" => Formula.rel Rel.Form ![t]
-    notation "sentence(" t ")" => Formula.rel Rel.Sentence ![t]
-    notation "Proof(" t "," s ")" => Formula.rel Rel.Proof ![t,s]
+    notation "S(" n ")" => Term.func Func.succ ![n]
+    notation "zero" => Term.func Func.zero ![]
+    notation n "add" m => Term.func Func.add ![n,m]
+    notation n "times" m => Term.func Func.mult ![n,m]
+    notation n "and" m => Term.func Func.conj ![n,m]
+    notation n "or" m => Term.func Func.disj ![n,m]
+    notation "num(" n ")" => Term.func Func.num ![n]
+    notation "not" n => Term.func Func.neg ![n]
+    notation n "then" m => Term.func Func.cond ![n,m]
+    notation "forall" n => Term.func Func.forall ![n]
+    notation "exists" n => Term.func Func.exists ![n]
+    notation n "°" => Term.func Func.denote ![n]
+    notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n, x, t]
+    notation "Var(" x ")" => Formula.rel Rel.var ![x]
+    notation "Const(" c ")" => Formula.rel Rel.const ![c]
+    notation "Term(" t ")" => Formula.rel Rel.term ![t]
+    notation "ClosedTerm(" t")" => Formula.rel Rel.clterm ![t]
+    notation "FormL(" t ")" => Formula.rel Rel.forml ![t]
+    notation "SentenceL(" t ")" => Formula.rel Rel.sentencel ![t]
+    notation "FormLT(" t ")" => Formula.rel Rel.formlt ![t]
+    notation "SentenceLT(" t ")" => Formula.rel Rel.sentencelt ![t]
     notation "ℒₜ" => signature
   end L_T
 
@@ -208,22 +246,25 @@ namespace Languages
     | .succ => .succ
     | .add => .add
     | .mult => .mult
-    | .num => .num
     | .neg => .neg
     | .conj => .conj
     | .disj => .disj
     | .cond => .cond
     | .forall => .forall
     | .exists => .exists
+    | .num => .num
     | .denote => .denote
+    | .subs => .subs
 
   def to_lt_rel ⦃n : ℕ⦄ : (L.signature.Relations n) → (L_T.signature.Relations n)
       | .var => .var
       | .const => .const
-      | .Term => .Term
-      | .Form => .Form
-      | .Sentence => .Sentence
-      | .Proof => .Proof
+      | .term => .term
+      | .clterm => .clterm
+      | .forml => .forml
+      | .sentencel => .sentencel
+      | .formlt => .formlt
+      | .sentencelt => .sentencelt
 
   def ϕ : LHom ℒ ℒₜ where
       onFunction := to_lt_func
