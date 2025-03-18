@@ -36,45 +36,41 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
     % A language is a structure $((F_i)_{i\in \mathbb{N}}, (R_i)_{i\in \mathbb{N}})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
 \end{definition}
 
-% Note that this defines a language as consisting only of functions and relations, whereas traditionally a language also contains a set of constants. Observe, however, that constants can be modelled as $0$-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language.
+Note that this defines a language as consisting only of functions and relations, whereas traditionally a language also contains a set of constants. Observe, however, that constants can be modelled as $0$-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language. 
 
-% \begin{definition}[$\mathcal{L}_{PA}$: the language of peano artihmetic]\label{def:lpa}
-%     \uses{def:fol}
-%     \lean{PA.lpa}
-%     \leanok
-%     The language of peano arithmetic is the first-order language $\mathcal{L}_{PA} = \langle F, R \rangle$, where
-%     \begin{enumerate}
-%         \item $F$ is defined by
-%         \begin{enumerate}
-%             \item $F(0) = \{\texttt{zero}\}$,
-%             \item $F(1) = \{\texttt{succ}\}$ and
-%             \item $F(2) = \{\texttt{add},\texttt{mult}\}$ and    
-%         \end{enumerate}
-%         \item $R$ is defined by $R(2) = \{\texttt{eq}\}$.
-%     \end{enumerate}
-% \end{definition} 
+We will be implementing the languages $\mathcal{L}$ and $\mathcal{L}_T$ that are necessary for the proof of Halbach's \cite{halbach2011} Theorem 7.5 of the conservativity of \texttt{TB} and \texttt{UTB} over \texttt{PA}.
 
-% \begin{definition}[$\mathcal{L}_{T}$: the language of peano arithmetic including the truth predicate symbol]\label{def:lt}
-%     \uses{def:fol, def:lpa}
-%     \lean{L_T.lt}
-%     \leanok
-%     Let $\mathcal{L}_{PA} = \langle F_{PA},R_{PA}\rangle$ be the language of Peano arithmetic. Then, the language of Peano arithmetic including the truth predicate symbol $T$ is the first-order language $\mathcal{L}_T = \langle F, R \rangle$, where
-%     \begin{enumerate}
-%         \item $F = F_{PA}$ and
-%         \item $R$ is defined by
-%         \begin{enumerate}
-%             \item $R(1) = \{\texttt{T}\}$ and
-%             \item $R(2) = R_{PA}(2)$.
-%         \end{enumerate}
-%         % \item $F(0) = F_{PA}(0)$,
-%         % \item $F_1 = F_{PA,1}$,
-%         % \item $F_2 = F_{PA,2}$,
-%         % \item $R_1 = \{\texttt{Tr}\}$ and
-%         % \item $R_2 = R_{PA,2}$.
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[$\mathcal{L}$: the language of peano arithmetic with syntactic functions and predicates]\label{def:l}
+    \uses{def:fol}
+    \lean{Languages.L.signature}
+    \leanok
+    The language of peano arithmetic including syntactic functions and predicates is the first-order language $\mathcal{L} = \langle F, R \rangle$, where
+    \begin{enumerate}
+        \item $F$ is defined by
+        \begin{enumerate}
+            \item $F(0) = \{\texttt{null}\}$,
+            \item $F(1) = \{\texttt{succ},\texttt{num}¸\texttt{neg},\texttt{forall},\texttt{exists},\texttt{denote}\}$,
+            \item $F(2) = \{\texttt{add},\texttt{mult},\texttt{conj},\texttt{disj},\texttt{cond}\}$ and
+            \item $F(3) = \{\texttt{subs}\}$ and 
+        \end{enumerate}
+        \item $R$ is defined by \item $R(1) = \{\texttt{Variable},\texttt{Constant},\texttt{Closed\_Term},\texttt{Term},\texttt{Formula}_{\mathcal{L}}, \texttt{Sentence}_{\mathcal{L}},\texttt{Formula}_{\mathcal{L}_T},\texttt{Sentence}_{\mathcal{L}_T}\}$.
+    \end{enumerate}
+\end{definition} 
 
-% We can then work our way up to the level of formulas constructed using our specified languages. As \cite{ffl} want to be able to make a distinction between sentences, i.e. formulas without free variables, and non-sentences, i.e. formulas containing free variables, their formalization of formulas features a distinction between bound and free variables, something which is not present in traditional de Bruijn syntax, where free variables are just those that are indexed by a number higher than the amount of quantifiers ($-1$ as Lean 4 is 0-based). For example in the de-Bruijn style formula 
+\begin{definition}[$\mathcal{L}_{T}$: the language of peano arithmetic including the truth predicate symbol]\label{def:lt}
+    \uses{def:fol, def:l}
+    \lean{Languages.L_T.signature}
+    \leanok
+    Let $\mathcal{L} = \langle F_{\mathcal{L}},R_{\mathcal{L}} \rangle$ be the language of peano arithmetic including syntactic functions symbols and predicates. Then, the language $\mathcal{L}_T$ is the first-order language $\mathcal{L}_T = \langle F, R \rangle$, where
+    \begin{enumerate}
+        \item $F = F_{\mathcal{L}}$ and
+        \item $R$ is defined by $R(1) = R_{\mathcal{L}}(1) \cup \{\texttt{Tr}\}$.
+    \end{enumerate}
+\end{definition}
+
+We can then work our way up, first to the level of terms and then that of formulas. For this, we use \texttt{mathlib}'s implementation of \texttt{Term}s and \texttt{BoundedFormula}s. 
+
+% As \cite{ffl} want to be able to make a distinction between sentences, i.e. formulas without free variables, and non-sentences, i.e. formulas containing free variables, their formalization of formulas features a distinction between bound and free variables, something which is not present in traditional de Bruijn syntax, where free variables are just those that are indexed by a number higher than the amount of quantifiers ($-1$ as Lean 4 is 0-based). For example in the de-Bruijn style formula 
 % \begin{equation}
 % \forall P(0,1),
 % \label{eq:db}
@@ -93,6 +89,17 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
 
 % % Now, assuming expression \ref{eq:ffl} is a well-formed formula, we should, by the above concept of \textit{partially applied formulas}, have that its sub-formula $\varphi = P(\#0,\&0)$ has a parameter $n = 1$ specifying one quantifier should be added to $\varphi$ to obtain a well-formed formula. As will become apparent from Definition \ref{def:sem-t} and Definition \ref{def:sem-f}.3 this is exactly why $P(\#0,\&0)$ can contain \#0 as a term in the first place: Definition \ref{def:sem-f}.3 and Definition \ref{def:sem-f}.4 state that semiformulas of the set with $n = k$ can only contains semiterms from the set of semiterms with $n = k$ and sets of semi-terms with parameter $n$ can only contain bound variables $\#i$ with $i < n$. Together with Definitions \ref{def:sem-f}.7 and \ref{def:sem-f}.8 this assures that in formulas in the set of semiformulas with $n = 0$ all bound variables are bound.
 % %  then assure that whenever a quantifier $Q$ is placed in front of a formula $\psi$ from the set of semiformulas with parameter $n = k$ the resulting formula $Q \psi$ is a member of the set of semiformulas with parameter $n = k - 1$. So the only way to obtain a semiformula in the set with $n = k - 1$ is to either (i) place a quantifier in front of a semiformula from the set with $n = k$, all of which only require $k$ extra quantifiers before the formula is well-formed or (ii) construct a semiformula that only contains bound variables that require $k - 1$ quantifiers before the formula to make it well-formed. Hence, a semiformula from the set with $n = 0$ can be obtained by either (i) placing a quantifier in front of a semiformula from the set of semiformulas that only need $n = 1$ extra quantifier to make them well-formed or (ii) by constructing a semiformula that only contains bound variables that require $0 - 1 \in \mathbb{N}$, i.e. no, quantifiers to make it well-formed. This guarantees that all formulas in the set of semiformulas with $n = 0$ are well-formed.
+
+\begin{definition}[Term]\label{def:term}
+    \uses{def:fol}
+    \lean{FirstOrder.Language.Term}
+    \leanok
+    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language and $\alpha$ a set used to index free variables. Then the set of terms with respect to $\mathcal{L}$ and $\alpha$ denoted $\mathcal{T}(\mathcal{L},\alpha)$ is the smallest set such that
+        \begin{enumerate}
+            \item the set of variables with respect to $\alpha$ denoted $\mathcal{V}(\alpha) = \{x_i | i \in \alpha\} \subseteq \mathcal{T}(\mathcal{L},\alpha)$ and
+            \item for all $i \in \mathbb{N}$, if $f \in F(i)$ and $x_1,...,x_i \in \mathcal{T}(\mathcal{L},\alpha)$, then $f(x_1,...,x_i) \in \mathcal{T}(\mathcal{L},\alpha)$.
+        \end{enumerate}
+\end{definition}
 
 % \begin{definition}[semi-term]\label{def:sem-t}
 %     \uses{def:fol}
@@ -115,7 +122,21 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
 %     Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $\mathcal{T}_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
 % \end{definition}
 
-% Using the concept of semi-terms we then define semi-formulas, from which we can derive, by a process comparable to above, the notion of a full syntactic formula.
+The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormula}.
+
+\begin{definition}[BoundedFormula]\label{def:bf}
+    \uses{def:fol,def:term}
+    \lean{FirstOrder.Language.BoundedFormula}
+    \leanok
+    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\alpha$ a set indexing free variables, $n$ the intended number of variables bound by a quantifier and $\mathcal{T}(\mathcal{L}, \alpha \cup \{x_1,...,x_n\})$ a set of terms. Then, the set of bounded formulas with respect to these variables $\mathcal{B}(\mathcal{L},\alpha,n)$ is the smallest set such that
+    \begin{enumerate}
+        \item $\bot \in \mathcal{B}(\mathcal{L},\alpha,n)$,
+        \item if $t_1,t_2 \in \mathcal{T}(\mathcal{L}, \alpha \cup \{x_1,...,x_n\})$, then $t_1 = t_2 \in \mathcal{B}(\mathcal{L},\alpha,n)$,
+        \item for all $i \in \mathbb{N}$, if $P \in R(i)$ and $t_1,...,t_i \in \mathcal{T}(\mathcal{L}, \alpha \cup \{x_1,...,x_n\})$, then $P(t_1,...,t_i) \in \mathcal{B}(\mathcal{L},\alpha,n)$,
+        \item if $f_1,f_2 \in \mathcal{B}(\mathcal{L},\alpha,n)$, then $(f_1 \Rightarrow f_2) \in \mathcal{B}(\mathcal{L},\alpha,n)$ and
+        \item if $f \in \mathcal{B}(\mathcal{L},\alpha,n+1)$, then $\forall f \in \mathcal{B}(\mathcal{L},\alpha,n)$.
+    \end{enumerate}
+\end{definition}
 
 % \begin{definition}[semi-formula]\label{def:sem-f}
 %     \uses{def:fol,def:sem-t}
@@ -133,6 +154,24 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
 %         \item if $\varphi_1 \in B_{\mathcal{L},\xi,n+1}$, then $\texttt{ex}(\varphi_1) \in B_{\mathcal{L},\xi,n}$.
 %     \end{enumerate}
 % \end{definition}
+
+A \texttt{Formula} is defined as a \texttt{BoundedFormula} that has no variables that still need to be bound.
+
+\begin{definition}[Formula]\label{def:formula}
+    \uses{def:fol,def:bf}
+    \lean{FirstOrder.Language.Formula}
+    \leanok
+    Let $\mathcal{L}$ be a first-order language and $\alpha$ a set indexing variables. Then the set of formulas with respect to $\mathcal{L}$ and $\alpha$ denoted $\mathcal{F}(\mathcal{L},\alpha)$ is defined as the set of bounded formulas $\mathcal{B}(\mathcal{L},\alpha,0)$.
+\end{definition}
+
+A \texttt{Sentence} is then defined as a \texttt{Formula} that has no free variables.
+
+\begin{definition}[Formula]\label{def:formula}
+    \uses{def:fol,def:bf}
+    \lean{FirstOrder.Language.Formula}
+    \leanok
+    Let $\mathcal{L}$ be a first-order language. Then the set of sentences with respect to $\mathcal{L}$ denoted $\mathcal{S}(\mathcal{L})$ is defined as the set of formulas $\mathcal{F}(\mathcal{L},\emptyset)$.
+\end{definition}
 
 % \begin{definition}[syntactic formula]\label{def:syn-f}
 %     \uses{def:fol,def:sem-f}
