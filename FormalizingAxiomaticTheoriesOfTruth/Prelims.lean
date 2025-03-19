@@ -542,7 +542,7 @@ namespace PA
   def commutative : BoundedFormula ℒ (Fin 1) 0 :=
     ∀' ∀' ((&0 and &1) =' (&1 and &0))
 
-  def eq_forall : BoundedFormula ℒ (Fin 1) 1 :=
+  def eq_forall : BoundedFormula ℒ ℕ 1 :=
     ∀'(&0 =' forall &0)
 
 
@@ -579,14 +579,3 @@ namespace PA
   -- inductive axioms : Theory ℒ where
   -- | first :
 end PA
-
-open Languages
-
-def f1 : Sentence ℒ := ⊥
-def f1_list := BoundedFormula.listEncode f1
-def f1_list_code := Encodable.encodeList f1_list
-#eval f1_list_code
-
-def dflt : Sentence ℒ := L.null =' L.null
-def dflt_list := BoundedFormula.listEncode dflt
-#eval BoundedFormula.listDecode ((Encodable.decodeList f1_list_code).getD dflt_list)
