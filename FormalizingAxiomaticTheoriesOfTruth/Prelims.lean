@@ -542,7 +542,7 @@ namespace PA
   def commutative : BoundedFormula ℒ (Fin 1) 0 :=
     ∀' ∀' ((&0 and &1) =' (&1 and &0))
 
-  def eq_forall : BoundedFormula ℒ ℕ 1 :=
+  def eq_forall : BoundedFormula ℒ (Fin 1) 1 :=
     ∀'(&0 =' forall &0)
 
 
