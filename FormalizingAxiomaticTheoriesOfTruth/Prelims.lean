@@ -466,6 +466,13 @@ namespace Languages
     end Coding
   end L_T
 
+  section Coding
+    tonat {L : Language} : (Term L) ⊕ (BoundedFormula L) → ℕ :=
+      | .inl a => Encodable.listEncode (Term.encodeList a)
+      | .inr φ => Encodable.listEncode (BoundedFormula.encodeList φ)
+
+  end Encoding
+
   /-
   Some useful notation
   -/
