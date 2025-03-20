@@ -1,5 +1,6 @@
 import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
+import Mathlib.ModelTheory.Encoding
 
 open FirstOrder
 open Language
@@ -142,6 +143,121 @@ namespace Languages
     def numeral : ℕ → Term signature α
       | .zero => zero
       | .succ n => S(numeral n)
+
+    section Coding
+      def Func_enc : signature.Functions k → ℕ
+        | .zero => Nat.pair 0 0 + 1
+        | .succ => Nat.pair 1 0 + 1
+        | .denote => Nat.pair 1 1 + 1
+        | .exists => Nat.pair 1 2 + 1
+        | .forall => Nat.pair 1 3 + 1
+        | .neg => Nat.pair 1 4 + 1
+        | .num => Nat.pair 1 5 + 1
+        | .add => Nat.pair 2 0 + 1
+        | .mult => Nat.pair 2 1 + 1
+        | .cond => Nat.pair 2 2 + 1
+        | .disj => Nat.pair 2 3 + 1
+        | .conj => Nat.pair 2 4 + 1
+        | .subs => Nat.pair 3 0 + 1
+
+      def Func_dec : (n : ℕ) → Option (signature.Functions k)
+        | 0 => none
+        | e + 1 =>
+          match k with
+            | 0 =>
+              match e.unpair.2 with
+                | 0 => some (.zero)
+                | _ => none
+            | 1 =>
+              match e.unpair.2 with
+                | 0 => some (.succ)
+                | 1 => some (.denote)
+                | 2 => some (.exists)
+                | 3 => some (.forall)
+                | 4 => some (.neg)
+                | 5 => some (.num)
+                | _ => none
+            | 2 =>
+              match e.unpair.2 with
+                | 0 => some (.add)
+                | 1 => some (.mult)
+                | 2 => some (.cond)
+                | 3 => some (.disj)
+                | 4 => some (.conj)
+                | _ => none
+            | 3 =>
+              match e.unpair.2 with
+                | 0 => some (.subs)
+                | _ => none
+            | _ => none
+
+      lemma Func_enc_dec {k : ℕ}: ∀ f : signature.Functions k, Func_dec (Func_enc f) = (some f) := by
+        intro h
+        induction h
+        simp [Func_enc,Nat.pair,Func_dec]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+      instance enc_f (k : ℕ) : Encodable (signature.Functions k) where
+        encode := Func_enc
+        decode := Func_dec
+        encodek := Func_enc_dec
+
+      def Rel_enc : signature.Relations k → ℕ
+        | .var => Nat.pair 1 0 + 1
+        | .const => Nat.pair 1 1 + 1
+        | .term => Nat.pair 1 2 + 1
+        | .clterm => Nat.pair 1 3 + 1
+        | .forml => Nat.pair 1 4 + 1
+        | .sentencel => Nat.pair 1 5 + 1
+        | .formlt => Nat.pair 1 6 + 1
+        | .sentencelt => Nat.pair 1 7 + 1
+
+      def Rel_dec : (n : ℕ) → Option (signature.Relations k)
+        | 0 => none
+        | e + 1 =>
+          match k with
+            | 1 =>
+              match e.unpair.2 with
+                | 0 => some .var
+                | 1 => some .const
+                | 2 => some .term
+                | 3 => some .clterm
+                | 4 => some .forml
+                | 5 => some .sentencel
+                | 6 => some .formlt
+                | 7 => some .sentencelt
+                | _ => none
+            | _ => none
+
+      lemma Rel_enc_dec {k : ℕ}: ∀ f : signature.Relations k, Rel_dec (Rel_enc f) = (some f) := by
+        intro h
+        induction h
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+      instance enc_r (k : ℕ) : Encodable (signature.Relations k) where
+        encode := Rel_enc
+        decode := Rel_dec
+        encodek := Rel_enc_dec
+
+    end Coding
   end L
 
   namespace L_T
@@ -229,6 +345,125 @@ namespace Languages
     notation "FormLT(" t ")" => Formula.rel Rel.formlt ![t]
     notation "SentenceLT(" t ")" => Formula.rel Rel.sentencelt ![t]
     notation "ℒₜ" => signature
+
+    section Coding
+      def Func_enc : signature.Functions k → ℕ
+        | .zero => Nat.pair 0 0 + 1
+        | .succ => Nat.pair 1 0 + 1
+        | .denote => Nat.pair 1 1 + 1
+        | .exists => Nat.pair 1 2 + 1
+        | .forall => Nat.pair 1 3 + 1
+        | .neg => Nat.pair 1 4 + 1
+        | .num => Nat.pair 1 5 + 1
+        | .add => Nat.pair 2 0 + 1
+        | .mult => Nat.pair 2 1 + 1
+        | .cond => Nat.pair 2 2 + 1
+        | .disj => Nat.pair 2 3 + 1
+        | .conj => Nat.pair 2 4 + 1
+        | .subs => Nat.pair 3 0 + 1
+
+      def Func_dec : (n : ℕ) → Option (signature.Functions k)
+        | 0 => none
+        | e + 1 =>
+          match k with
+            | 0 =>
+              match e.unpair.2 with
+                | 0 => some (.zero)
+                | _ => none
+            | 1 =>
+              match e.unpair.2 with
+                | 0 => some (.succ)
+                | 1 => some (.denote)
+                | 2 => some (.exists)
+                | 3 => some (.forall)
+                | 4 => some (.neg)
+                | 5 => some (.num)
+                | _ => none
+            | 2 =>
+              match e.unpair.2 with
+                | 0 => some (.add)
+                | 1 => some (.mult)
+                | 2 => some (.cond)
+                | 3 => some (.disj)
+                | 4 => some (.conj)
+                | _ => none
+            | 3 =>
+              match e.unpair.2 with
+                | 0 => some (.subs)
+                | _ => none
+            | _ => none
+
+      lemma Func_enc_dec {k : ℕ}: ∀ f : signature.Functions k, Func_dec (Func_enc f) = (some f) := by
+        intro h
+        induction h
+        simp [Func_enc,Nat.pair,Func_dec]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+      instance enc_f (k : ℕ) : Encodable (signature.Functions k) where
+        encode := Func_enc
+        decode := Func_dec
+        encodek := Func_enc_dec
+
+      def Rel_enc : signature.Relations k → ℕ
+        | .var => Nat.pair 1 0 + 1
+        | .const => Nat.pair 1 1 + 1
+        | .term => Nat.pair 1 2 + 1
+        | .clterm => Nat.pair 1 3 + 1
+        | .forml => Nat.pair 1 4 + 1
+        | .sentencel => Nat.pair 1 5 + 1
+        | .formlt => Nat.pair 1 6 + 1
+        | .sentencelt => Nat.pair 1 7 + 1
+        | .t => Nat.pair 1 8 + 1
+
+      def Rel_dec : (n : ℕ) → Option (signature.Relations k)
+        | 0 => none
+        | e + 1 =>
+          match k with
+            | 1 =>
+              match e.unpair.2 with
+                | 0 => some .var
+                | 1 => some .const
+                | 2 => some .term
+                | 3 => some .clterm
+                | 4 => some .forml
+                | 5 => some .sentencel
+                | 6 => some .formlt
+                | 7 => some .sentencelt
+                | 8 => some .t
+                | _ => none
+            | _ => none
+
+      lemma Rel_enc_dec {k : ℕ}: ∀ f : signature.Relations k, Rel_dec (Rel_enc f) = (some f) := by
+        intro h
+        induction h
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+
+      instance enc_r (k : ℕ) : Encodable (signature.Relations k) where
+        encode := Rel_enc
+        decode := Rel_dec
+        encodek := Rel_enc_dec
+
+    end Coding
   end L_T
 
   /-
