@@ -516,15 +516,25 @@ namespace Calculus
   notation f " ↑' " n " at "  m => liftAt n m f
   notation f "↑" n => f ↑' n at 0
   notation A "/[" t "]" => subst A ![t]
-  inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
-  | axm Γ A : A ∈ Γ → prf Γ A
-  | impI Γ A B : prf (insert A Γ) B → prf Γ (A ⟹ B)
-  | impE Γ A B : prf Γ (A ⟹ B) → prf Γ A → prf Γ B
-  | falsumE Γ A : prf (insert ∼A Γ) ⊥ → prf Γ A
-  | allI Γ A : prf ((λf => f ↑ 1) '' Γ) A → prf Γ (∀' A)
-  | allE₂ Γ A t : prf Γ (∀' A) → prf Γ (A/[t])
-  | ref Γ t : prf Γ (t =' t')
-  | subst₂ Γ s t f : prf Γ (s =' t) → prf Γ (f/[s]) → prf Γ (f/[t])
+
+  def Derivable (T : Theory) Γ Σ :
+    | .ax Γ Σ : Γ ∩ Σ ≠ ∅
+    | .conjunction_L : Derivable Γ ∪ {A,B} Σ → Derivable Γ ∪ {A ∧' B} Σ
+    | etc.
+
+  def Syntax : Theory
+    | .first φ : neg_repres. φ
+
+  /- Below functions as inspiration -/
+  -- inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
+  -- | axm Γ A : A ∈ Γ → prf Γ A
+  -- | impI Γ A B : prf (insert A Γ) B → prf Γ (A ⟹ B)
+  -- | impE Γ A B : prf Γ (A ⟹ B) → prf Γ A → prf Γ B
+  -- | falsumE Γ A : prf (insert ∼A Γ) ⊥ → prf Γ A
+  -- | allI Γ A : prf ((λf => f ↑ 1) '' Γ) A → prf Γ (∀' A)
+  -- | allE₂ Γ A t : prf Γ (∀' A) → prf Γ (A/[t])
+  -- | ref Γ t : prf Γ (t =' t')
+  -- | subst₂ Γ s t f : prf Γ (s =' t) → prf Γ (f/[s]) → prf Γ (f/[t])
 end Calculus
 
 namespace PA
