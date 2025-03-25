@@ -513,14 +513,14 @@ end encoding
 namespace Calculus
   open Languages
   open BoundedFormula
+
+  /- Some notation -/
   notation f " ↑' " n " at "  m => liftAt n m f
   notation f "↑" n => f ↑' n at 0
   notation A "/[" t "," n "]" => subst A (fun k : ℕ => match k with
     | n => t
     | _ => Term.var k)
-  -- notation A "/[" t "]" => subst A ![t]
 
-  #check Theory ℒ
   variable {L : Language}{n : ℕ}{α : Type}
   def land (f₁ f₂: BoundedFormula L α n) :=
     ∼(f₁ ⟹ ∼f₂)
@@ -528,11 +528,6 @@ namespace Calculus
   def lor (f₁ f₂ : BoundedFormula L α n) :=
     (∼f₁ ⟹ f₂)
   notation f₁ "∨'" f₂ => lor f₁ f₂
-  def replace_bound_variable (φ : BoundedFormula L ℕ (n+1)) (t : Term L ℕ) : BoundedFormula L ℕ n :=
-    subst φ.toFormula (fun _ : α ⊕ Fin (1) => t)
-  notation A "//[" t "]" => replace_bound_variable A t
-  def g : (Empty ⊕ Fin 1) → Empty ⊕ Fin 1 :=
-    fun t => t
 
   /-- Shifts all variable references one down so one is pushed into
   the to-be-bound category -/
@@ -563,29 +558,20 @@ namespace Calculus
   instance : Coe (BoundedFormula L ℕ (n + 0)) (BoundedFormula L ℕ (0 + n)) where
     coe := m_add_eq_add_m
 
-
-  def f₁ : BoundedFormula ℒ ℕ 0 :=
-    #0 =' #1
-  def t₁ : Term ℒ ℕ :=
-    zero
-  #check f₁/[zero,1]
-  #eval f₁/[zero,1]
-  #check relabel shift_one_down f₁
-  def thing : BoundedFormula ℒ ℕ (0 + 1) := relabel shift_one_down f₁
-
-  #check ∀' thing
-  #eval ∀' thing
-  -- def B := relabel shift_one_down f₁
-  def f₂ : BoundedFormula ℒ ℕ 0 := ∀'(relabel shift_one_down f₁)
-
   /-- G3c sequent calculus -/
   inductive Derivable : (Theory L) → (Set (BoundedFormula L ℕ n)) → (Set (BoundedFormula L ℕ n)) → Type _ where
     | ax {Th Γ Δ}: ((Γ ∩ Δ) ≠ ∅) → (Derivable Th Γ Δ)
     | left_conjunction {A B} Th Γ Δ : Derivable Th (Γ ∪ {A, B}) Δ → Derivable Th (Γ ∪ {A ∧' B} ) Δ
-    | right_conjunction {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A}) → Derivable Th Γ (Δ ∪ {B}) → Derivable Th Γ (Δ ∪ {A ∧' B})
     | left_disjunction {A B} Th Γ Δ : Derivable Th (Γ ∪ {A}) Δ → Derivable Th (Γ ∪ {B}) Δ → Derivable Th (Γ ∪ {A ∨' B}) Δ
+    | left_implication {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A}) → Derivable Th ({B} ∪ Γ) Δ → Derivable Th ({A ⟹ B} ∪ Γ) Δ
+    | left_bot Th Γ Δ : Derivable Th ({⊥} ∪ Γ) Δ
+    | right_conjunction {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A}) → Derivable Th Γ (Δ ∪ {B}) → Derivable Th Γ (Δ ∪ {A ∧' B})
+    | right_disjunction {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A, B}) → Derivable Th Γ (Δ ∪ {A ∨' B})
+    | right_implication {A B} Th Γ Δ : Derivable Th ({A} ∪ Γ) (Δ ∪ {B}) → Derivable Th Γ (Δ ∪ {A ⟹ B})
     | left_forall {A : BoundedFormula L ℕ n} {B} {p : B = relabel shift_one_down A} {t} Th Γ Δ : Derivable Th (Γ ∪ {(A/[t,0]), (∀'B)}) Δ → Derivable Th (Γ ∪ {∀'B}) Δ
-    | left_exists {A B} Th Γ Δ : Derivable Th (((λf => (relabel shift_free_up f)) '' Γ) ∪ {A}) ((λf => (relabel shift_free_up f)) '' Δ) → B = (relabel shift_one_down A) → Derivable Th ({∃' B} ∪ Γ) Δ
+    | left_exists {A B} {p : B = (relabel shift_one_down A)} Th Γ Δ : Derivable Th (((λf => (relabel shift_free_up f)) '' Γ) ∪ {A}) ((λf => (relabel shift_free_up f)) '' Δ) → Derivable Th ({∃' B} ∪ Γ) Δ
+    | right_forall {A B} {p : B = (relabel shift_one_down A)} Th Γ Δ : Derivable Th ((λf => (relabel shift_free_up f)) '' Γ) (((λf => (relabel shift_free_up f)) '' Δ) ∪ {A}) → Derivable Th Γ (Δ ∪ {∀'B})
+    | right_exists {A : BoundedFormula L ℕ n} {B} {p : B = relabel shift_one_down A} {t} Th Γ Δ : Derivable Th Γ (Δ ∪ {∃'B, A/[t,0]}) → Derivable Th Γ (Δ  ∪ {∃'B})
 
   def f₁ : Sentence ℒ :=
     zero =' zero
