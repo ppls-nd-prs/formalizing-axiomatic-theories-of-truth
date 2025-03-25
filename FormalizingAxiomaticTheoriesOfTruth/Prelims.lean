@@ -558,6 +558,10 @@ namespace Calculus
   instance : Coe (BoundedFormula L ℕ (n + 0)) (BoundedFormula L ℕ (0 + n)) where
     coe := m_add_eq_add_m
 
+  /- TODO: make more compact by introducing function above with informative function
+  names to be used to do the below operation more intuitively
+  -/
+
   /-- G3c sequent calculus -/
   inductive Derivable : (Theory L) → (Set (BoundedFormula L ℕ n)) → (Set (BoundedFormula L ℕ n)) → Type _ where
     | ax {Th Γ Δ}: ((Γ ∩ Δ) ≠ ∅) → (Derivable Th Γ Δ)
