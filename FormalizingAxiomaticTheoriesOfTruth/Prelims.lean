@@ -515,7 +515,7 @@ namespace Calculus
   open BoundedFormula
   notation f " ↑' " n " at "  m => liftAt n m f
   notation f "↑" n => f ↑' n at 0
-  notation A "/[" t "]" => subst A ![t]
+  notation A "/[" t "]" => subst A (fun k => t)
   #check Theory ℒ
   variable {L : Language}{n : ℕ}{α : Type}
   def land (f₁ f₂: BoundedFormula L α n) :=
@@ -524,13 +524,33 @@ namespace Calculus
   def lor (f₁ f₂ : BoundedFormula L α n) :=
     (∼f₁ ⟹ f₂)
   notation f₁ "∨'" f₂ => lor f₁ f₂
-
-  inductive Derivable : (Theory L) → (Set (BoundedFormula L α n)) → (Set (BoundedFormula L α n)) → Type _ where
+  def replace_bound_variable (φ : BoundedFormula L α (n+1)) (t : Term L α) : BoundedFormula L α n :=
+    subst φ.toFormula (fun _ : α ⊕ Fin (1) => t)
+  notation A "//[" t "]" => replace_bound_variable A t
+  def g : (Empty ⊕ Fin 1) → Empty ⊕ Fin 1 :=
+    fun t => t
+  def g₂ : ℕ → ℕ ⊕ Fin 0
+    | .zero => .inl (.succ .zero)
+    | .succ n => .inl (.succ (n + 1))
+  def f₃ : BoundedFormula ℒ ℕ 1 :=
+    &0 =' #0
+  #check relabel g₂ f₃
+  def t₁ : Term ℒ (ℕ ⊕ Fin 1) :=
+    zero
+  #eval (relabel g₂ f₃)
+  #eval (relabel g₂ f₃)/[t₁]
+  #eval relabel g₂ (relabel g₂ f₃)
+  #eval f₃
+  #check f₃ ↑ 1
+  #eval (f₃ ↑ 1)
+  #check relabel
+  inductive Derivable : (Theory L) → (Set (BoundedFormula L α 0)) → (Set (BoundedFormula L α 0)) → Type _ where
     | ax {Th Γ Δ}: ((Γ ∩ Δ) ≠ ∅) → (Derivable Th Γ Δ)
     | left_conjunction {A B} Th Γ Δ : Derivable Th (Γ ∪ {A, B}) Δ → Derivable Th (Γ ∪ {A ∧' B} ) Δ
     | right_conjunction {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A}) → Derivable Th Γ (Δ ∪ {B}) → Derivable Th Γ (Δ ∪ {A ∧' B})
     | left_disjunction {A B} Th Γ Δ : Derivable Th (Γ ∪ {A}) Δ → Derivable Th (Γ ∪ {B}) Δ → Derivable Th (Γ ∪ {A ∨' B}) Δ
-    | left_forall {A : BoundedFormula L α (n+1)} {t} Th Γ Δ : Derivable Th (Γ ∪ {(A/[t]), (∀'A)}) Δ
+    | left_forall {A} {t} Th Γ Δ : Derivable Th (Γ ∪ {(A//[t]), (∀'A)}) Δ → Derivable Th (Γ ∪ {∀'A}) Δ
+    | left_exists {A : BoundedFormula L α 0} Th Γ Δ : Derivable Th (((λf => (relabel g₂ f)) '' Γ) ∪ {A}) Δ → Derivable Th (Γ ∪ {∃'(relabel g₂ A)}) Δ
 
   def f₁ : Sentence ℒ :=
     zero =' zero
@@ -544,6 +564,7 @@ namespace Calculus
       rw[gamma,delta]
       simp[Set.inter]
     apply Derivable.ax step1
+
 
 
 
