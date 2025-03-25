@@ -518,14 +518,29 @@ namespace Calculus
   notation A "/[" t "]" => subst A ![t]
   #check Theory ℒ
   variable {L : Language}
-  def land {n} (f₁ f₂: BoundedFormula L ℕ n) :=
+  def land {n : ℕ} {α : Type} (f₁ f₂: BoundedFormula L α n) :=
     ∼(f₁ ⟹ ∼f₂)
   notation f₁ "∧'" f₂ => land f₁ f₂
 
-  inductive Derivable {L : Language} {n : ℕ} : (Theory L) → (Set (BoundedFormula L ℕ n)) → (Set (BoundedFormula L ℕ n)) → Type _ where
-    | ax Th Γ Δ: ((Γ ∩ Δ) ≠ ∅) → (Derivable Th Γ Δ)
-    | conjunction_L {A B : BoundedFormula L ℕ n} Th Γ Δ : Derivable Th (Γ ∪ {A, B}) Δ → Derivable Th (Γ ∪ {A ∧' B} ) Δ
-    | etc.
+  inductive Derivable {L : Language} {α : Type} {n : ℕ} : (Theory L) → (Set (BoundedFormula L α n)) → (Set (BoundedFormula L α n)) → Type _ where
+    | ax {Th Γ Δ}: ((Γ ∩ Δ) ≠ ∅) → (Derivable Th Γ Δ)
+    | conjunction_L {A B : BoundedFormula L α n} Th Γ Δ : Derivable Th (Γ ∪ {A, B}) Δ → Derivable Th (Γ ∪ {A ∧' B} ) Δ
+
+  def f₁ : Sentence ℒ :=
+    zero =' zero
+  def f₂ : Sentence ℒ :=
+    S(zero) =' S(zero)
+  def T₁ : Theory ℒ := {f₁, f₁}
+  def gamma : Set (Sentence ℒ) := {f₂}
+  def delta : Set (Sentence ℒ) := {f₂}
+  example : Derivable T₁ gamma delta := by
+    have step1 : (gamma ∩ delta) ≠ ∅ := by
+      rw[gamma,delta]
+      simp[Set.inter]
+    apply Derivable.ax step1
+
+
+
 
   def Syntax : Theory
     | .first φ : neg_repres. φ
