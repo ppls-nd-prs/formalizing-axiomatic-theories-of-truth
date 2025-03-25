@@ -521,9 +521,11 @@ namespace Calculus
   def land {n} (f₁ f₂: BoundedFormula L ℕ n) :=
     ∼(f₁ ⟹ ∼f₂)
   notation f₁ "∧'" f₂ => land f₁ f₂
-  inductive Derivable {n} : (Theory ℒ) → (Set (BoundedFormula ℒ ℕ n)) → (Set (BoundedFormula ℒ ℕ n)) → Type _ where
+
+  inductive Derivable {L : Language} {n : ℕ} : (Theory L) → (Set (BoundedFormula L ℕ n)) → (Set (BoundedFormula L ℕ n)) → Type _ where
     | ax Th Γ Δ: ((Γ ∩ Δ) ≠ ∅) → (Derivable Th Γ Δ)
-    | conjunction_L {A B : BoundedFormula ℒ ℕ n} Th Γ Δ : Derivable Th (Set.insert B (Set.insert A Γ)) Δ → Derivable Th (Set.insert (A ∧' B) Γ) Δ
+    | conjunction_L {A B : BoundedFormula L ℕ n} Th Γ Δ : Derivable Th (Γ ∪ {A, B}) Δ → Derivable Th (Γ ∪ {A ∧' B} ) Δ
+    | etc.
 
   def Syntax : Theory
     | .first φ : neg_repres. φ
