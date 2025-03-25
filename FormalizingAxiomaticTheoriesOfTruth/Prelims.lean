@@ -517,14 +517,20 @@ namespace Calculus
   notation f "↑" n => f ↑' n at 0
   notation A "/[" t "]" => subst A ![t]
   #check Theory ℒ
-  variable {L : Language}
-  def land {n : ℕ} {α : Type} (f₁ f₂: BoundedFormula L α n) :=
+  variable {L : Language}{n : ℕ}{α : Type}
+  def land (f₁ f₂: BoundedFormula L α n) :=
     ∼(f₁ ⟹ ∼f₂)
   notation f₁ "∧'" f₂ => land f₁ f₂
+  def lor (f₁ f₂ : BoundedFormula L α n) :=
+    (∼f₁ ⟹ f₂)
+  notation f₁ "∨'" f₂ => lor f₁ f₂
 
-  inductive Derivable {L : Language} {α : Type} {n : ℕ} : (Theory L) → (Set (BoundedFormula L α n)) → (Set (BoundedFormula L α n)) → Type _ where
+  inductive Derivable : (Theory L) → (Set (BoundedFormula L α n)) → (Set (BoundedFormula L α n)) → Type _ where
     | ax {Th Γ Δ}: ((Γ ∩ Δ) ≠ ∅) → (Derivable Th Γ Δ)
-    | conjunction_L {A B : BoundedFormula L α n} Th Γ Δ : Derivable Th (Γ ∪ {A, B}) Δ → Derivable Th (Γ ∪ {A ∧' B} ) Δ
+    | left_conjunction {A B} Th Γ Δ : Derivable Th (Γ ∪ {A, B}) Δ → Derivable Th (Γ ∪ {A ∧' B} ) Δ
+    | right_conjunction {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A}) → Derivable Th Γ (Δ ∪ {B}) → Derivable Th Γ (Δ ∪ {A ∧' B})
+    | left_disjunction {A B} Th Γ Δ : Derivable Th (Γ ∪ {A}) Δ → Derivable Th (Γ ∪ {B}) Δ → Derivable Th (Γ ∪ {A ∨' B}) Δ
+    | left_forall {A : BoundedFormula L α (n+1)} {t} Th Γ Δ : Derivable Th (Γ ∪ {(A/[t]), (∀'A)}) Δ
 
   def f₁ : Sentence ℒ :=
     zero =' zero
