@@ -607,7 +607,6 @@ namespace Calculus
     ∀' ∼ (S(&0) =' zero)
   def T₁ : Theory ℒ := {f₁}
 
-  open Term
   def gamma : Set (Formula ℒ ℕ) := {bf_empty_to_bf_N f₂}
   def delta : Set (Formula ℒ ℕ) := {bf_empty_to_bf_N f₂}
   lemma derivable : Derivable gamma delta := by
@@ -624,82 +623,17 @@ namespace Calculus
       apply Derivable.lax
       simp
     apply Exists.intro Δ step1
-  def plero : Term ℒ ℕ :=
-    zero
   def A : Formula ℒ ℕ := ∼(S(#0) =' zero)
-  def G : Formula ℒ ℕ := A/[plero,0]
-  example : A/[plero,0] = ∼(S(zero) =' zero) := by
-    rw[A,plero]
+  def G : Formula ℒ ℕ := ∼(S(zero) =' zero)
+  #check mapTermRel_mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.zero ![]) 0) (var ∘ Sum.inr))) (fun x ↦ id) (fun x ↦ id)
+  lemma l₁ : mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.zero ![]) 0) (var ∘ Sum.inr))) =
+
+  example : A/[zero,0] = G := by
+    rw[A,G,BoundedFormula.subst]
+
     simp
 
-    rw[A,BoundedFormula.not,plero,BoundedFormula.subst]
-    have step1 : g₁ = fun t : Term P ℕ => fun k l : ℕ => ite (l = k) t (Term.var l) := by rfl
-    simp[Sum.inl]
-    simp[mapTermRel,g₁]
-    rw[BoundedFormula.not]
-    rw[mapTermRel.eq_def]
-    simp
-    apply And.intro
-    rw[Term.subst.eq_def]
-
-  #check A
-  #check G
-  #eval func L_PA.Func.succ ![var (Sum.inl 0)] =' func L_PA.Func.zero ![] ⟹ ⊥
-  example : A = G := by
-    rw[A,G,BoundedFormula.subst,plero,BoundedFormula.not]
-    simp
-    rw[A]
-    rw[Function.comp]
-
-
-
-
-
-
-  #eval mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ fun k ↦ match k with | 0 => func L.Func.zero ![] | x => var k) (var ∘ Sum.inr))) (fun x ↦ id) (fun x ↦ id) (func L.Func.succ ![var (Sum.inl 0)] =' func L.Func.zero ![])
-  #eval ding
-  def ding₂ : Formula ℒ ℕ := func L.Func.succ ![func L.Func.zero ![] ] =' func L.Func.zero ![]
-  #eval ding₂
-  example : ding = ding₂ := by
-    rw[ding,ding₂]
-    let test : Formula ℒ ℕ := S(zero) =' zero
-    have step1 : ding = test := by
-      rw[ding]
-      simp[test]
-      simp
-      rfl
-    rfl
-  #check (∼(func L.Func.succ ![(var ∘ Sum.inl) 0] =' func L.Func.zero ![])).subst ![func L.Func.zero ![] ]
-  #check subst A ![plero]
-  #eval subst A ![plero]
-  def B : Formula ℒ ℕ := A/[plero,0]
-  def G₂ : Formula ℒ ℕ := ∼(S(zero) =' zero)
-  #eval G
-  #check mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L.Func.zero ![]) 0) (var ∘ Sum.inr)))
-  def f₃ : Formula ℒ ℕ := mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L.Func.zero ![]) 0) (var ∘ Sum.inr))) (fun x ↦ id) (fun x ↦ id) (func L.Func.succ ![var (Sum.inl 0)] =' func L.Func.zero ![] ⟹ ⊥)
-  #eval f₃
-  def f₄ : Formula ℒ ℕ := ∼(func L.Func.succ ![func L.Func.zero ![] ] =' func L.Func.zero ![])
-  #eval f₄
-  example : f₃ = f₄ := by
-    let f₅ : Formula ℒ ℕ := f₃
-    let f₆ : Formula ℒ ℕ := f₄
-    rw[f₃] at f₅
-
-    rw[f₃,f₄]
-    simp
-  example : B = G := by
-    rw[B,G,A,BoundedFormula.subst,BoundedFormula.not,plero]
-    simp[g₁]
-
-    sorry
-
-
-
-
-
-
-  def f₃ : Formula ℒ ℕ := ∼ (S(zero) =' zero)
-  example : gamma ⊢ ∼ (S(zero) =' zero) := by
+  example : gamma ⊢ ∼(S(zero) =' zero) := by
     let A : Formula ℒ ℕ := ∼(S(#0) =' zero)
     let B : BoundedFormula ℒ ℕ 1 := A↓
     let Γ₁ : Set (Formula ℒ ℕ) :=
@@ -720,6 +654,7 @@ namespace Calculus
     let Γ₂ : Set (Formula ℒ ℕ) := {∀'∼(S(&0) =' zero)}
     let Δ₂ : Set (Formula ℒ ℕ) := {∼ (S(zero) =' zero)}
     apply Derivable.left_forall at step2
+
 
 
 
