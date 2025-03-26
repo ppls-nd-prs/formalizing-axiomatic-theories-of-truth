@@ -1,6 +1,7 @@
 import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
 import Mathlib.ModelTheory.Encoding
+import Mathlib.Data.Set.Enumerate
 
 open FirstOrder
 open Language
@@ -323,8 +324,8 @@ namespace Languages
     Some useful notation
     -/
     prefix:60 "T" => Formula.rel Rel.t
-    notation "S(" n ")" => Term.func Func.succ ![n]
-    notation "zero" => Term.func Func.zero ![]
+    -- notation "S(" n ")" => Term.func Func.succ ![n]
+    -- notation "zero" => Term.func Func.zero ![]
     notation n "add" m => Term.func Func.add ![n,m]
     notation n "times" m => Term.func Func.mult ![n,m]
     notation n "and" m => Term.func Func.conj ![n,m]
@@ -558,37 +559,91 @@ namespace Calculus
   instance : Coe (BoundedFormula L ℕ (n + 0)) (BoundedFormula L ℕ (0 + n)) where
     coe := m_add_eq_add_m
 
-  /- TODO: make more compact by introducing function above with informative function
-  names to be used to do the below operation more intuitively
-  -/
+  notation Δ"↑"  => (λf => (relabel shift_free_up f)) '' Δ
+  notation A"↓" => relabel shift_one_down A
 
   /-- G3c sequent calculus -/
-  inductive Derivable : (Theory L) → (Set (BoundedFormula L ℕ n)) → (Set (BoundedFormula L ℕ n)) → Type _ where
-    | ax {Th Γ Δ}: ((Γ ∩ Δ) ≠ ∅) → (Derivable Th Γ Δ)
-    | left_conjunction {A B} Th Γ Δ : Derivable Th (Γ ∪ {A, B}) Δ → Derivable Th (Γ ∪ {A ∧' B} ) Δ
-    | left_disjunction {A B} Th Γ Δ : Derivable Th (Γ ∪ {A}) Δ → Derivable Th (Γ ∪ {B}) Δ → Derivable Th (Γ ∪ {A ∨' B}) Δ
-    | left_implication {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A}) → Derivable Th ({B} ∪ Γ) Δ → Derivable Th ({A ⟹ B} ∪ Γ) Δ
-    | left_bot Th Γ Δ : Derivable Th ({⊥} ∪ Γ) Δ
-    | right_conjunction {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A}) → Derivable Th Γ (Δ ∪ {B}) → Derivable Th Γ (Δ ∪ {A ∧' B})
-    | right_disjunction {A B} Th Γ Δ : Derivable Th Γ (Δ ∪ {A, B}) → Derivable Th Γ (Δ ∪ {A ∨' B})
-    | right_implication {A B} Th Γ Δ : Derivable Th ({A} ∪ Γ) (Δ ∪ {B}) → Derivable Th Γ (Δ ∪ {A ⟹ B})
-    | left_forall {A : BoundedFormula L ℕ n} {B} {p : B = relabel shift_one_down A} {t} Th Γ Δ : Derivable Th (Γ ∪ {(A/[t,0]), (∀'B)}) Δ → Derivable Th (Γ ∪ {∀'B}) Δ
-    | left_exists {A B} {p : B = (relabel shift_one_down A)} Th Γ Δ : Derivable Th (((λf => (relabel shift_free_up f)) '' Γ) ∪ {A}) ((λf => (relabel shift_free_up f)) '' Δ) → Derivable Th ({∃' B} ∪ Γ) Δ
-    | right_forall {A B} {p : B = (relabel shift_one_down A)} Th Γ Δ : Derivable Th ((λf => (relabel shift_free_up f)) '' Γ) (((λf => (relabel shift_free_up f)) '' Δ) ∪ {A}) → Derivable Th Γ (Δ ∪ {∀'B})
-    | right_exists {A : BoundedFormula L ℕ n} {B} {p : B = relabel shift_one_down A} {t} Th Γ Δ : Derivable Th Γ (Δ ∪ {∃'B, A/[t,0]}) → Derivable Th Γ (Δ  ∪ {∃'B})
+  inductive Derivable : (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Prop where
+    | lax {Γ Δ} : ((Γ ∩ Δ) ≠ ∅) → (Derivable Γ Δ)
+    | left_conjunction {A B Γ Δ} : Derivable (Γ ∪ {A, B}) Δ → Derivable (Γ ∪ {A ∧' B} ) Δ
+    | left_disjunction {A B Γ Δ} : Derivable (Γ ∪ {A}) Δ → Derivable (Γ ∪ {B}) Δ → Derivable (Γ ∪ {A ∨' B}) Δ
+    | left_implication {A B Γ Δ} : Derivable Γ (Δ ∪ {A}) → Derivable ({B} ∪ Γ) Δ → Derivable ({A ⟹ B} ∪ Γ) Δ
+    | left_bot {Γ Δ} : Derivable ({⊥} ∪ Γ) Δ
+    | right_conjunction {A B Γ Δ} : Derivable Γ (Δ ∪ {A}) → Derivable Γ (Δ ∪ {B}) → Derivable Γ (Δ ∪ {A ∧' B})
+    | right_disjunction {A B Γ Δ} : Derivable Γ (Δ ∪ {A, B}) → Derivable Γ (Δ ∪ {A ∨' B})
+    | right_implication {A B Γ Δ} : Derivable ({A} ∪ Γ) (Δ ∪ {B}) → Derivable Γ (Δ ∪ {A ⟹ B})
+    | left_forall {A : Formula L ℕ} {B} {p : B = A↓} {t Γ Δ} : Derivable (Γ ∪ {(A/[t,0]), (∀'B)}) Δ → Derivable (Γ ∪ {∀'B}) Δ
+    | left_exists {A B Γ Δ} {p : B = A↓} : Derivable ((Γ↑) ∪ {A}) (Δ↑) → Derivable ({∃' B} ∪ Γ) Δ
+    | right_forall {A B Γ Δ} {p : B = A↓} : Derivable (Γ↑) ((Δ↑) ∪ {A}) → Derivable Γ (Δ ∪ {∀'B})
+    | right_exists {A : Formula L ℕ} {B t Γ Δ} {p : B = A↓} : Derivable Γ (Δ ∪ {∃'B, A/[t,0]}) → Derivable Γ (Δ  ∪ {∃'B})
+
+  def sent_term_to_formula_term : Term L (Empty ⊕ Fin n) → Term L (ℕ ⊕ Fin n)
+      | .var n => match n with
+        | .inl _ => .var (.inl Nat.zero)
+        | .inr k => .var (.inr k)
+      | .func f ts => .func f (fun i => sent_term_to_formula_term (ts i))
+  instance : Coe (Term L (Empty ⊕ Fin n)) (Term L (ℕ ⊕ Fin n)) where
+    coe := sent_term_to_formula_term
+  def bf_empty_to_bf_N : ∀{n}, BoundedFormula L Empty n → BoundedFormula L ℕ n
+      | _, .falsum => .falsum
+      | _, .equal t₁ t₂ => .equal t₁ t₂
+      | _, .rel R ts => .rel R (fun i => ts i)
+      | _, .imp f₁ f₂ => .imp (bf_empty_to_bf_N f₁) (bf_empty_to_bf_N f₂)
+      | _, .all f => .all (bf_empty_to_bf_N f)
+  instance : Coe (Sentence L) (Formula L ℕ) where
+    coe := bf_empty_to_bf_N
+  instance : Coe (Theory L) (Set (Formula L ℕ)) where
+    coe := fun Th : Theory L => bf_empty_to_bf_N '' Th
+
+  def proves (Th : Theory L) (f : Formula L ℕ) : Prop :=
+    ∃Δ: Set (Formula L ℕ), ∃_: Derivable Th (Δ ∪ {f}), ⊤
+  notation Th " ⊢ " f => proves Th f
 
   def f₁ : Sentence ℒ :=
     zero =' zero
-  def f₂ : Formula ℒ ℕ :=
-    S(zero) =' S(zero)
+  def f₂ : Sentence ℒ :=
+    ∀' ∼ (S(&0) =' zero)
   def T₁ : Theory ℒ := {f₁, f₁}
-  def gamma : Set (Formula ℒ ℕ) := {f₂}
+
+  def gamma : Theory ℒ := {f₂}
   def delta : Set (Formula ℒ ℕ) := {f₂}
-  example : Derivable T₁ gamma delta := by
+  lemma derivable : Derivable gamma delta := by
     have step1 : (gamma ∩ delta) ≠ ∅ := by
       rw[gamma,delta]
       simp[Set.inter]
-    apply Derivable.ax step1
+    apply Derivable.lax step1
+  example : T₁ ⊢ f₁ := by
+    rw[proves]
+    simp
+    let Δ : Set (Formula ℒ ℕ) := ∅
+    have step1 : Derivable (bf_empty_to_bf_N '' T₁) (insert (bf_empty_to_bf_N f₁) ∅) := by
+      rw[T₁]
+      apply Derivable.lax
+      simp
+    apply Exists.intro Δ step1
+
+
+  def f₃ : Formula ℒ ℕ := ∼ (S(zero) =' zero)
+  example : gamma ⊢ ∼ (S(zero) =' zero) := by
+    let Γ₁ : Set (Formula ℒ ℕ) :=
+      {∼(S(zero) =' zero),∀'∼(S(&0) =' zero)}
+    let Δ₁ : Set (Formula ℒ ℕ) :=
+      {∼(S(zero) =' zero)}
+    have step1 : Γ ∩ Δ ≠ ∅ := by
+      simp[Γ,Δ]
+    have step2 : Derivable Γ Δ := by
+      apply Derivable.lax step1
+    let Γ₂ : Set (Formula ℒ ℕ) :=
+    have step3 : Derivable {∀'∼(S(&0) =' zero)} {∼ (S(zero) =' zero)} := by
+
+
+
+    sorry
+
+
+
+
+
 
 
 
