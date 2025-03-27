@@ -572,19 +572,19 @@ namespace Calculus
   notation A"↓" => relabel shift_one_down A
 
   /-- G3c sequent calculus -/
-  inductive Derivable : (Set (Formula P ℕ)) → (Set (Formula P ℕ)) → Prop where
-    | lax {Γ Δ} : ((Γ ∩ Δ) ≠ ∅) → (Derivable Γ Δ)
-    | left_conjunction {A B Γ Δ} : Derivable (Γ ∪ {A, B}) Δ → Derivable (Γ ∪ {A ∧' B} ) Δ
-    | left_disjunction {A B Γ Δ} : Derivable (Γ ∪ {A}) Δ → Derivable (Γ ∪ {B}) Δ → Derivable (Γ ∪ {A ∨' B}) Δ
-    | left_implication {A B Γ Δ} : Derivable Γ (Δ ∪ {A}) → Derivable ({B} ∪ Γ) Δ → Derivable ({A ⟹ B} ∪ Γ) Δ
-    | left_bot {Γ Δ} : Derivable ({⊥} ∪ Γ) Δ
-    | right_conjunction {A B Γ Δ} : Derivable Γ (Δ ∪ {A}) → Derivable Γ (Δ ∪ {B}) → Derivable Γ (Δ ∪ {A ∧' B})
-    | right_disjunction {A B Γ Δ} : Derivable Γ (Δ ∪ {A, B}) → Derivable Γ (Δ ∪ {A ∨' B})
-    | right_implication {A B Γ Δ} : Derivable ({A} ∪ Γ) (Δ ∪ {B}) → Derivable Γ (Δ ∪ {A ⟹ B})
-    | left_forall {A : Formula P ℕ} {B} {p : B = A↓} {t Γ Δ} : Derivable (Γ ∪ {(A/[t]), (∀'B)}) Δ → Derivable (Γ ∪ {∀'B}) Δ
-    | left_exists {A B Γ Δ} {p : B = A↓} : Derivable ((Γ↑) ∪ {A}) (Δ↑) → Derivable ({∃' B} ∪ Γ) Δ
-    | right_forall {A B Γ Δ} {p : B = A↓} : Derivable (Γ↑) ((Δ↑) ∪ {A}) → Derivable Γ (Δ ∪ {∀'B})
-    | right_exists {A : Formula P ℕ} {B t Γ Δ} {p : B = A↓} : Derivable Γ (Δ ∪ {∃'B, A/[t]}) → Derivable Γ (Δ  ∪ {∃'B})
+  inductive Derivation : (Set (Formula P ℕ)) → (Set (Formula P ℕ)) → Type _ where
+    | lax {Γ Δ} : ((Γ ∩ Δ) ≠ ∅) → (Derivation Γ Δ)
+    | left_conjunction {A B Γ Δ} : Derivation (Γ ∪ {A, B}) Δ → Derivation (Γ ∪ {A ∧' B} ) Δ
+    | left_disjunction {A B Γ Δ} : Derivation (Γ ∪ {A}) Δ → Derivation (Γ ∪ {B}) Δ → Derivation (Γ ∪ {A ∨' B}) Δ
+    | left_implication {A B Γ Δ} : Derivation Γ (Δ ∪ {A}) → Derivation ({B} ∪ Γ) Δ → Derivation ({A ⟹ B} ∪ Γ) Δ
+    | left_bot {Γ Δ} : Derivation ({⊥} ∪ Γ) Δ
+    | right_conjunction {A B Γ Δ} : Derivation Γ (Δ ∪ {A}) → Derivation Γ (Δ ∪ {B}) → Derivation Γ (Δ ∪ {A ∧' B})
+    | right_disjunction {A B Γ Δ} : Derivation Γ (Δ ∪ {A, B}) → Derivation Γ (Δ ∪ {A ∨' B})
+    | right_implication {A B Γ Δ} : Derivation ({A} ∪ Γ) (Δ ∪ {B}) → Derivation Γ (Δ ∪ {A ⟹ B})
+    | left_forall {A : Formula P ℕ} {B} {p : B = A↓} {t Γ Δ} : Derivation (Γ ∪ {(A/[t]), (∀'B)}) Δ → Derivation (Γ ∪ {∀'B}) Δ
+    | left_exists {A B Γ Δ} {p : B = A↓} : Derivation ((Γ↑) ∪ {A}) (Δ↑) → Derivation ({∃' B} ∪ Γ) Δ
+    | right_forall {A B Γ Δ} {p : B = A↓} : Derivation (Γ↑) ((Δ↑) ∪ {A}) → Derivation Γ (Δ ∪ {∀'B})
+    | right_exists {A : Formula P ℕ} {B t Γ Δ} {p : B = A↓} : Derivation Γ (Δ ∪ {∃'B, A/[t]}) → Derivation Γ (Δ  ∪ {∃'B})
 
   def sent_term_to_formula_term : Term P (Empty ⊕ Fin n) → Term P (ℕ ⊕ Fin n)
       | .var n => match n with
@@ -605,7 +605,7 @@ namespace Calculus
     coe := fun Th : Theory P => bf_empty_to_bf_N '' Th
 
   def proves (Th : Theory P) (f : Formula P ℕ) : Prop :=
-    ∃Δ: Set (Formula P ℕ), ∃_: Derivable Th (Δ ∪ {f}), ⊤
+    ∃Δ: Set (Formula P ℕ), ∃_: Derivation Th (Δ ∪ {f}), ⊤
   notation Th " ⊢ " f => proves Th f
 end Calculus
 
