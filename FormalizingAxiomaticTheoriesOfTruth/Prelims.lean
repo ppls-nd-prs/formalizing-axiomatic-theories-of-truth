@@ -572,12 +572,13 @@ namespace Calculus
   notation A"↓" => relabel shift_one_down A
 
   /-- G3c sequent calculus -/
-  inductive Derivation : (Set (Formula P ℕ)) → (Set (Formula P ℕ)) → Type _ where
-    | lax {Γ Δ} : ((Γ ∩ Δ) ≠ ∅) → (Derivation Γ Δ)
-    | left_conjunction {A B Γ Δ} : Derivation (Γ ∪ {A, B}) Δ → Derivation (Γ ∪ {A ∧' B} ) Δ
-    | left_disjunction {A B Γ Δ} : Derivation (Γ ∪ {A}) Δ → Derivation (Γ ∪ {B}) Δ → Derivation (Γ ∪ {A ∨' B}) Δ
-    | left_implication {A B Γ Δ} : Derivation Γ (Δ ∪ {A}) → Derivation ({B} ∪ Γ) Δ → Derivation ({A ⟹ B} ∪ Γ) Δ
-    | left_bot {Γ Δ} : Derivation ({⊥} ∪ Γ) Δ
+  inductive Derivation : (Theory P) → (Set (Formula P ℕ)) → (Set (Formula P ℕ)) → Type _ where
+    | tax {f Δ Th} : (f ∈ Th) → Derivation Th ∅ (Δ ∪ {f})
+    | lax {Γ Δ Th} : ((Γ ∩ Δ) ≠ ∅) → (Derivation Th Γ Δ)
+    | left_conjunction {A B Γ Δ Th} : Derivation Th (Γ ∪ {A, B}) Δ → Derivation Th (Γ ∪ {A ∧' B} ) Δ
+    | left_disjunction {A B Γ Δ Th} : Derivation Th (Γ ∪ {A}) Δ → Derivation Th (Γ ∪ {B}) Δ → Derivation Th (Γ ∪ {A ∨' B}) Δ
+    | left_implication {A B Γ Δ Th} : Derivation Th Γ (Δ ∪ {A}) → Derivation Th ({B} ∪ Γ) Δ → Derivation Th ({A ⟹ B} ∪ Γ) Δ
+    | left_bot {Γ Δ Th} : Derivation Th ({⊥} ∪ Γ) Δ
     | right_conjunction {A B Γ Δ} : Derivation Γ (Δ ∪ {A}) → Derivation Γ (Δ ∪ {B}) → Derivation Γ (Δ ∪ {A ∧' B})
     | right_disjunction {A B Γ Δ} : Derivation Γ (Δ ∪ {A, B}) → Derivation Γ (Δ ∪ {A ∨' B})
     | right_implication {A B Γ Δ} : Derivation ({A} ∪ Γ) (Δ ∪ {B}) → Derivation Γ (Δ ∪ {A ⟹ B})
