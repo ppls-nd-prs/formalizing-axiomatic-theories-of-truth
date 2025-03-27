@@ -20,7 +20,17 @@ namespace Term
   variable [∀ k, ToString (L.Functions k)] [ToString α] [ToString β]
 
   section ToString
-    def toStr : Term L (α ⊕ β) → String :=
+    def toStr : Term L ℕ → String :=
+      fun t : Term L ℕ =>
+        match t with
+        | .var k => "⬝" ++ toString k
+        | .func (l := 0) c _ => toString c
+        | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr (ts i)) ++ ")"
+
+    instance : Repr (Term L ℕ) := ⟨fun t _ => toStr t⟩
+    instance : ToString (Term L ℕ) := ⟨toStr⟩
+
+    def toStr_oplus : Term L (α ⊕ β) → String :=
       fun t : Term L (α ⊕ β) =>
         match t with
         | .var k =>
@@ -28,10 +38,10 @@ namespace Term
             | (Sum.inl l) => "#" ++ toString l
             | (Sum.inr l) => "&" ++ toString l
         | .func (l := 0) c _ => toString c
-        | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr (ts i)) ++ ")"
+        | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr_oplus (ts i)) ++ ")"
 
-    instance : Repr (Term L (α ⊕ β)) := ⟨fun t _ => toStr t⟩
-    instance : ToString (Term L (α ⊕ β)) := ⟨toStr⟩
+    instance : Repr (Term L (α ⊕ β)) := ⟨fun t _ => toStr_oplus t⟩
+    instance : ToString (Term L (α ⊕ β)) := ⟨toStr_oplus⟩
   end ToString
 end Term
 
@@ -518,9 +528,9 @@ namespace Calculus
   /- Some notation -/
   notation f " ↑' " n " at "  m => liftAt n m f
   notation f "↑" n => f ↑' n at 0
-  def g₁ : (Term P ℕ) → ℕ → ℕ → (Term P ℕ) :=
-    fun t : Term P ℕ => (fun k : ℕ => (fun l : ℕ => ite (l = k) t (Term.var l)))
-  notation A "/[" t "," n "]" => subst A (g₁ t n)
+  def g₁ : (Term P ℕ) → ℕ → (Term P ℕ) :=
+    fun t : Term P ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
+  notation A "/[" t "]" => subst A (g₁ t)
 
   def land (f₁ f₂: BoundedFormula P α n) :=
     ∼(f₁ ⟹ ∼f₂)
@@ -571,10 +581,10 @@ namespace Calculus
     | right_conjunction {A B Γ Δ} : Derivable Γ (Δ ∪ {A}) → Derivable Γ (Δ ∪ {B}) → Derivable Γ (Δ ∪ {A ∧' B})
     | right_disjunction {A B Γ Δ} : Derivable Γ (Δ ∪ {A, B}) → Derivable Γ (Δ ∪ {A ∨' B})
     | right_implication {A B Γ Δ} : Derivable ({A} ∪ Γ) (Δ ∪ {B}) → Derivable Γ (Δ ∪ {A ⟹ B})
-    | left_forall {A : Formula P ℕ} {B} {p : B = A↓} {t Γ Δ} : Derivable (Γ ∪ {(A/[t,0]), (∀'B)}) Δ → Derivable (Γ ∪ {∀'B}) Δ
+    | left_forall {A : Formula P ℕ} {B} {p : B = A↓} {t Γ Δ} : Derivable (Γ ∪ {(A/[t]), (∀'B)}) Δ → Derivable (Γ ∪ {∀'B}) Δ
     | left_exists {A B Γ Δ} {p : B = A↓} : Derivable ((Γ↑) ∪ {A}) (Δ↑) → Derivable ({∃' B} ∪ Γ) Δ
     | right_forall {A B Γ Δ} {p : B = A↓} : Derivable (Γ↑) ((Δ↑) ∪ {A}) → Derivable Γ (Δ ∪ {∀'B})
-    | right_exists {A : Formula P ℕ} {B t Γ Δ} {p : B = A↓} : Derivable Γ (Δ ∪ {∃'B, A/[t,0]}) → Derivable Γ (Δ  ∪ {∃'B})
+    | right_exists {A : Formula P ℕ} {B t Γ Δ} {p : B = A↓} : Derivable Γ (Δ ∪ {∃'B, A/[t]}) → Derivable Γ (Δ  ∪ {∃'B})
 
   def sent_term_to_formula_term : Term P (Empty ⊕ Fin n) → Term P (ℕ ⊕ Fin n)
       | .var n => match n with
@@ -598,6 +608,50 @@ namespace Calculus
     ∃Δ: Set (Formula P ℕ), ∃_: Derivable Th (Δ ∪ {f}), ⊤
   notation Th " ⊢ " f => proves Th f
 
+  def subst (t : Term P ℕ) (g : (ℕ ⊕ Fin k) → Term P (ℕ ⊕ Fin k)) : BoundedFormula P ℕ k → BoundedFormula P ℕ k
+    | .falsum => .falsum
+    | .equal t₁ t₂ => .equal (Term.subst t₁ (g₁ t)) (Term.subst t₂ g)
+    | .rel R ts => .rel R (fun i => Term.subst (ts i) g)
+    | .imp f₁ f₂ => .imp (subst t g f₁) (subst t g f₂)
+    | .all f => .all (subst t g f) (subst t g f)
+
+
+  def f₁ : Formula ℒ ℕ :=
+    #0 =' #1
+  def t₁ : Term ℒ ℕ :=
+    S(zero)
+  #eval f₁/[t₁]
+
+  def f₂ : Formula ℒ ℕ := mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.succ ![func L_PA.Func.zero ![] ])) (var ∘ Sum.inr))) (fun x ↦ id) (fun x ↦ id) (var (Sum.inl 0) =' var (Sum.inl 1))
+  #eval f₂
+  example : f₁/[t₁] = (S(zero) =' #1) := by
+
+    rw[mapTermRel_id_id_id]
+    rw[f₁,t₁,subst]
+    simp
+
+
+
+  def t₁ : Term ℒ ℕ :=
+    S(zero)
+  def t₂ : Term ℒ ℕ :=
+    S(zero)
+  def t₃ : Term ℒ (ℕ ⊕ Fin 1) :=
+    (func L_PA.Func.zero ![])
+
+
+
+  lemma l₁ : (Term.relabel Sum.inl (g₁ (func L_PA.Func.zero ![]) 0)) = t₃ := by
+    rw[t₃,g₁]
+    simp[Term.relabel]
+    trivial
+
+  lemma l₂ : t₁.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.zero ![])) (var ∘ Sum.inr)) = zero := by
+    rw[t₁]
+
+
+  def f₅ : Formula ℒ ℕ :=
+    ∀' ∼ (S(&0) =' t₁)
 
   def f₁ : Sentence ℒ :=
     ∀' (zero =' &0)
@@ -626,12 +680,51 @@ namespace Calculus
   def A : Formula ℒ ℕ := ∼(S(#0) =' zero)
   def G : Formula ℒ ℕ := ∼(S(zero) =' zero)
   #check mapTermRel_mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.zero ![]) 0) (var ∘ Sum.inr))) (fun x ↦ id) (fun x ↦ id)
-  lemma l₁ : mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.zero ![]) 0) (var ∘ Sum.inr))) =
+  -- lemma l₁ : mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.zero ![]) 0) (var ∘ Sum.inr))) =
 
-  example : A/[zero,0] = G := by
-    rw[A,G,BoundedFormula.subst]
+  def subst (f : BoundedFormula L ℕ n) (t : Term L (ℕ ⊕ Fin n)) : BoundedFormula L ℕ n
+    | .falsum => .falsum
+    | .equal t₁ t₂ =>
+  def f₆ : BoundedFormula ℒ ℕ 0 :=
+    #0 =' #1
+  def t₆ : Term ℒ ℕ :=
+    zero
+  def g : ℕ → Term ℒ ℕ :=
+    fun k : ℕ => ite (k = 0) t₆ (Term.var k)
+  def f₇ : BoundedFormula ℒ ℕ 0 :=
+    subst f₆ g
+  def f₈ : BoundedFormula ℒ ℕ 0 :=
+    zero =' #1
+  def ding : BoundedFormula ℒ ℕ 0 := mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g) (var ∘ Sum.inr))) (fun x ↦ id) (fun x ↦ id) ((var ∘ Sum.inl) 0 =' (var ∘ Sum.inl) 1)
+  lemma l₂ : f₇ = falsum := by
+    rw[f₇,f₆,subst]
+    trivial
 
+  variable {f₁ f₂: Formula ℒ ℕ}
+  lemma l₃ : subst f₆ g = f₆.mapTermRel (fun _ t => t.subst (Sum.elim (Term.relabel Sum.inl ∘ g) (var ∘ Sum.inr))) (fun _ => id) fun _ => id := by
+    rfl
+  lemma l₄ : (f₆.mapTermRel (fun _ t => t.subst (Sum.elim (Term.relabel Sum.inl ∘ g) (var ∘ Sum.inr))) (fun _ => id) (fun _ => id)) = f₈ := by
+    rw[f₆,f₈]
     simp
+
+
+
+
+
+
+
+
+  #eval mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.succ ![t₁])) (var ∘ Sum.inr)))
+
+  example : A/[t₁] = G := by
+    rw[A,G]
+    simp[l₃,BoundedFormula.not]
+    trivial
+
+
+    rw[A,G,BoundedFormula.subst,t₁]
+    have step1 : mapTermRel (fun x t ↦ t.subst (Sum.elim (Term.relabel Sum.inl ∘ g₁ (func L_PA.Func.succ ![func L_PA.Func.zero ![] ])) (var ∘ Sum.inr))) =
+
 
   example : gamma ⊢ ∼(S(zero) =' zero) := by
     let A : Formula ℒ ℕ := ∼(S(#0) =' zero)
@@ -687,7 +780,7 @@ end Calculus
 
 namespace PA
   open Languages
-  open L
+  open L_PA
   open L_T
 
   /-
