@@ -22,7 +22,9 @@
       - [x] Predicates: $Tr$
       - [X] Terms: $add,mult,succ,null$ 
   - [X] Implement the homomorphism from $\mathcal{L}_{PA}\to \mathcal{L}_T$
-- [ ] Get encoding functions
+- [X] Get encoding functions
+- [ ] Bugfix toString function
+  - [ ] BoundedFormulas with free-variable indexing Empty cannot be printed
 - [ ] Proof theory
   - [ ] Hilbert calculus
     - [X] Theory: `FirstOrder.Language.Theory` from `Mathlib.ModelTheory.Syntax`

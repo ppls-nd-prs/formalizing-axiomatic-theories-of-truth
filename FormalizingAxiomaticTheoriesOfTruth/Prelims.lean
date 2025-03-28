@@ -2,6 +2,7 @@ import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
 import Mathlib.ModelTheory.Encoding
 import Mathlib.Data.Set.Enumerate
+import Mathlib.Logic.Equiv.List
 
 open FirstOrder
 open Language
@@ -476,6 +477,23 @@ namespace Languages
 
     end Coding
   end L_T
+
+  section Coding
+    /-- Encodes terms as natural numbers -/
+    def term_tonat {n : ℕ} : Term ℒ (ℕ ⊕ (Fin n)) → ℕ :=
+      fun t => Encodable.encodeList (Term.listEncode t)
+    /-- Encodes BoundedFormulas as natural numbers -/
+    def formula_tonat {n : ℕ} : BoundedFormula ℒ ℕ n → ℕ :=
+      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
+
+    def t₁ : Term ℒ (ℕ ⊕ Fin 0) :=
+      #0
+    def f₁ : BoundedFormula ℒ ℕ 0 :=
+      t₁ =' t₁
+
+    #eval term_tonat t₁ -- output : 1
+    #eval formula_tonat f₁ -- output : 52
+  end Coding
 
   /-
   Some useful notation
