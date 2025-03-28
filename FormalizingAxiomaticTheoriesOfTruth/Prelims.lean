@@ -563,6 +563,23 @@ namespace PA
   def eq_forall : BoundedFormula ℒ (Fin 1) 1 :=
     ∀'(&0 =' forall &0)
 
+namespace PA
+  /-- The induction function for ℒₚₐ -/
+  def induction (φ : BoundedFormula ℒₚₐ Empty 1) : Sentence ℒₚₐ :=
+    ∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ (relabel g (φ.toFormula/[S(&0)])))))) ⟹ ∀'(φ)
+
+  /-- Peano arithemtic -/
+  inductive peano_arithmetic : Theory ℒₚₐ where
+  | first : peano_arithmetic (∀' ∼(LPA.null =' S(&0)))
+  | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
+  | third : peano_arithmetic (∀' ((&0 add LPA.null) =' &0))
+  | fourth : peano_arithmetic (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
+  | fifth : peano_arithmetic (∀' ((&0 times LPA.null) =' LPA.null))
+  | sixth : peano_arithmetic (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
+  | induction (φ) : peano_arithmetic (induction φ)
+
+  notation "𝐏𝐀" => peano_arithmetic
+
 
   -- /-
   -- Running into trouble with the indexing typing in combination with substitution.
