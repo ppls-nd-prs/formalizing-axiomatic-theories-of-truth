@@ -1,6 +1,7 @@
 import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
 import Mathlib.ModelTheory.Encoding
+import Mathlib.Data.Set.Enumerate
 import Mathlib.Logic.Equiv.List
 
 open FirstOrder
@@ -20,7 +21,17 @@ namespace Term
   variable [∀ k, ToString (L.Functions k)] [ToString α] [ToString β]
 
   section ToString
-    def toStr : Term L (α ⊕ β) → String :=
+    def toStr : Term L ℕ → String :=
+      fun t : Term L ℕ =>
+        match t with
+        | .var k => "⬝" ++ toString k
+        | .func (l := 0) c _ => toString c
+        | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr (ts i)) ++ ")"
+
+    instance : Repr (Term L ℕ) := ⟨fun t _ => toStr t⟩
+    instance : ToString (Term L ℕ) := ⟨toStr⟩
+
+    def toStr_oplus : Term L (α ⊕ β) → String :=
       fun t : Term L (α ⊕ β) =>
         match t with
         | .var k =>
@@ -28,10 +39,10 @@ namespace Term
             | (Sum.inl l) => "#" ++ toString l
             | (Sum.inr l) => "&" ++ toString l
         | .func (l := 0) c _ => toString c
-        | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr (ts i)) ++ ")"
+        | .func (l := _ + 1) f ts => toString f ++ "(" ++ String.vecToStr (fun i => toStr_oplus (ts i)) ++ ")"
 
-    instance : Repr (Term L (α ⊕ β)) := ⟨fun t _ => toStr t⟩
-    instance : ToString (Term L (α ⊕ β)) := ⟨toStr⟩
+    instance : Repr (Term L (α ⊕ β)) := ⟨fun t _ => toStr_oplus t⟩
+    instance : ToString (Term L (α ⊕ β)) := ⟨toStr_oplus⟩
   end ToString
 end Term
 
@@ -531,18 +542,92 @@ end encoding
 namespace Calculus
   open Languages
   open BoundedFormula
+  variable {L : Language}{n : ℕ}{α : Type}
+  /- Some notation -/
   notation f " ↑' " n " at "  m => liftAt n m f
   notation f "↑" n => f ↑' n at 0
-  notation A "/[" t "]" => subst A ![t]
-  inductive prf : Set (BoundedFormula L α n) → BoundedFormula L β m → Type _ where
-  | axm Γ A : A ∈ Γ → prf Γ A
-  | impI Γ A B : prf (insert A Γ) B → prf Γ (A ⟹ B)
-  | impE Γ A B : prf Γ (A ⟹ B) → prf Γ A → prf Γ B
-  | falsumE Γ A : prf (insert ∼A Γ) ⊥ → prf Γ A
-  | allI Γ A : prf ((λf => f ↑ 1) '' Γ) A → prf Γ (∀' A)
-  | allE₂ Γ A t : prf Γ (∀' A) → prf Γ (A/[t])
-  | ref Γ t : prf Γ (t =' t')
-  | subst₂ Γ s t f : prf Γ (s =' t) → prf Γ (f/[s]) → prf Γ (f/[t])
+  def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
+    fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
+  notation A "/[" t "]" => subst A (g₁ t)
+
+  def land (f₁ f₂: BoundedFormula L α n) :=
+    ∼(f₁ ⟹ ∼f₂)
+  notation f₁ "∧'" f₂ => land f₁ f₂
+  def lor (f₁ f₂ : BoundedFormula L α n) :=
+    (∼f₁ ⟹ f₂)
+  notation f₁ "∨'" f₂ => lor f₁ f₂
+
+  /-- Shifts all variable references one down so one is pushed into
+  the to-be-bound category -/
+  def shift_one_down : ℕ → ℕ ⊕ Fin 1
+    | .zero => .inr Nat.zero
+    | .succ n => .inl n
+
+  /-- Shifts all free variables (that are not to be bound) up by one-/
+  def shift_free_up : ℕ → ℕ ⊕ Fin 0
+    | .zero => .inl (.succ .zero)
+    | .succ n => .inl (.succ (n + 1))
+
+  /-- Proof that addition is also transitive in BoundedFormula types -/
+  def m_add_eq_add_m {m} : BoundedFormula L ℕ (m + n) → BoundedFormula L ℕ (n + m) := by
+    rw[add_comm]
+    intro h
+    exact h
+  instance {m} : Coe (BoundedFormula L ℕ (m + n)) (BoundedFormula L ℕ (n + m)) where
+    coe := m_add_eq_add_m
+
+  /-- Proof that adding zero als does nothing in BoundedFormula types -/
+  def add_zero_does_nothing : BoundedFormula L ℕ (0 + n) → BoundedFormula L ℕ n := by
+    intro h
+    rw[zero_add] at h
+    exact h
+  instance : Coe (BoundedFormula L ℕ (0 + n)) (BoundedFormula L ℕ n) where
+    coe := add_zero_does_nothing
+  instance : Coe (BoundedFormula L ℕ (n + 0)) (BoundedFormula L ℕ (0 + n)) where
+    coe := m_add_eq_add_m
+
+  def sent_term_to_formula_term : Term L (Empty ⊕ Fin n) → Term L (ℕ ⊕ Fin n)
+      | .var n => match n with
+        | .inl _ => .var (.inl Nat.zero)
+        | .inr k => .var (.inr k)
+      | .func f ts => .func f (fun i => sent_term_to_formula_term (ts i))
+  instance : Coe (Term L (Empty ⊕ Fin n)) (Term L (ℕ ⊕ Fin n)) where
+    coe := sent_term_to_formula_term
+  def bf_empty_to_bf_N : ∀{n}, BoundedFormula L Empty n → BoundedFormula L ℕ n
+      | _, .falsum => .falsum
+      | _, .equal t₁ t₂ => .equal t₁ t₂
+      | _, .rel R ts => .rel R (fun i => ts i)
+      | _, .imp f₁ f₂ => .imp (bf_empty_to_bf_N f₁) (bf_empty_to_bf_N f₂)
+      | _, .all f => .all (bf_empty_to_bf_N f)
+  instance : Coe (Sentence L) (Formula L ℕ) where
+    coe := bf_empty_to_bf_N
+  def th_to_set_form : Theory L → (Set (Formula L ℕ)) :=
+    fun Th : Theory L => bf_empty_to_bf_N '' Th
+  instance : Coe (Theory L) (Set (Formula L ℕ)) where
+    coe := th_to_set_form
+
+  notation Δ"↑"  => (λf => (relabel shift_free_up f)) '' Δ
+  notation A"↓" => relabel shift_one_down A
+
+  /-- G3c sequent calculus -/
+  inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
+    | tax {Th f Δ} : (f ∈ (th_to_set_form Th)) → Derivation Th ∅ (Δ ∪ {f})
+    | lax {Th Γ Δ} : ((Γ ∩ Δ) ≠ ∅) → (Derivation Th Γ Δ)
+    | left_conjunction {Th A B Γ Δ} : Derivation Th (Γ ∪ {A, B}) Δ → Derivation Th (Γ ∪ {A ∧' B} ) Δ
+    | left_disjunction {Th A B Γ Δ} : Derivation Th (Γ ∪ {A}) Δ → Derivation Th (Γ ∪ {B}) Δ → Derivation Th (Γ ∪ {A ∨' B}) Δ
+    | left_implication {Th A B Γ Δ} : Derivation Th Γ (Δ ∪ {A}) → Derivation Th ({B} ∪ Γ) Δ → Derivation Th ({A ⟹ B} ∪ Γ) Δ
+    | left_bot {Th Γ Δ} : Derivation Th ({⊥} ∪ Γ) Δ
+    | right_conjunction {Th A B Γ Δ} : Derivation Th Γ (Δ ∪ {A}) → Derivation Th Γ (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ∧' B})
+    | right_disjunction {Th A B Γ Δ} : Derivation Th Γ (Δ ∪ {A, B}) → Derivation Th Γ (Δ ∪ {A ∨' B})
+    | right_implication {Th A B Γ Δ} : Derivation Th ({A} ∪ Γ) (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ⟹ B})
+    | left_forall {A : Formula L ℕ} {B} {p : B = A↓} {Th t Γ Δ} : Derivation Th (Γ ∪ {(A/[t]), (∀'B)}) Δ → Derivation Th (Γ ∪ {∀'B}) Δ
+    | left_exists {Th A B Γ Δ} {p : B = A↓} : Derivation Th ((Γ↑) ∪ {A}) (Δ↑) → Derivation Th ({∃' B} ∪ Γ) Δ
+    | right_forall {Th A B Γ Δ} {p : B = A↓} : Derivation Th (Γ↑) ((Δ↑) ∪ {A}) → Derivation Th Γ (Δ ∪ {∀'B})
+    | right_exists {A : Formula L ℕ} {Th B t Γ Δ} {p : B = A↓} : Derivation Th Γ (Δ ∪ {∃'B, A/[t]}) → Derivation Th Γ (Δ  ∪ {∃'B})
+
+  def proves (Th : Theory L) (f : Formula L ℕ) : Prop :=
+    ∃Δ: Set (Formula L ℕ), ∃Γ: Set (Formula L ℕ), ∃_: Derivation Th Γ (Δ ∪ {f}), ⊤
+  notation Th " ⊢ " f => proves Th f
 end Calculus
 
 namespace PA
