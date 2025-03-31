@@ -634,16 +634,18 @@ namespace PA
   open Languages
   open L
   open L_T
+  open BoundedFormula
 
-  def replace_bound_variable {L} (φ : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
-    BoundedFormula.subst φ.toFormula (fun _ : Empty ⊕ Fin 1 => t)
-  notation A "//[" t "]" => replace_bound_variable A t
-  def g : (Empty ⊕ Fin 1) → Empty ⊕ Fin 1 :=
-    fun t => t
+  def replace_bv_with_non_var_term {L} (f : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
+    subst f.toFormula (fun _ : Empty ⊕ Fin 1 => t)
+  notation A "//[" t "]" => replace_bv_with_non_var_term A t
+  def replace_bv_with_bv_term (f : BoundedFormula ℒ Empty 1) (t : Term ℒ (Empty ⊕ Fin 1)) : BoundedFormula ℒ Empty 1 :=
+    (relabel id (subst (f.toFormula) (fun _ : (Empty ⊕ Fin 1) => t)))
+  notation A "///[" t "]" => replace_bv_with_bv_term A t
 
   /-- The induction function for ℒₚₐ -/
-  def induction (φ : BoundedFormula ℒ Empty 1) : Sentence ℒ :=
-    ∼ (φ//[L.null] ⟹ (∼(∀'(φ ⟹ (BoundedFormula.relabel g (φ.toFormula/[S(&0)])))))) ⟹ ∀'(φ)
+  def induction (f : BoundedFormula ℒ Empty 1) : Sentence ℒ :=
+    ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
   inductive peano_arithmetic : Theory ℒ where
