@@ -635,17 +635,23 @@ namespace PA
   open L
   open L_T
 
+  def replace_bound_variable {L} (φ : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
+    BoundedFormula.subst φ.toFormula (fun _ : Empty ⊕ Fin 1 => t)
+  notation A "//[" t "]" => replace_bound_variable A t
+  def g : (Empty ⊕ Fin 1) → Empty ⊕ Fin 1 :=
+    fun t => t
+
   /-- The induction function for ℒₚₐ -/
-  def induction (φ : BoundedFormula ℒₚₐ Empty 1) : Sentence ℒₚₐ :=
-    ∼ (φ//[LPA.null] ⟹ (∼(∀'(φ ⟹ (relabel g (φ.toFormula/[S(&0)])))))) ⟹ ∀'(φ)
+  def induction (φ : BoundedFormula ℒ Empty 1) : Sentence ℒ :=
+    ∼ (φ//[L.null] ⟹ (∼(∀'(φ ⟹ (BoundedFormula.relabel g (φ.toFormula/[S(&0)])))))) ⟹ ∀'(φ)
 
   /-- Peano arithemtic -/
-  inductive peano_arithmetic : Theory ℒₚₐ where
-  | first : peano_arithmetic (∀' ∼(LPA.null =' S(&0)))
+  inductive peano_arithmetic : Theory ℒ where
+  | first : peano_arithmetic (∀' ∼(L.null =' S(&0)))
   | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-  | third : peano_arithmetic (∀' ((&0 add LPA.null) =' &0))
+  | third : peano_arithmetic (∀' ((&0 add L.null) =' &0))
   | fourth : peano_arithmetic (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-  | fifth : peano_arithmetic (∀' ((&0 times LPA.null) =' LPA.null))
+  | fifth : peano_arithmetic (∀' ((&0 times L.null) =' L.null))
   | sixth : peano_arithmetic (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
   | induction (φ) : peano_arithmetic (induction φ)
 
