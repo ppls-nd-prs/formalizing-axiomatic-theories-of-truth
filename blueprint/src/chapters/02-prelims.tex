@@ -173,6 +173,32 @@ A \texttt{Sentence} is then defined as a \texttt{Formula} that has no free varia
     Let $\mathcal{L}$ be a first-order language. Then the set of sentences with respect to $\mathcal{L}$ denoted $\mathcal{S}(\mathcal{L})$ is defined as the set of formulas $\mathcal{F}(\mathcal{L},\emptyset)$.
 \end{definition}
 
+\section{Coding}
+We want to use $\mathcal{L}_T$ as meta-theory to reason about $\mathcal{L}$. Hence, we have to be able to encode all formulas in $\mathcal{L}$ in terms in $\mathcal{L}_T$. Both \texttt{mathlib}'s namespace \texttt{Term} and \texttt{BoundedFormula} have a functions \texttt{listEncode} that encode \texttt{Term}'s and \texttt{BoundedFormula}'s as \texttt{List}'s respectively. These lists can then be encoded as natural numbers using \texttt{mathlib}'s \texttt{Encodable.encodeList}. This requires encoding functions for $\mathcal{L}$ [\textcolor{red}{\underline{AND $\mathcal{L}_T$}?}]'s function [\textcolor{red}{\underline{AND PREDICATE?}}] symbols. Furthermore, as \texttt{Term.listEncode} and \texttt{BoundedFormula.listEncode} require a set for indexing variables that is proved to be encodable and \texttt{mathlib} natively has a proof of the encodability of natural numbers, we use from here on out $\mathbb{N}$ to index our free variables. Hence we obtain our definitions of \texttt{L.Func\_enc}, [\textcolor{red}{\underline{\texttt{Rel\_enc}}}], [\textcolor{red}{\underline{\texttt{L\_T.Func\_enc},\texttt{L\_T.Rel\_enc}}}], \texttt{term\_tonat} and \texttt{formula\_tonat}.
+
+\begin{definition}[term to nat encoding]\label{def:coding-ttn}
+    \uses{def:fol,def:term}
+    \lean{Languages.term\_tonat}
+    \leanok
+    Let $n$ be a natural number. Then the encoding function $\texttt{term\_tonat} : \mathcal{T}(\mathcal{L},\mathbb{N} \cup \{x_1,...,x_n\}) \to \mathbb{N}$ is defined as 
+    \begin{align*}  
+        \texttt{term\_tonat}(t) = \texttt{Encodable.encodeList}(\texttt{Term.listEncode}(t)).
+    \end{align*}
+\end{definition}
+
+\begin{definition}[formula to nat encoding]\label{def:coding-ttn}
+    \uses{def:fol,def:formula}
+    \lean{Languages.formula\_tonat}
+    \leanok
+    Let $n$ be a natural number. Then the encoding function $\texttt{formula\_tonat} : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathbb{N}$ is defined as 
+    \begin{align*}
+        \texttt{term\_tonat}(t) = \texttt{Encodable.encodeList}(\texttt{BoundedFormula.listEncode}(t)).
+    \end{align*}
+\end{definition}
+
+
+
+
 % \begin{definition}[syntactic formula]\label{def:syn-f}
 %     \uses{def:fol,def:sem-f}
 %     \lean{LO.FirstOrder.SyntacticFormula}
