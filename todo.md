@@ -51,6 +51,7 @@
 
 # Implementation bug-fixes
 - [ ] scope notation to specific languages
+- [ ] change tax to not include an arbitrary delta
      
 # Planning
 | week | Bram | Yu-Lan | Discuss Together |
