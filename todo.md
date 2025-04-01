@@ -55,6 +55,7 @@
 
 # Documentation
 - [ ] Cite mathlib
+- [ ] Add documentation for Encodable.encodeList and Term.listEncode?
      
 # Planning
 | week | Bram | Yu-Lan | Discuss Together |
