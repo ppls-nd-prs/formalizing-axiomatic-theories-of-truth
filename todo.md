@@ -55,7 +55,7 @@
 
 # Documentation
 - [ ] Cite mathlib
-- [ ] Add documentation for Encodable.encodeList and Term.listEncode?
+- [ ] Add documentation for Encodable.encodeList and Term.listEncode, i.e. what is the meta language?
      
 # Planning
 | week | Bram | Yu-Lan | Discuss Together |
