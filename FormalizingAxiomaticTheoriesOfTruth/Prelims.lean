@@ -535,6 +535,8 @@ namespace Languages
       onFunction := to_lt_func
       onRelation := to_lt_rel
 
+  instance : Coe (Formula ℒ ℕ) (Formula ℒₜ ℕ) where
+    coe := LHom.onFormula ϕ
   instance : Coe (Sentence ℒ) (Sentence ℒₜ) where
     coe := LHom.onSentence ϕ
   instance : Coe (Term ℒ (Empty ⊕ Fin 0)) (Term ℒₜ (Empty ⊕ Fin 0)) where
@@ -628,9 +630,13 @@ namespace Calculus
     | right_forall {Th A B Γ Δ} {p : B = A↓} : Derivation Th (Γ↑) ((Δ↑) ∪ {A}) → Derivation Th Γ (Δ ∪ {∀'B})
     | right_exists {A : Formula L ℕ} {Th B t Γ Δ} {p : B = A↓} : Derivation Th Γ (Δ ∪ {∃'B, A/[t]}) → Derivation Th Γ (Δ  ∪ {∃'B})
 
-  def proves (Th : Theory L) (f : Formula L ℕ) : Prop :=
-    ∃Δ: Set (Formula L ℕ), ∃Γ: Set (Formula L ℕ), ∃_: Derivation Th Γ (Δ ∪ {f}), ⊤
-  notation Th " ⊢ " f => proves Th f
+  def sequent_provable (Th : Theory L) (Γ Δ : Set (Formula L ℕ)) : Prop :=
+    Nonempty (Derivation Th Γ Δ)
+  notation Th " ⊢ " Γ Δ => sequent_provable Th Γ Δ
+  def formula_provable (Th : Theory L) (f : Formula L ℕ) : Prop :=
+    sequent_provable Th ∅ {f}
+  notation Th " ⊢ " f => formula_provable Th f
+
 end Calculus
 
 namespace SyntaxAxioms
@@ -760,4 +766,16 @@ inductive tarski_biconditionals : Theory ℒₜ where
   | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
   | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
   | disquotation {φ : Sentence ℒ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
+
+notation "𝐓𝐁" => tarski_biconditionals
 end TB
+
+namespace Conservativity
+  open Languages
+  open Calculus
+  open TB
+  open PA
+
+  theorem conservativity_of_tb (f : Formula ℒ ℕ) : (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
+    sorry
+end Conservativity
