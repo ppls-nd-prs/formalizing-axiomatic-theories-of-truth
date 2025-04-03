@@ -776,6 +776,10 @@ namespace Conservativity
   open TB
   open PA
 
+  /- Need to define -/
+  def translation (f : Formula ℒ ℕ) (Derivation TB Empty f) → Derivation PA emptyset f :=
+    sorry
+
   theorem conservativity_of_tb (f : Formula ℒ ℕ) : (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
     sorry
 end Conservativity
