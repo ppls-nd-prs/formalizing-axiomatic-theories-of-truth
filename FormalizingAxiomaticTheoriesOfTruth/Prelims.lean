@@ -781,5 +781,8 @@ namespace Conservativity
     sorry
 
   theorem conservativity_of_tb (f : Formula ℒ ℕ) : (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
+    intro h
+    apply Classical.choice at h
+    cases h -- only works with height function
     sorry
 end Conservativity
