@@ -614,7 +614,7 @@ namespace Calculus
 
   /-- G3c sequent calculus -/
   inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
-    | tax {Th f Δ} : (f ∈ (th_to_set_form Th)) → Derivation Th ∅ (Δ ∪ {f})
+    | tax {Th f Γ Δ} : (f ∈ (th_to_set_form Th)) → Derivation Th Γ (Δ ∪ {f})
     | lax {Th Γ Δ} : ((Γ ∩ Δ) ≠ ∅) → (Derivation Th Γ Δ)
     | left_conjunction {Th A B Γ Δ} : Derivation Th (Γ ∪ {A, B}) Δ → Derivation Th (Γ ∪ {A ∧' B} ) Δ
     | left_disjunction {Th A B Γ Δ} : Derivation Th (Γ ∪ {A}) Δ → Derivation Th (Γ ∪ {B}) Δ → Derivation Th (Γ ∪ {A ∨' B}) Δ
