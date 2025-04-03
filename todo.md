@@ -48,6 +48,14 @@
 - [ ] Tr(n) which holds when n is the code of a formula of $\mathcal{L}_{T}$ containing a truth predicate 
 - [ ] Dot function which takes each number to its numeral
 - [ ] Evaluation function which takes the code of a numeral and spits out the numeral
+
+# Implementation bug-fixes
+- [ ] scope notation to specific languages
+- [ ] change tax to not include an arbitrary delta
+
+# Documentation
+- [ ] Cite mathlib
+- [ ] Add documentation for Encodable.encodeList and Term.listEncode, i.e. what is the meta language?
      
 # Planning
 | week | Bram | Yu-Lan | Discuss Together |
