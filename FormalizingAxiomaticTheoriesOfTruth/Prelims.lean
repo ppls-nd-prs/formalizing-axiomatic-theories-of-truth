@@ -615,20 +615,20 @@ namespace Calculus
   notation A"↓" => relabel shift_one_down A
 
   /-- G3c sequent calculus -/
-  inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
-    | tax {Th f Γ Δ} : (f ∈ (th_to_set_form Th)) → Derivation Th Γ (Δ ∪ {f})
-    | lax {Th Γ Δ} : ((Γ ∩ Δ) ≠ ∅) → (Derivation Th Γ Δ)
-    | left_conjunction {Th A B Γ Δ} : Derivation Th (Γ ∪ {A, B}) Δ → Derivation Th (Γ ∪ {A ∧' B} ) Δ
-    | left_disjunction {Th A B Γ Δ} : Derivation Th (Γ ∪ {A}) Δ → Derivation Th (Γ ∪ {B}) Δ → Derivation Th (Γ ∪ {A ∨' B}) Δ
-    | left_implication {Th A B Γ Δ} : Derivation Th Γ (Δ ∪ {A}) → Derivation Th ({B} ∪ Γ) Δ → Derivation Th ({A ⟹ B} ∪ Γ) Δ
-    | left_bot {Th Γ Δ} : Derivation Th ({⊥} ∪ Γ) Δ
-    | right_conjunction {Th A B Γ Δ} : Derivation Th Γ (Δ ∪ {A}) → Derivation Th Γ (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ∧' B})
-    | right_disjunction {Th A B Γ Δ} : Derivation Th Γ (Δ ∪ {A, B}) → Derivation Th Γ (Δ ∪ {A ∨' B})
-    | right_implication {Th A B Γ Δ} : Derivation Th ({A} ∪ Γ) (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ⟹ B})
-    | left_forall {A : Formula L ℕ} {B} {p : B = A↓} {Th t Γ Δ} : Derivation Th (Γ ∪ {(A/[t]), (∀'B)}) Δ → Derivation Th (Γ ∪ {∀'B}) Δ
-    | left_exists {Th A B Γ Δ} {p : B = A↓} : Derivation Th ((Γ↑) ∪ {A}) (Δ↑) → Derivation Th ({∃' B} ∪ Γ) Δ
-    | right_forall {Th A B Γ Δ} {p : B = A↓} : Derivation Th (Γ↑) ((Δ↑) ∪ {A}) → Derivation Th Γ (Δ ∪ {∀'B})
-    | right_exists {A : Formula L ℕ} {Th B t Γ Δ} {p : B = A↓} : Derivation Th Γ (Δ ∪ {∃'B, A/[t]}) → Derivation Th Γ (Δ  ∪ {∃'B})
+  inductive Derivation (Th : Theory L) (Γ Δ : Set (Formula L ℕ)) : Type _ where
+    | tax {f S} (in_theory : f ∈ (th_to_set_form Th)) (eq : Δ = S ∪ {f}): Derivation Th Γ Δ
+    | lax (int_non_empty : (Γ ∩ Δ) ≠ ∅) : (Derivation Th Γ Δ)
+    | left_conjunction {S A B} (d : Derivation Th (S ∪ {A, B}) Δ) (eq : S ∪ {A ∧' B} = Γ) : Derivation Th Γ Δ
+    | left_disjunction {S A B} (d₁ : Derivation Th (S ∪ {A}) Δ) (d₂ : Derivation Th (S ∪ {B}) Δ) (eq : Γ = S ∪ {A ∨' B}) : Derivation Th Γ Δ
+    | left_implication {S A B} (d₁ : Derivation Th Γ (S ∪ {A})) (d₂ : Derivation Th ({B} ∪ S) Δ) (eq : Γ = {A ⟹ B} ∪ S): Derivation Th Γ Δ
+    | left_bot {S} (eq : Γ = S ∪ {⊥}): Derivation Th Γ Δ
+    | right_conjunction {S A B} (d₁ : Derivation Th Γ (S ∪ {A})) (d₂ : Derivation Th Γ (S ∪ {B})) (eq : Δ = S ∪ {A ∧' B}): Derivation Th Γ Δ
+    | right_disjunction {S A B} (d : Derivation Th Γ (S ∪ {A, B})) (eq : Δ = S ∪ {A ∨' B}): Derivation Th Γ Δ
+    | right_implication {S P A B} (d : Derivation Th ({A} ∪ S) (P ∪ {B})) (eq₁ : Γ = {A} ∪ S) (eq₂ : Δ = P ∪ {B}) : Derivation Th Γ Δ
+    | left_forall {A : Formula L ℕ} {B} {p : B = A↓} {S t} (d : Derivation Th (S ∪ {(A/[t]), (∀'B)}) Δ) (eq : S ∪ {(∀'B)} = Γ):  Derivation Th Γ Δ
+    | left_exists {S A B} {p : B = A↓} (d : Derivation Th ((S↑) ∪ {A}) (Δ↑)) (eq : Γ = {∃' B} ∪ S): Derivation Th Γ Δ
+    | right_forall {S A B} {p : B = A↓} (d : Derivation Th (Γ↑) ((S↑) ∪ {A})) (eq : Δ = S ∪ {∀' B}): Derivation Th Γ Δ
+    | right_exists {A : Formula L ℕ} {S B t} {p : B = A↓} (d : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (eq : Δ = S ∪ {∃' B}): Derivation Th Γ Δ
 
   def sequent_provable (Th : Theory L) (Γ Δ : Set (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
@@ -783,6 +783,19 @@ namespace Conservativity
   theorem conservativity_of_tb (f : Formula ℒ ℕ) : (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
     intro h
     apply Classical.choice at h
-    cases h -- only works with height function
+    simp[Formula] at f
+    induction f
+    induction f
+    induction h -- only works with height function
     sorry
 end Conservativity
+
+namespace Hidden
+  inductive Nat : Type where
+    | zer : Nat
+    | suc : Nat → Nat
+
+  example (a b : Nat) : a = b → b = a := by
+    intro h
+    exact h.symm
+end Hidden
