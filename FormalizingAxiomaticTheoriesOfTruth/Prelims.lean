@@ -747,19 +747,19 @@ namespace Calculus
 
   /-- G3c sequent calculus -/
   inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
-    | tax (Th f Γ Δ) : (f ∈ (th_to_set_form Th)) → Derivation Th Γ (Δ ∪ {f})
-    | lax (Γ Δ) : ((Γ ∩ Δ) ≠ ∅) → (Derivation Th Γ Δ)
-    | left_conjunction (A B Γ Δ) : Derivation Th (Γ ∪ {A, B}) Δ → Derivation Th (Γ ∪ {A ∧' B} ) Δ
-    | left_disjunction (A B Γ Δ) : Derivation Th (Γ ∪ {A}) Δ → Derivation Th (Γ ∪ {B}) Δ → Derivation Th (Γ ∪ {A ∨' B}) Δ
-    | left_implication (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A}) → Derivation Th ({B} ∪ Γ) Δ → Derivation Th ({A ⟹ B} ∪ Γ) Δ
-    | left_bot (Γ Δ) : Derivation Th ({⊥} ∪ Γ) Δ
-    | right_conjunction (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A}) → Derivation Th Γ (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ∧' B})
-    | right_disjunction (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A, B}) → Derivation Th Γ (Δ ∪ {A ∨' B})
-    | right_implication (A B Γ Δ) : Derivation Th ({A} ∪ Γ) (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ⟹ B})
-    | left_forall (A : Formula L ℕ) (B) (p : B = A↓) (t Γ Δ) : Derivation Th (Γ ∪ {(A/[t]), (∀'B)}) Δ → Derivation Th (Γ ∪ {∀'B}) Δ
-    | left_exists (A B Γ Δ) (p : B = A↓) : Derivation Th ((Γ↑) ∪ {A}) (Δ↑) → Derivation Th ({∃' B} ∪ Γ) Δ
-    | right_forall (A B Γ Δ) (p : B = A↓) : Derivation Th (Γ↑) ((Δ↑) ∪ {A}) → Derivation Th Γ (Δ ∪ {∀'B})
-    | right_exists (A : Formula L ℕ) (B t Γ Δ) (p : B = A↓) : Derivation Th Γ (Δ ∪ {∃'B, A/[t]}) → Derivation Th Γ (Δ  ∪ {∃'B})
+    | tax {Th Γ Δ} (h : (th_to_set_form Th) ∩ Δ ≠ ∅) : Derivation Th Γ Δ
+    | lax {Th Γ Δ} (h : (Γ ∩ Δ) ≠ ∅) : Derivation Th Γ Δ
+    -- | left_conjunction (A B Γ Δ) : Derivation Th (Γ ∪ {A, B}) Δ → Derivation Th (Γ ∪ {A ∧' B} ) Δ
+    -- | left_disjunction (A B Γ Δ) : Derivation Th (Γ ∪ {A}) Δ → Derivation Th (Γ ∪ {B}) Δ → Derivation Th (Γ ∪ {A ∨' B}) Δ
+    -- | left_implication (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A}) → Derivation Th ({B} ∪ Γ) Δ → Derivation Th ({A ⟹ B} ∪ Γ) Δ
+    -- | left_bot (Γ Δ) : Derivation Th ({⊥} ∪ Γ) Δ
+    -- | right_conjunction (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A}) → Derivation Th Γ (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ∧' B})
+    -- | right_disjunction (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A, B}) → Derivation Th Γ (Δ ∪ {A ∨' B})
+    -- | right_implication (A B Γ Δ) : Derivation Th ({A} ∪ Γ) (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ⟹ B})
+    -- | left_forall (A : Formula L ℕ) (B) (p : B = A↓) (t Γ Δ) : Derivation Th (Γ ∪ {(A/[t]), (∀'B)}) Δ → Derivation Th (Γ ∪ {∀'B}) Δ
+    -- | left_exists (A B Γ Δ) (p : B = A↓) : Derivation Th ((Γ↑) ∪ {A}) (Δ↑) → Derivation Th ({∃' B} ∪ Γ) Δ
+    -- | right_forall (A B Γ Δ) (p : B = A↓) : Derivation Th (Γ↑) ((Δ↑) ∪ {A}) → Derivation Th Γ (Δ ∪ {∀'B})
+    -- | right_exists (A : Formula L ℕ) (B t Γ Δ) (p : B = A↓) : Derivation Th Γ (Δ ∪ {∃'B, A/[t]}) → Derivation Th Γ (Δ  ∪ {∃'B})
 
 
   def sequent_provable (Th : Theory L) (Γ Δ : Set (Formula L ℕ)) : Prop :=
@@ -777,11 +777,14 @@ namespace Conservativity
   open TB
   open PA
 
+  instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
+    coe S := ϕ.onFormula '' S
   /- Need to define -/
   /- ALSO TODO define a set translation coercion for sets of formula in ℒ
   to sets of formulas in ℒₜ-/
-  def translation {Γ₁ Δ₁ Γ₂} {Γ} {f : Formula ℒ ℕ}: Derivation 𝐓𝐁 Γ₁ Δ₁  → Derivation 𝐏𝐀 Γ₂ (Δ₁)
-    | .tax 𝐓𝐁 f Γ Δ eq => sorry
+  def translation {Γ Δ : Set (Formula ℒ ℕ)} : Derivation 𝐓𝐁 Γ Δ  → Derivation 𝐏𝐀 Γ Δ
+    | .tax (h : (th_to_set_form 𝐓𝐁) ∩ (ϕ.onFormula '' Δ) ≠ ∅) => sorry
+    | .lax (h : ((ϕ.onFormula '' Γ) ∩ (ϕ.onFormula '' Δ)) ≠ ∅) => sorry
 
   theorem conservativity_of_tb : ∀f : Formula ℒ ℕ, (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
   intro f
