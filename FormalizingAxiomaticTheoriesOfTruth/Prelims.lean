@@ -749,11 +749,11 @@ namespace Calculus
   inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
     | tax {Th Γ Δ} (h : (th_to_set_form Th) ∩ Δ ≠ ∅) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : (Γ ∩ Δ) ≠ ∅) : Derivation Th Γ Δ
-    -- | left_conjunction (A B Γ Δ) : Derivation Th (Γ ∪ {A, B}) Δ → Derivation Th (Γ ∪ {A ∧' B} ) Δ
-    -- | left_disjunction (A B Γ Δ) : Derivation Th (Γ ∪ {A}) Δ → Derivation Th (Γ ∪ {B}) Δ → Derivation Th (Γ ∪ {A ∨' B}) Δ
-    -- | left_implication (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A}) → Derivation Th ({B} ∪ Γ) Δ → Derivation Th ({A ⟹ B} ∪ Γ) Δ
-    -- | left_bot (Γ Δ) : Derivation Th ({⊥} ∪ Γ) Δ
-    -- | right_conjunction (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A}) → Derivation Th Γ (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ∧' B})
+    | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
+    | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
+    | left_implication (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation Th S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}): Derivation Th Γ Δ
+    | left_bot {Th Γ Δ} (h : ⊥ ∈ Γ) : Derivation Th Γ Δ
+    | right_conjunction {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) : Derivation Th Γ Δ
     -- | right_disjunction (A B Γ Δ) : Derivation Th Γ (Δ ∪ {A, B}) → Derivation Th Γ (Δ ∪ {A ∨' B})
     -- | right_implication (A B Γ Δ) : Derivation Th ({A} ∪ Γ) (Δ ∪ {B}) → Derivation Th Γ (Δ ∪ {A ⟹ B})
     -- | left_forall (A : Formula L ℕ) (B) (p : B = A↓) (t Γ Δ) : Derivation Th (Γ ∪ {(A/[t]), (∀'B)}) Δ → Derivation Th (Γ ∪ {∀'B}) Δ
@@ -777,14 +777,39 @@ namespace Conservativity
   open TB
   open PA
 
+  def not_contains_T {n} : BoundedFormula ℒₜ ℕ n → Prop
+  | .rel L_T.Rel.t _ => false
+  | .imp f₁ f₂ => not_contains_T f₁ ∧ not_contains_T f₂
+  | .all f => not_contains_T f
+  | _ => true
+
+  def not_contains_T_sent : Sentence ℒₜ → Prop :=
+    fun s : Sentence ℒₜ =>
+      not_contains_T (bf_empty_to_bf_N s)
+
+  def real_PA : Theory ℒₜ := {f | f ∈ 𝐏𝐀𝐓 ∧ (not_contains_T_sent f)}
+
   instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
     coe S := ϕ.onFormula '' S
   /- Need to define -/
   /- ALSO TODO define a set translation coercion for sets of formula in ℒ
   to sets of formulas in ℒₜ-/
-  def translation {Γ Δ : Set (Formula ℒ ℕ)} : Derivation 𝐓𝐁 Γ Δ  → Derivation 𝐏𝐀 Γ Δ
-    | .tax (h : (th_to_set_form 𝐓𝐁) ∩ (ϕ.onFormula '' Δ) ≠ ∅) => sorry
-    | .lax (h : ((ϕ.onFormula '' Γ) ∩ (ϕ.onFormula '' Δ)) ≠ ∅) => sorry
+  def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (h₁ : not_contains_T '' Γ) (h₂ : not_contains_T '' Δ) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
+    | .tax (h : (th_to_set_form 𝐓𝐁) ∩ Δ ≠ ∅) => sorry
+    | .lax (h : (Γ ∩ Δ) ≠ ∅) => Derivation.lax h
+    | .left_conjunction A B S (h₁ : Derivation 𝐓𝐁 S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})) => sorry
+    | .left_disjunction A B S₁ S₂ S₃ (h₁ : Derivation 𝐓𝐁 S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation 𝐓𝐁 S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) => sorry
+    | .left_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation 𝐓𝐁 S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}) => sorry
+    | .left_bot (h : ⊥ ∈ Γ) => Derivation.left_bot h
+    | .right_conjunction A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation 𝐓𝐁 Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) => sorry
+
+
+
+
+
+
+
+
 
   theorem conservativity_of_tb : ∀f : Formula ℒ ℕ, (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
   intro f
