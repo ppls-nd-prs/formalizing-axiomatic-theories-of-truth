@@ -483,6 +483,18 @@ namespace Languages
     def formula_Empty_tonat {n : ℕ} : BoundedFormula ℒ Empty 0 → ℕ :=
       fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
+        /-- Encodes terms as natural numbers -/
+    def term_tonat_N_L_T : Term ℒₜ ℕ → ℕ :=
+      fun t => Encodable.encodeList (Term.listEncode t)
+    def term_tonat_Empty_L_T : Term ℒₜ (Empty ⊕ Fin 0) → ℕ :=
+      fun t => Encodable.encodeList (Term.listEncode t)
+    /-- Encodes BoundedFormulas as natural numbers -/
+    def formula_N_tonat_L_T {n : ℕ} : BoundedFormula ℒₜ ℕ n → ℕ :=
+      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
+    /-- Encodes BoundedFormulas as natural numbers -/
+    def formula_Empty_tonat_L_T {n : ℕ} : BoundedFormula ℒₜ Empty 0 → ℕ :=
+      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
+
 
     def t₁ : Term ℒ ℕ :=
       Term.var 0
@@ -646,8 +658,8 @@ open L_T
 
 notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
 notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
-notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
-notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
+notation "⌜" t "⌝" => L_T.numeral (term_tonat_N t)
+notation "⌜" t "⌝" => L_T.numeral (term_tonat_Empty t)
 
 def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
@@ -673,14 +685,14 @@ def sentenceL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   SentenceL( ⌜φ⌝ )
 def sentenceL_T_respres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
-  ClosedTerm( ⌜t₁⌝ )
+def closed_term_repres (t : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
+  ClosedTerm( ⌜t⌝ )
 def var_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   Var( ⌜φ⌝ )
 def const_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   Const( ⌜φ⌝ )
-def denote_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
-  ClosedTerm(⌜t₁⌝) ⟹ ((⬝°(⌜t₁⌝)) =' t₁)
+def denote_repres (t : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
+  ClosedTerm(⌜t⌝) ⟹ ((⬝°(⌜t⌝)) =' t)
 
 end SyntaxAxioms
 
@@ -779,3 +791,31 @@ namespace Conservativity
   theorem conservativity_of_tb (f : Formula ℒ ℕ) : (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
     sorry
 end Conservativity
+
+namespace LiarParadox
+open Languages
+open L
+open L_T
+open SyntaxTheory
+open Calculus
+open PA
+
+notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat_L_T φ)
+notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat_L_T φ)
+notation "⌜" t "⌝" => L_T.numeral (term_tonat_N_L_T t)
+notation "⌜" t "⌝" => L_T.numeral (term_tonat_Empty_L_T t)
+
+def syntax_and_PAT : Theory ℒₜ :=
+  syntax_theory ∪ PAT.peano_arithmetic_t
+
+axiom diagonal_lemma (φ : BoundedFormula ℒₜ Empty 1) :
+  let φ := φ.toFormula.relabel (fun x => match x with | Sum.inr i => i)
+  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PAT ⊢ (ψ ⇔ φ /[⌜ψ⌝])
+
+def unrestricted_TB (φ : Formula ℒₜ ℕ) :=
+  T(⌜φ⌝) ⇔ φ
+
+theorem liar_paradox (SyntaxTheory.syntax_theory ⊢ ⊥) := by
+  have h : diagonal_lemma ¬T(&1)
+
+end LiarParadox
