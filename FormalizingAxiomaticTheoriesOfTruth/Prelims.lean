@@ -810,12 +810,13 @@ def syntax_and_PAT : Theory ℒₜ :=
 
 axiom diagonal_lemma (φ : BoundedFormula ℒₜ Empty 1) :
   let φ := φ.toFormula.relabel (fun x => match x with | Sum.inr i => i)
-  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PAT ⊢ (ψ ⇔ φ /[⌜ψ⌝])
+  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PAT  ⊢ (ψ ⇔ φ /[⌜ψ⌝])
 
 def unrestricted_TB (φ : Formula ℒₜ ℕ) :=
   T(⌜φ⌝) ⇔ φ
 
-theorem liar_paradox (SyntaxTheory.syntax_theory ⊢ ⊥) := by
-  have h : diagonal_lemma ¬T(&1)
+-- theorem liar_paradox (left_bot : Formula ℒ ℕ) : (syntax_theory ⊢ ⊥) := by
+--   have h : diagonal_lemma ¬T( &1 )
+
 
 end LiarParadox
