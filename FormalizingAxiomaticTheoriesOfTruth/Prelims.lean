@@ -548,11 +548,27 @@ namespace SyntaxAxioms
 open Languages
 open L
 open L_T
+open BoundedFormula
+
+variable {L : Language}
 
 notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
 notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
 notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
 notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
+/- Some notation -/
+notation f " ↑' " n " at "  m => liftAt n m f
+notation f "↑" n => f ↑' n at 0
+def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
+  fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
+notation A "/[" t "]" => subst A (g₁ t)
+
+def land (f₁ f₂: BoundedFormula L α n) :=
+  ∼(f₁ ⟹ ∼f₂)
+notation f₁ "∧'" f₂ => land f₁ f₂
+def lor (f₁ f₂ : BoundedFormula L α n) :=
+  ((∼f₁) ⟹ f₂)
+notation f₁ "∨'" f₂ => lor f₁ f₂
 
 def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
@@ -679,19 +695,6 @@ namespace Calculus
   open Languages
   open BoundedFormula
   variable {L : Language}{n : ℕ}{α : Type}
-  /- Some notation -/
-  notation f " ↑' " n " at "  m => liftAt n m f
-  notation f "↑" n => f ↑' n at 0
-  def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
-    fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
-  notation A "/[" t "]" => subst A (g₁ t)
-
-  def land (f₁ f₂: BoundedFormula L α n) :=
-    ∼(f₁ ⟹ ∼f₂)
-  notation f₁ "∧'" f₂ => land f₁ f₂
-  def lor (f₁ f₂ : BoundedFormula L α n) :=
-    ((∼f₁) ⟹ f₂)
-  notation f₁ "∨'" f₂ => lor f₁ f₂
 
   /-- Shifts all variable references one down so one is pushed into
   the to-be-bound category -/
@@ -756,7 +759,7 @@ namespace Calculus
     | right_conjunction {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) : Derivation Th Γ Δ
     | right_disjunction {Th Γ Δ} (A B S) (d₁ : Derivation Th Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}): Derivation Th Γ Δ
     | right_implication {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}): Derivation Th Γ Δ
-    | right_bot {Th Γ Δ} (S) (d : Derivation Th Γ S) (h₁ : ⊥ ∈ S) (h₂ : Δ = S \ ⊥): Derivation Th Γ Δ
+    | right_bot {Th Γ Δ} (S) (d : Derivation Th Γ S) (h₁ : ⊥ ∈ S) (h₂ : Δ = S \ ⊥) : Derivation Th Γ Δ
     | left_forall {Th Γ Δ}  (A : Formula L ℕ) (B) (h₁ : B = A↓) (t S) (d : Derivation Th S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) : Derivation Th Γ Δ
     | left_exists {Th Γ Δ} (A B) (S₁ : Set (Formula L ℕ)) (p : B = A↓) (d₁ : Derivation Th ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) : Derivation Th Γ Δ
     | right_forall {Th Γ Δ} (A B S) (p : B = A↓) (d₁ : Derivation Th (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) : Derivation Th Γ Δ
@@ -818,6 +821,7 @@ namespace Conservativity
     | .right_conjunction A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation 𝐓𝐁 Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) => sorry
     | .right_disjunction A B S (d₁ : Derivation 𝐓𝐁 Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}) => sorry
     | .right_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}) => sorry
+    | .right_bot S (d : Derivation 𝐓𝐁 Γ S) (h₁ : ⊥ ∈ S) (h₂ : Δ = S \ ⊥) => sorry
     | .left_forall (A : Formula ℒₜ ℕ) (B) (h₁ : B = A↓) t S (d : Derivation 𝐓𝐁 S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) => sorry
     | .left_exists A B (S₁ : Set (Formula ℒₜ ℕ)) (p : B = A↓) (d₁ : Derivation 𝐓𝐁 ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) => sorry
     | .right_forall A B S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) => sorry
@@ -827,7 +831,6 @@ namespace Conservativity
   intro f
   intro h
   rw[formula_provable,sequent_provable]
-  apply
   cases f with
   | falsum => sorry
   | equal t₁ t₂ => sorry
