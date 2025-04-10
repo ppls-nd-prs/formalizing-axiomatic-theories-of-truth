@@ -472,21 +472,21 @@ namespace Languages
 
   section Coding
     /-- Encodes terms as natural numbers -/
-    def term_tonat_N : Term ℒₜ ℕ → ℕ :=
+    def term_tonat_N : Term ℒ ℕ → ℕ :=
       fun t => Encodable.encodeList (Term.listEncode t)
-    def term_tonat_N_fin : Term ℒₜ (ℕ ⊕ Fin 0) → ℕ :=
+    def term_tonat_Empty : Term ℒ (Empty ⊕ Fin 0) → ℕ :=
       fun t => Encodable.encodeList (Term.listEncode t)
     /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_N_tonat {n : ℕ} : BoundedFormula ℒₜ ℕ n → ℕ :=
+    def formula_N_tonat {n : ℕ} : BoundedFormula ℒ ℕ n → ℕ :=
       fun f => Encodable.encodeList (BoundedFormula.listEncode f)
     /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_Empty_tonat {n : ℕ} : BoundedFormula ℒₜ Empty 0 → ℕ :=
+    def formula_Empty_tonat {n : ℕ} : BoundedFormula ℒ Empty 0 → ℕ :=
       fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
 
-    def t₁ : Term ℒₜ ℕ :=
+    def t₁ : Term ℒ ℕ :=
       Term.var 0
-    def f₁ : BoundedFormula ℒₜ ℕ 0 :=
+    def f₁ : BoundedFormula ℒ ℕ 0 :=
       #0 =' #1
 
     #eval term_tonat_N t₁ -- output : 1
@@ -555,7 +555,7 @@ variable {L : Language}
 notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
 notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
 notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
-notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N_fin t₁)
+notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
 /- Some notation -/
 notation f " ↑' " n " at "  m => liftAt n m f
 notation f "↑" n => f ↑' n at 0
@@ -570,37 +570,37 @@ def lor (f₁ f₂ : BoundedFormula L α n) :=
   ((∼f₁) ⟹ f₂)
 notation f₁ "∨'" f₂ => lor f₁ f₂
 
-def neg_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
-def conj_repres (φ ψ : Formula ℒₜ ℕ): Formula ℒₜ ℕ :=
+def conj_repres (φ ψ : Formula ℒ ℕ): Sentence ℒₜ :=
   (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
-def disj_repres (φ ψ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def disj_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
   (⌜φ⌝ ⬝∨ ⌜ψ⌝) =' (⌜φ ∨' ψ⌝)
-def cond_repres (φ ψ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def cond_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
   (⌜φ⌝ ⬝⟹ ⌜ψ⌝) =' (⌜φ ⟹ ψ⌝)
-def forall_repres (φ : BoundedFormula ℒₜ ℕ 1) : Formula ℒₜ ℕ :=
+def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
   (⬝∀ ⌜φ⌝) =' (⌜∀'φ⌝)
-def exists_repres (φ : BoundedFormula ℒₜ ℕ 1) : Formula ℒₜ ℕ :=
+def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
   (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
-def subs_repres (φ : BoundedFormula ℒₜ ℕ 1) (x : Term ℒₜ ℕ) (t : Term ℒₜ ℕ ) : Formula ℒₜ ℕ :=
+def subs_repres (φ : BoundedFormula ℒ ℕ 1) (x : Term ℒ ℕ) (t : Term ℒ ℕ ) : Sentence ℒₜ :=
   Subs(⌜φ⌝, ⌜x⌝, ⌜t⌝) =' ⌜φ /[ t ]⌝
-def term_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def term_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   Trm( ⌜φ⌝ )
-def formulaL_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def formulaL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   FormL( ⌜φ⌝ )
-def formulaL_T_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def formulaL_T_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   FormLT( ⌜φ⌝ )
-def sentenceL_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def sentenceL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   SentenceL( ⌜φ⌝ )
-def sentenceL_T_respres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def sentenceL_T_respres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t₁ : Term ℒₜ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
+def closed_term_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
   ClosedTerm( ⌜t₁⌝ )
-def var_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def var_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   Var( ⌜φ⌝ )
-def const_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
+def const_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   Const( ⌜φ⌝ )
-def denote_repres (t₁ : Term ℒₜ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
+def denote_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
   ClosedTerm(⌜t₁⌝) ⟹ ((⬝°(⌜t₁⌝)) =' t₁)
 
 end SyntaxAxioms
@@ -609,7 +609,7 @@ namespace SyntaxTheory
 open Languages
 open L_T
 open SyntaxAxioms
-inductive syntax_theory : Set (Formula ℒₜ ℕ) where
+inductive syntax_theory : Theory ℒₜ where
   | negation_representation {φ} : syntax_theory (neg_repres φ)
   | conjunction_representation {φ ψ} : syntax_theory (conj_repres φ ψ)
   | disjunction_representation {φ ψ} : syntax_theory (disj_repres φ ψ)
@@ -633,19 +633,19 @@ namespace PA
   open L_T
   open BoundedFormula
 
-  def replace_bv_with_non_var_term {L} (f : BoundedFormula L ℕ 1) (t : Term L ℕ) : Formula L ℕ :=
-    subst f.toFormula (fun _ : ℕ ⊕ Fin 1 => t)
+  def replace_bv_with_non_var_term {L} (f : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
+    subst f.toFormula (fun _ : Empty ⊕ Fin 1 => t)
   notation A "//[" t "]" => replace_bv_with_non_var_term A t
-  def replace_bv_with_bv_term  {L} (f : BoundedFormula L ℕ 1) (t : Term L (ℕ ⊕ Fin 1)) : BoundedFormula L ℕ 1 :=
-    (relabel id (subst (f.toFormula) (fun _ : (ℕ ⊕ Fin 1) => t)))
+  def replace_bv_with_bv_term  {L} (f : BoundedFormula L Empty 1) (t : Term L (Empty ⊕ Fin 1)) : BoundedFormula L Empty 1 :=
+    (relabel id (subst (f.toFormula) (fun _ : (Empty ⊕ Fin 1) => t)))
   notation A "///[" t "]" => replace_bv_with_bv_term A t
 
   /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
+  def induction (f : BoundedFormula ℒ Empty 1) : Sentence ℒ :=
     ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
-  inductive peano_arithmetic : Set (Formula ℒ ℕ) where
+  inductive peano_arithmetic : Theory ℒ where
     | first : peano_arithmetic (∀' ∼(L.null =' S(&0)))
     | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_arithmetic (∀' ((&0 add L.null) =' &0))
@@ -660,12 +660,12 @@ end PA
 
 namespace PAT
 open Languages
-  /-- The induction function for ℒₜ -/
-  def induction (f : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
-    ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
+ /-- The induction function for ℒₚₐ -/
+  def induction (f : BoundedFormula ℒₜ Empty 1) : Sentence ℒₜ :=
+    ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
-  inductive peano_arithmetic_t : Set (Formula ℒₜ ℕ) where
+  inductive peano_arithmetic_t : Theory ℒₜ where
     | first : peano_arithmetic_t (∀' ∼(L_T.null =' S(&0)))
     | second :peano_arithmetic_t (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_arithmetic_t (∀' ((&0 add L_T.null) =' &0))
@@ -683,10 +683,10 @@ open L_T
 open PAT
 open SyntaxTheory
 
-inductive tarski_biconditionals : Set (Formula ℒₜ ℕ) where
+inductive tarski_biconditionals : Theory ℒₜ where
   | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
   | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
-  | disquotation {φ : Formula ℒₜ ℕ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
+  | disquotation {φ : Sentence ℒ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
 
 notation "𝐓𝐁" => tarski_biconditionals
 end TB
@@ -749,8 +749,8 @@ namespace Calculus
   notation A"↓" => relabel shift_one_down A
 
   /-- G3c sequent calculus -/
-  inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
-    | tax {Th Γ Δ} (f : Sentence L) (h1 : f ∈ Th) (h2 : (bf_empty_to_bf_N f) ∈ Δ) : Derivation Th Γ Δ
+  inductive Derivation : (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
+    | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : (Γ ∩ Δ) ≠ ∅) : Derivation Th Γ Δ
     | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
     | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
@@ -759,18 +759,18 @@ namespace Calculus
     | right_conjunction {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) : Derivation Th Γ Δ
     | right_disjunction {Th Γ Δ} (A B S) (d₁ : Derivation Th Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}): Derivation Th Γ Δ
     | right_implication {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}): Derivation Th Γ Δ
+    | right_bot {Th Γ Δ} (S) (d : Derivation Th Γ S) (h₁ : ⊥ ∈ S) (h₂ : Δ = S \ ⊥) : Derivation Th Γ Δ
     | left_forall {Th Γ Δ}  (A : Formula L ℕ) (B) (h₁ : B = A↓) (t S) (d : Derivation Th S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) : Derivation Th Γ Δ
     | left_exists {Th Γ Δ} (A B) (S₁ : Set (Formula L ℕ)) (p : B = A↓) (d₁ : Derivation Th ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) : Derivation Th Γ Δ
     | right_forall {Th Γ Δ} (A B S) (p : B = A↓) (d₁ : Derivation Th (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) : Derivation Th Γ Δ
     | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
-    | cut {Th Γ Δ} (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ
 
-  def emptyFormSet : Set (Formula L ℕ) := ∅
-  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Set (Formula L ℕ)) : Prop :=
+
+  def sequent_provable (Th : Theory L) (Γ Δ : Set (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
   notation Th " ⊢ " Γ Δ => sequent_provable Th Γ Δ
-  def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
-    sequent_provable Th emptyFormSet {f}
+  def formula_provable (Th : Theory L) (f : Formula L ℕ) : Prop :=
+    sequent_provable Th ∅ {f}
   notation Th " ⊢ " f => formula_provable Th f
 
 end Calculus
@@ -791,8 +791,7 @@ namespace Conservativity
     fun s : Sentence ℒₜ =>
       not_contains_T (bf_empty_to_bf_N s)
 
-  def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ 𝐓𝐁 ∧ (not_contains_T f)}
-  def real_LPA : Set (Formula ℒₜ ℕ) := {f | f ∈ Set.univ ∧ (not_contains_T f)}
+  def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ (th_to_set_form 𝐓𝐁) ∧ (not_contains_T f)}
 
   instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
     coe S := ϕ.onFormula '' S
@@ -800,7 +799,7 @@ namespace Conservativity
   /- ALSO TODO define a set translation coercion for sets of formula in ℒ
   to sets of formulas in ℒₜ -/
   def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
-    | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ 𝐓𝐁 ∧ f ∈ Δ) => by
+    | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ (th_to_set_form 𝐓𝐁) ∧ f ∈ Δ) => by
       have step1 : ∃f : Formula ℒₜ ℕ, f ∈ real_PA ∧ f ∈ Δ := by
         rcases h with ⟨f, a₁, a₂⟩
         have step2 : not_contains_T f := by
@@ -828,23 +827,16 @@ namespace Conservativity
     | .right_forall A B S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) => sorry
     | .right_exists (A : Formula ℒₜ ℕ) B t S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) => sorry
 
-  theorem conservativity_of_tb : ∀f ∈ real_LPA, (𝐓𝐁 ⊢ f) → (real_PA ⊢ f) := by
+  theorem conservativity_of_tb : ∀f : Formula ℒ ℕ, (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
   intro f
-  intro mem
   intro h
   rw[formula_provable,sequent_provable]
-  apply Nonempty.intro
-  rw[formula_provable,sequent_provable] at h
-  apply Classical.choice at h
-  have step1 : ∀f : Formula ℒₜ ℕ, f ∈ emptyFormSet → not_contains_T f := by
-    rw[emptyFormSet]
-    intro h₁
-    intro h₂
-    simp at h₂
-  have step2 : ∀f : Formula ℒₜ ℕ, f ∈ emptyFormSet ∪ {f} → not_contains_T f := by
-
-  simp[th_to_set_form] at h
-  apply Classical.choice
+  cases f with
+  | falsum => sorry
+  | equal t₁ t₂ => sorry
+  | rel R ts => sorry
+  | imp f₁ f₂ => sorry
+  | all f => sorry
 
 end Conservativity
 
