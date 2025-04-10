@@ -810,9 +810,9 @@ notation "⌜" t "⌝" => L_T.numeral (term_tonat_Empty_L_T t)
 def syntax_and_PA : Theory ℒₜ :=
   syntax_theory ∪ peano_arithmetic
 
-axiom diagonal_lemma (φ : BoundedFormula ℒₜ Empty 1) :
+axiom diagonal_lemma {syntax_and_PA_unres_TB} (φ : BoundedFormula ℒₜ Empty 1) :
   let φ := φ.toFormula.relabel (fun x => match x with | Sum.inr i => i)
-  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PA  ⊢ (ψ ⇔ φ /[⌜ψ⌝])
+  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PA_unres_TB ⊢ (ψ ⇔ φ /[⌜ψ⌝])
 
 -- def unrestricted_TB (φ : Formula ℒₜ ℕ) :=
 --   T(⌜φ⌝) ⇔ φ
@@ -820,11 +820,11 @@ axiom diagonal_lemma (φ : BoundedFormula ℒₜ Empty 1) :
 def unrestricted_TB : Theory ℒₜ :=
   { φ | ∃ ψ : Formula ℒₜ ℕ, φ = (T(⌜ψ⌝) ⇔ ψ) }
 
-def syntax_and_unres_TB : Theory ℒₜ :=
-  syntax_theory ∪ unrestricted_TB
+def syntax_and_PA_unres_TB : Theory ℒₜ :=
+  syntax_and_PA ∪ unrestricted_TB
 
-theorem liar_paradox : syntax_and_unres_TB ⊢ ⊥ := by
-  have h : diagonal_lemma ¬T( &1 )
+theorem liar_paradox : syntax_and_PA_unres_TB ⊢ ⊥ := by
+  let h := diagonal_lemma ¬T( &0 )
 
 end LiarParadox
 
