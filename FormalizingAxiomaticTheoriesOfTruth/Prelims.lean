@@ -746,8 +746,8 @@ namespace Calculus
   notation A"↓" => relabel shift_one_down A
 
   /-- G3c sequent calculus -/
-  inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
-    | tax {Th Γ Δ} (h : (th_to_set_form Th) ∩ Δ ≠ ∅) : Derivation Th Γ Δ
+  inductive Derivation : (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
+    | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : (Γ ∩ Δ) ≠ ∅) : Derivation Th Γ Δ
     | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
     | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
@@ -787,15 +787,28 @@ namespace Conservativity
     fun s : Sentence ℒₜ =>
       not_contains_T (bf_empty_to_bf_N s)
 
-  def real_PA : Theory ℒₜ := {f | f ∈ 𝐏𝐀𝐓 ∧ (not_contains_T_sent f)}
+  def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ (th_to_set_form 𝐓𝐁) ∧ (not_contains_T f)}
 
   instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
     coe S := ϕ.onFormula '' S
   /- Need to define -/
   /- ALSO TODO define a set translation coercion for sets of formula in ℒ
   to sets of formulas in ℒₜ-/
-  def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : not_contains_T '' Γ) (hb : not_contains_T '' Δ) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
-    | .tax (h : (th_to_set_form 𝐓𝐁) ∩ Δ ≠ ∅) => sorry
+  def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
+    | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ (th_to_set_form 𝐓𝐁) ∧ f ∈ Δ) => by
+      have step1 : ∃f : Formula ℒₜ ℕ, f ∈ real_PA ∧ f ∈ Δ := by
+        rcases h with ⟨f, a₁, a₂⟩
+        have step2 : not_contains_T f := by
+          apply hb at a₂
+          exact a₂
+        have step3 : f ∈ real_PA := by
+          rw[real_PA]
+          simp
+          apply And.intro a₁ step2
+        have step4 : f ∈ real_PA ∧ f ∈ Δ := by
+          apply And.intro step3 a₂
+        apply Exists.intro f step4
+      apply Derivation.tax step1
     | .lax (h : (Γ ∩ Δ) ≠ ∅) => Derivation.lax h
     | .left_conjunction A B S (h₁ : Derivation 𝐓𝐁 S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})) => sorry
     | .left_disjunction A B S₁ S₂ S₃ (h₁ : Derivation 𝐓𝐁 S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation 𝐓𝐁 S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) => sorry
