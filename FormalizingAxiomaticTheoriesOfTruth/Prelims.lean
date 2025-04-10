@@ -535,6 +535,10 @@ namespace Languages
       onFunction := to_lt_func
       onRelation := to_lt_rel
 
+  def inverse_homomorphism (f : ϕ.onFormula) ()
+
+  example : ϕ.onFormula
+
   instance : Coe (Formula ℒ ℕ) (Formula ℒₜ ℕ) where
     coe := LHom.onFormula ϕ
   instance : Coe (Sentence ℒ) (Sentence ℒₜ) where
@@ -750,7 +754,7 @@ namespace Calculus
 
   /-- G3c sequent calculus -/
   inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
-    | tax {Th Γ Δ} (f : Sentence L) (h1 : f ∈ Th) (h2 : (bf_empty_to_bf_N f) ∈ Δ) : Derivation Th Γ Δ
+    | tax {Th Γ Δ} (f : Formula L ℕ) (h₁ : f ∈ (th_to_set_form Th)) (h₂ : f ∈ Δ) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : (Γ ∩ Δ) ≠ ∅) : Derivation Th Γ Δ
     | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
     | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
@@ -781,17 +785,26 @@ namespace Conservativity
   open TB
   open PA
 
-  def not_contains_T {n} : BoundedFormula ℒₜ ℕ n → Prop
-  | .rel L_T.Rel.t _ => false
-  | .imp f₁ f₂ => not_contains_T f₁ ∧ not_contains_T f₂
-  | .all f => not_contains_T f
-  | _ => true
+  def not_contains_T {α} : ∀{n}, BoundedFormula ℒₜ α n → Prop
+  | _, .rel L_T.Rel.t _ => false
+  | _, .imp f₁ f₂ => not_contains_T f₁ ∧ not_contains_T f₂
+  | _, .all f => not_contains_T f
+  | _, _ => true
 
-  def not_contains_T_sent : Sentence ℒₜ → Prop :=
-    fun s : Sentence ℒₜ =>
-      not_contains_T (bf_empty_to_bf_N s)
+  -- lemma forall_indexing_sets : ∀f:BoundedFormula ℒₜ Empty n,∀g:BoundedFormula ℒₜ β n, not_contains_T f → not_contains_T g := by
+  --   intro h₁
+  --   intro h₂
+  --   intro h₃
+  --   induction h₁ with
+  --   | falsum =>
 
-  def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ (th_to_set_form 𝐓𝐁) ∧ (not_contains_T f)}
+  -- lemma if_sent_not_T_then_form_not_T : ∀(f: Sentence ℒₜ), (not_contains_T f) → (not_contains_T (bf_empty_to_bf_N f)) := by
+  --   intro h₁
+  --   intro h₂
+
+  --   sorry
+
+  def real_PA : Theory ℒₜ := {f | f ∈ 𝐓𝐁 ∧ (not_contains_T f)}
 
   instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
     coe S := ϕ.onFormula '' S
@@ -799,19 +812,30 @@ namespace Conservativity
   /- ALSO TODO define a set translation coercion for sets of formula in ℒ
   to sets of formulas in ℒₜ -/
   def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
-    | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ (th_to_set_form 𝐓𝐁) ∧ f ∈ Δ) => by
-      have step1 : ∃f : Formula ℒₜ ℕ, f ∈ real_PA ∧ f ∈ Δ := by
-        rcases h with ⟨f, a₁, a₂⟩
-        have step2 : not_contains_T f := by
-          apply hb at a₂
-          exact a₂
-        have step3 : f ∈ real_PA := by
-          rw[real_PA]
-          simp
-          apply And.intro a₁ step2
-        have step4 : f ∈ real_PA ∧ f ∈ Δ := by
-          apply And.intro step3 a₂
-        apply Exists.intro f step4
+    | .tax (f : Formula ℒₜ ℕ) (h₁ : f ∈ (th_to_set_form 𝐓𝐁)) (h₂ : f ∈ Δ) => by
+
+
+
+      sorry
+      -- have step1 : f ∈ real_PA := by
+
+
+
+
+
+      -- have step1 : ∃f : Sentence ℒₜ, f ∈ real_PA ∧ (bf_empty_to_bf_N f) ∈ Δ := by
+      --   rcases h with ⟨f, a₁, a₂⟩
+      --   have step2 : not_contains_T f := by
+      --     apply hb at a₂
+      --     exact a₂
+      --   have step3 : f ∈ real_PA := by
+      --     rw[real_PA]
+      --     simp
+      --     apply And.intro a₁ step2
+      --   have step4 : f ∈ real_PA ∧ f ∈ Δ := by
+      --     apply And.intro step3 a₂
+      --   apply Exists.intro f step4
+
       apply Derivation.tax step1
     | .lax (h : (Γ ∩ Δ) ≠ ∅) => Derivation.lax h
     | .left_conjunction A B S (h₁ : Derivation 𝐓𝐁 S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})) => sorry
