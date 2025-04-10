@@ -553,6 +553,8 @@ namespace Languages
     coe := LHom.onSentence ϕ
   instance : Coe (Term ℒ (Empty ⊕ Fin 0)) (Term ℒₜ (Empty ⊕ Fin 0)) where
     coe := LHom.onTerm ϕ
+  instance : Coe (Theory ℒ) (Theory ℒₜ) where
+    coe := LHom.onTheory ϕ
 
 end Languages
 
@@ -805,18 +807,64 @@ notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat_L_T φ)
 notation "⌜" t "⌝" => L_T.numeral (term_tonat_N_L_T t)
 notation "⌜" t "⌝" => L_T.numeral (term_tonat_Empty_L_T t)
 
-def syntax_and_PAT : Theory ℒₜ :=
-  syntax_theory ∪ PAT.peano_arithmetic_t
+def syntax_and_PA : Theory ℒₜ :=
+  syntax_theory ∪ peano_arithmetic
 
 axiom diagonal_lemma (φ : BoundedFormula ℒₜ Empty 1) :
   let φ := φ.toFormula.relabel (fun x => match x with | Sum.inr i => i)
-  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PAT  ⊢ (ψ ⇔ φ /[⌜ψ⌝])
+  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PA  ⊢ (ψ ⇔ φ /[⌜ψ⌝])
 
-def unrestricted_TB (φ : Formula ℒₜ ℕ) :=
-  T(⌜φ⌝) ⇔ φ
+-- def unrestricted_TB (φ : Formula ℒₜ ℕ) :=
+--   T(⌜φ⌝) ⇔ φ
 
--- theorem liar_paradox (left_bot : Formula ℒ ℕ) : (syntax_theory ⊢ ⊥) := by
---   have h : diagonal_lemma ¬T( &1 )
+def unrestricted_TB : Theory ℒₜ :=
+  { φ | ∃ ψ : Formula ℒₜ ℕ, φ = (T(⌜ψ⌝) ⇔ ψ) }
 
+def syntax_and_unres_TB : Theory ℒₜ :=
+  syntax_theory ∪ unrestricted_TB
+
+theorem liar_paradox : syntax_and_unres_TB ⊢ ⊥ := by
+  have h : diagonal_lemma ¬T( &1 )
 
 end LiarParadox
+
+namespace SandBox
+variable (p q r : Prop)
+
+-- commutativity of ∧ and ∨
+example : p ∧ q ↔ q ∧ p := by
+apply Iff.intro
+intro h
+apply And.intro
+exact And.right h
+exact And.left h
+intro hp
+apply And.intro
+exact And.right hp
+exact And.left hp
+
+example : p ∨ q ↔ q ∨ p := by
+apply Iff.intro
+intro h
+cases h
+apply Or.inr
+assumption
+apply Or.inl
+assumption
+intro hq
+cases hq
+apply Or.inr
+assumption
+apply Or.inl
+assumption
+
+-- associativity of ∧ and ∨
+example : (p ∧ q) ∧ r ↔ p ∧ (q ∧ r) := by
+sorry
+
+example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) := sorry
+
+-- distributivity
+example : p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) := sorry
+example : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) := sorry
+end SandBox
