@@ -575,6 +575,9 @@ namespace Calculus
   def lor (f₁ f₂ : BoundedFormula L α n) :=
     ((∼f₁) ⟹ f₂)
   notation f₁ "∨'" f₂ => lor f₁ f₂
+  def not (f₁ : BoundedFormula L α n) :=
+    BoundedFormula.not f₁
+  notation "¬" f₁ => not f₁
 
   /-- Shifts all variable references one down so one is pushed into
   the to-be-bound category -/
@@ -824,7 +827,9 @@ def syntax_and_PA_unres_TB : Theory ℒₜ :=
   syntax_and_PA ∪ unrestricted_TB
 
 theorem liar_paradox : syntax_and_PA_unres_TB ⊢ ⊥ := by
-  let h := diagonal_lemma ¬T( &0 )
+  let φ : BoundedFormula ℒₜ Empty 1 :=
+    ¬(T( &0 ))
+  obtain ⟨ψ, hψ⟩ := diagonal_lemma φ
 
 end LiarParadox
 
