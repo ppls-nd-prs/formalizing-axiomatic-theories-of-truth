@@ -730,7 +730,7 @@ namespace Calculus
     coe := m_add_eq_add_m
 
   def sent_term_to_formula_term : Term L (Empty ⊕ Fin n) → Term L (ℕ ⊕ Fin n)
-      | .var n => match n with
+      | .var m => match m with
         | .inl _ => .var (.inl Nat.zero)
         | .inr k => .var (.inr k)
       | .func f ts => .func f (fun i => sent_term_to_formula_term (ts i))
@@ -742,6 +742,52 @@ namespace Calculus
       | _, .rel R ts => .rel R (fun i => ts i)
       | _, .imp f₁ f₂ => .imp (bf_empty_to_bf_N f₁) (bf_empty_to_bf_N f₂)
       | _, .all f => .all (bf_empty_to_bf_N f)
+
+  def term_contains_free_variable {n} : Term L (ℕ ⊕ Fin n) → Prop
+      | .var v => match v with
+        | .inl _ => true
+        | .inr _ => false
+      | .func _ ts => ∃i, term_contains_free_variable (ts i)
+
+  -- example : ∀t : Term L (ℕ ⊕ Fin n), (¬(term_contains_free_variable t)) → ∀v : ℕ,
+
+  def formula_term_to_sent_term : Term L (ℕ ⊕ Fin n) → Option (Term L (Empty ⊕ Fin n))
+    | .var v => match v with
+      | .inl _ => none
+      | .inr m => some (Term.var (Sum.inr m))
+    | .func f ts =>
+      if ∃i, term_contains_free_variable (ts i) then none else some (.func f (fun j => formula_term_to_sent_term (ts j)))
+
+  def contains_free_variable {n} : BoundedFormula L ℕ n → Prop
+      | .falsum => false
+      | .equal t₁ t₂ => (term_contains_free_variable t₁) ∨ (term_contains_free_variable t₂)
+      | .rel R ts => sorry
+      | .imp f₁ f₂ => (contains_free_variable f₁) ∨ (contains_free_variable f₂)
+      | .all f => contains_free_variable f
+
+  def form_term_to_sent_term {n} (f : Term L (ℕ ⊕ Fin n)) : (term_contains_free_variable t) → Term L (Empty ⊕ Fin n)
+      | True => &0
+
+
+  def form_to_sent {n} (f : BoundedFormula L ℕ n) : (contains_free_variable f) → BoundedFormula L Empty n
+      | True => .falsum
+      | False => match f with
+        | .falsum => .falsum
+        | .equal t₁ t₂ => .equal t₁ t₂
+        | .rel R ts => sorry
+        | .imp f₁ f₂ => sorry
+        | .all f => sorry
+
+
+  def f₁ : BoundedFormula ℒₜ Empty 0 :=
+    ∀' (&0 =' &0)
+  #check bf_empty_to_bf_N f₁
+  #eval bf_empty_to_bf_N f₁
+
+  def bf_N_to_bf_empty : ∀{n}, BoundedFormula L ℕ n → BoundedFormula L Empty n
+      | _, .falsum => .falsum
+      | _, .equal =>
+
   instance : Coe (Sentence L) (Formula L ℕ) where
     coe := bf_empty_to_bf_N
   def th_to_set_form : Theory L → (Set (Formula L ℕ)) :=
@@ -804,6 +850,9 @@ namespace Conservativity
 
   --   sorry
 
+  -- inductive real_L {n} : BoundedFormula ℒₜ ℕ n → Prop
+  -- | val (h : not_contains_T f) : real_L f
+
   def real_PA : Theory ℒₜ := {f | f ∈ 𝐓𝐁 ∧ (not_contains_T f)}
 
   instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
@@ -813,7 +862,6 @@ namespace Conservativity
   to sets of formulas in ℒₜ -/
   def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
     | .tax (f : Formula ℒₜ ℕ) (h₁ : f ∈ (th_to_set_form 𝐓𝐁)) (h₂ : f ∈ Δ) => by
-
 
 
       sorry
