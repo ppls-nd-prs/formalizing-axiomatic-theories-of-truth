@@ -471,22 +471,23 @@ namespace Languages
   end L_T
 
   section Coding
+    variable {α : Type}[Encodable α]
     /-- Encodes terms as natural numbers -/
-    def term_tonat_N : Term ℒ ℕ → ℕ :=
+    def term_tonat_N : Term ℒₜ α → ℕ :=
       fun t => Encodable.encodeList (Term.listEncode t)
-    def term_tonat_Empty : Term ℒ (Empty ⊕ Fin 0) → ℕ :=
+    def term_tonat_N_fin : Term ℒₜ (α ⊕ Fin 0) → ℕ :=
       fun t => Encodable.encodeList (Term.listEncode t)
     /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_N_tonat {n : ℕ} : BoundedFormula ℒ ℕ n → ℕ :=
+    def formula_N_tonat {n : ℕ} : BoundedFormula ℒₜ α n → ℕ :=
       fun f => Encodable.encodeList (BoundedFormula.listEncode f)
-    /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_Empty_tonat {n : ℕ} : BoundedFormula ℒ Empty 0 → ℕ :=
-      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
+    -- /-- Encodes BoundedFormulas as natural numbers -/
+    -- def formula_Empty_tonat : BoundedFormula ℒₜ α 0 → ℕ :=
+    --   fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
 
-    def t₁ : Term ℒ ℕ :=
+    def t₁ : Term ℒₜ ℕ :=
       Term.var 0
-    def f₁ : BoundedFormula ℒ ℕ 0 :=
+    def f₁ : BoundedFormula ℒₜ ℕ 0 :=
       #0 =' #1
 
     #eval term_tonat_N t₁ -- output : 1
@@ -535,10 +536,6 @@ namespace Languages
       onFunction := to_lt_func
       onRelation := to_lt_rel
 
-  def inverse_homomorphism (f : ϕ.onFormula) ()
-
-  example : ϕ.onFormula
-
   instance : Coe (Formula ℒ ℕ) (Formula ℒₜ ℕ) where
     coe := LHom.onFormula ϕ
   instance : Coe (Sentence ℒ) (Sentence ℒₜ) where
@@ -554,12 +551,14 @@ open L
 open L_T
 open BoundedFormula
 
-variable {L : Language}
+variable {L : Language}{α : Type}[Encodable α]
+
+class Natlike (β : Type)
 
 notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
-notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
+-- notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
 notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
-notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
+notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N_fin t₁)
 /- Some notation -/
 notation f " ↑' " n " at "  m => liftAt n m f
 notation f "↑" n => f ↑' n at 0
@@ -574,37 +573,37 @@ def lor (f₁ f₂ : BoundedFormula L α n) :=
   ((∼f₁) ⟹ f₂)
 notation f₁ "∨'" f₂ => lor f₁ f₂
 
-def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def neg_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
-def conj_repres (φ ψ : Formula ℒ ℕ): Sentence ℒₜ :=
+def conj_repres (φ ψ : Formula ℒₜ α): Formula ℒₜ α :=
   (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
-def disj_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def disj_repres (φ ψ : Formula ℒₜ α) : Formula ℒₜ α :=
   (⌜φ⌝ ⬝∨ ⌜ψ⌝) =' (⌜φ ∨' ψ⌝)
-def cond_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def cond_repres (φ ψ : Formula ℒₜ α) : Formula ℒₜ α :=
   (⌜φ⌝ ⬝⟹ ⌜ψ⌝) =' (⌜φ ⟹ ψ⌝)
-def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
+def forall_repres (φ : BoundedFormula ℒₜ α 1) : Formula ℒₜ α :=
   (⬝∀ ⌜φ⌝) =' (⌜∀'φ⌝)
-def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
+def exists_repres (φ : BoundedFormula ℒₜ α 1) : Formula ℒₜ α :=
   (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
-def subs_repres (φ : BoundedFormula ℒ ℕ 1) (x : Term ℒ ℕ) (t : Term ℒ ℕ ) : Sentence ℒₜ :=
-  Subs(⌜φ⌝, ⌜x⌝, ⌜t⌝) =' ⌜φ /[ t ]⌝
-def term_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def subs_repres (φ : BoundedFormula ℒₜ α 1) (x : Term ℒₜ α) (t : Term ℒₜ α ) : Formula ℒₜ α :=
+  Subs(⌜φ⌝, ⌜x⌝, ⌜t⌝) =' ⌜φ/[t]⌝
+def term_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
   Trm( ⌜φ⌝ )
-def formulaL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def formulaL_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
   FormL( ⌜φ⌝ )
-def formulaL_T_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def formulaL_T_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
   FormLT( ⌜φ⌝ )
-def sentenceL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def sentenceL_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
   SentenceL( ⌜φ⌝ )
-def sentenceL_T_respres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def sentenceL_T_respres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
   SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
+def closed_term_repres (t₁ : Term ℒₜ (α ⊕ Fin 0)) : Formula ℒₜ α :=
   ClosedTerm( ⌜t₁⌝ )
-def var_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def var_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
   Var( ⌜φ⌝ )
-def const_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def const_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
   Const( ⌜φ⌝ )
-def denote_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
+def denote_repres (t₁ : Term ℒₜ (α ⊕ Fin 0)) : Formula ℒₜ α :=
   ClosedTerm(⌜t₁⌝) ⟹ ((⬝°(⌜t₁⌝)) =' t₁)
 
 end SyntaxAxioms
@@ -613,7 +612,8 @@ namespace SyntaxTheory
 open Languages
 open L_T
 open SyntaxAxioms
-inductive syntax_theory : Theory ℒₜ where
+variable {α : Type}[Encodable α]
+inductive syntax_theory : Set (Formula ℒₜ α) where
   | negation_representation {φ} : syntax_theory (neg_repres φ)
   | conjunction_representation {φ ψ} : syntax_theory (conj_repres φ ψ)
   | disjunction_representation {φ ψ} : syntax_theory (disj_repres φ ψ)
@@ -637,44 +637,42 @@ namespace PA
   open L_T
   open BoundedFormula
 
+  variable {α : Type}
+
   def replace_bv_with_non_var_term {L} (f : BoundedFormula L α 1) (t : Term L α) : Formula L α :=
     subst f.toFormula (fun _ : α ⊕ Fin 1 => t)
   notation A "//[" t "]" => replace_bv_with_non_var_term A t
-  def replace_bv_with_bv_term {α} {L} (f : BoundedFormula L α 1) (t : Term L (α ⊕ Fin 1)) : BoundedFormula L α 1 :=
+  def replace_bv_with_bv_term  {L} (f : BoundedFormula L α 1) (t : Term L (α ⊕ Fin 1)) : BoundedFormula L α 1 :=
     (relabel id (subst (f.toFormula) (fun _ : (α ⊕ Fin 1) => t)))
   notation A "///[" t "]" => replace_bv_with_bv_term A t
 
   /-- The induction function for ℒₚₐ -/
-  def induction {α} (f : BoundedFormula ℒ α 1) : Formula ℒ α :=
+  def induction (f : BoundedFormula ℒ α 1) : Formula ℒ α :=
     ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
-  inductive pre_peano_arithmetic {α}: Set (Formula ℒ α) where
-    | first : pre_peano_arithmetic (∀' ∼(L.null =' S(&0)))
-    | second :pre_peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-    | third : pre_peano_arithmetic (∀' ((&0 add L.null) =' &0))
-    | fourth : pre_peano_arithmetic (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-    | fifth : pre_peano_arithmetic (∀' ((&0 times L.null) =' L.null))
-    | sixth : pre_peano_arithmetic (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-    | induction (φ) : pre_peano_arithmetic (induction φ)
+  inductive peano_arithmetic : Set (Formula ℒ ℕ) where
+    | first : peano_arithmetic (∀' ∼(L.null =' S(&0)))
+    | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
+    | third : peano_arithmetic (∀' ((&0 add L.null) =' &0))
+    | fourth : peano_arithmetic (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
+    | fifth : peano_arithmetic (∀' ((&0 times L.null) =' L.null))
+    | sixth : peano_arithmetic (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
+    | induction (φ) : peano_arithmetic (induction φ)
 
-  def true_PA : Theory ℒ := pre_peano_arithmetic
-  #check true_PA
-  def some_PA : Set (Formula ℒ ℕ) := pre_peano_arithmetic
-
-
-  notation "𝐏𝐀" => pre_peano_arithmetic
+  notation "𝐏𝐀" => peano_arithmetic
 
 end PA
 
 namespace PAT
 open Languages
- /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒₜ Empty 1) : Sentence ℒₜ :=
+  variable {α : Type}
+  /-- The induction function for ℒₜ -/
+  def induction (f : BoundedFormula ℒₜ α 1) : Formula ℒₜ α :=
     ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
-  inductive peano_arithmetic_t : Theory ℒₜ where
+  inductive peano_arithmetic_t : Set (Formula ℒₜ α) where
     | first : peano_arithmetic_t (∀' ∼(L_T.null =' S(&0)))
     | second :peano_arithmetic_t (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_arithmetic_t (∀' ((&0 add L_T.null) =' &0))
@@ -692,10 +690,10 @@ open L_T
 open PAT
 open SyntaxTheory
 
-inductive tarski_biconditionals : Theory ℒₜ where
+inductive tarski_biconditionals {α : Type}: Set (Formula ℒₜ α) where
   | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
   | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
-  | disquotation {φ : Sentence ℒ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
+  | disquotation {φ : Formula ℒₜ α} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
 
 notation "𝐓𝐁" => tarski_biconditionals
 end TB
@@ -735,7 +733,7 @@ namespace Calculus
     coe := m_add_eq_add_m
 
   def sent_term_to_formula_term : Term L (Empty ⊕ Fin n) → Term L (ℕ ⊕ Fin n)
-      | .var m => match m with
+      | .var n => match n with
         | .inl _ => .var (.inl Nat.zero)
         | .inr k => .var (.inr k)
       | .func f ts => .func f (fun i => sent_term_to_formula_term (ts i))
@@ -747,43 +745,6 @@ namespace Calculus
       | _, .rel R ts => .rel R (fun i => ts i)
       | _, .imp f₁ f₂ => .imp (bf_empty_to_bf_N f₁) (bf_empty_to_bf_N f₂)
       | _, .all f => .all (bf_empty_to_bf_N f)
-
-  -- def is_free_variable : ∀{n}, Term L (ℕ ⊕ Fin n) → Prop
-  --     | _, .var v => match v with
-  --       | .inl _ => true
-  --       | .inr _ => false
-  --     | _, .func f ts => sorry
-
-  -- def contains_free_variable {n} : BoundedFormula L ℕ n → Prop
-  --     | .falsum => false
-  --     | .equal t₁ t₂ => (is_free_variable t₁) ∨ (is_free_variable t₂)
-  --     | .rel R ts => sorry
-  --     | .imp f₁ f₂ => (contains_free_variable f₁) ∨ (contains_free_variable f₂)
-  --     | .all f => contains_free_variable f
-
-  -- def form_term_to_sent_term {n} (f : Term L (ℕ ⊕ Fin n)) : (is_free_variable t) → Term L (Empty ⊕ Fin n)
-  --     | True => &0
-
-
-  -- def form_to_sent {n} (f : BoundedFormula L ℕ n) : (contains_free_variable f) → BoundedFormula L Empty n
-  --     | True => .falsum
-  --     | False => match f with
-  --       | .falsum => .falsum
-  --       | .equal t₁ t₂ => .equal t₁ t₂
-  --       | .rel R ts => sorry
-  --       | .imp f₁ f₂ => sorry
-  --       | .all f => sorry
-
-
-  -- def f₁ : BoundedFormula ℒₜ Empty 0 :=
-  --   ∀' (&0 =' &0)
-  #check bf_empty_to_bf_N f₁
-  #eval bf_empty_to_bf_N f₁
-
-  -- def bf_N_to_bf_empty : ∀{n}, BoundedFormula L ℕ n → BoundedFormula L Empty n
-  --     | _, .falsum => .falsum
-  --     | _, .equal =>
-
   instance : Coe (Sentence L) (Formula L ℕ) where
     coe := bf_empty_to_bf_N
   def th_to_set_form : Theory L → (Set (Formula L ℕ)) :=
@@ -795,8 +756,8 @@ namespace Calculus
   notation A"↓" => relabel shift_one_down A
 
   /-- G3c sequent calculus -/
-  inductive Derivation : (Theory L) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
-    | tax {Th Γ Δ} (f : Sentence L) (h₁ : f ∈ Th) (h₂ : (bf_empty_to_bf_N f) ∈ Δ) : Derivation Th Γ Δ
+  inductive Derivation : (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
+    | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : (Γ ∩ Δ) ≠ ∅) : Derivation Th Γ Δ
     | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
     | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
@@ -811,12 +772,12 @@ namespace Calculus
     | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
     | cut {Th Γ Δ} (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ
 
-
-  def sequent_provable (Th : Theory L) (Γ Δ : Set (Formula L ℕ)) : Prop :=
+  def emptyFormSet : Set (Formula L ℕ) := ∅
+  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Set (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
   notation Th " ⊢ " Γ Δ => sequent_provable Th Γ Δ
-  def formula_provable (Th : Theory L) (f : Formula L ℕ) : Prop :=
-    sequent_provable Th ∅ {f}
+  def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
+    sequent_provable Th emptyFormSet {f}
   notation Th " ⊢ " f => formula_provable Th f
 
 end Calculus
@@ -827,127 +788,70 @@ namespace Conservativity
   open TB
   open PA
 
-  def not_contains_T {α} : ∀{n}, BoundedFormula ℒₜ α n → Prop
-  | _, .rel L_T.Rel.t _ => false
-  | _, .imp f₁ f₂ => not_contains_T f₁ ∧ not_contains_T f₂
-  | _, .all f => not_contains_T f
-  | _, _ => true
+  def not_contains_T {n} : BoundedFormula ℒₜ ℕ n → Prop
+  | .rel L_T.Rel.t _ => false
+  | .imp f₁ f₂ => not_contains_T f₁ ∧ not_contains_T f₂
+  | .all f => not_contains_T f
+  | _ => true
 
-  -- lemma forall_indexing_sets : ∀f:BoundedFormula ℒₜ Empty n,∀g:BoundedFormula ℒₜ β n, not_contains_T f → not_contains_T g := by
-  --   intro h₁
-  --   intro h₂
-  --   intro h₃
-  --   induction h₁ with
-  --   | falsum =>
+  def not_contains_T_sent : Sentence ℒₜ → Prop :=
+    fun s : Sentence ℒₜ =>
+      not_contains_T (bf_empty_to_bf_N s)
 
-  -- lemma if_sent_not_T_then_form_not_T : ∀(f: Sentence ℒₜ), (not_contains_T f) → (not_contains_T (bf_empty_to_bf_N f)) := by
-  --   intro h₁
-  --   intro h₂
-
-  --   sorry
-
-  -- inductive real_L {n} : BoundedFormula ℒₜ ℕ n → Prop
-  -- | val (h : not_contains_T f) : real_L f
-
-  def real_PA : Theory ℒₜ := {f | f ∈ 𝐓𝐁 ∧ (not_contains_T f)}
+  def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ 𝐓𝐁 ∧ (not_contains_T f)}
+  def real_LPA : Set (Formula ℒₜ ℕ) := {f | f ∈ Set.univ ∧ (not_contains_T f)}
 
   instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
     coe S := ϕ.onFormula '' S
   /- Need to define -/
   /- ALSO TODO define a set translation coercion for sets of formula in ℒ
   to sets of formulas in ℒₜ -/
-  example : ∀{s : Sentence ℒₜ}, not_contains_T (bf_empty_to_bf_N s) → not_contains_T s := by
-    intro h₁
-    intro h₂
-    cases h₁ with
-    | falsum =>
-      simp[bf_empty_to_bf_N] at h₂
-      exact h₂
-    | equal t₁ t₂ =>
-      simp[bf_empty_to_bf_N] at h₂
-      rfl
-    | rel R ts =>
-      simp[bf_empty_to_bf_N] at h₂
-      cases R with
-      | t =>
-        simp[not_contains_T] at h₂
-      | _ => rfl
-    | imp f₁ f₂ =>
-      simp[bf_empty_to_bf_N] at h₂
+  def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
+    | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ 𝐓𝐁 ∧ f ∈ Δ) => by
+      have step1 : ∃f : Formula ℒₜ ℕ, f ∈ real_PA ∧ f ∈ Δ := by
+        rcases h with ⟨f, a₁, a₂⟩
+        have step2 : not_contains_T f := by
+          apply hb at a₂
+          exact a₂
+        have step3 : f ∈ real_PA := by
+          rw[real_PA]
+          simp
+          apply And.intro a₁ step2
+        have step4 : f ∈ real_PA ∧ f ∈ Δ := by
+          apply And.intro step3 a₂
+        apply Exists.intro f step4
+      apply Derivation.tax step1
+    | .lax (h : (Γ ∩ Δ) ≠ ∅) => Derivation.lax h
+    | .left_conjunction A B S (h₁ : Derivation 𝐓𝐁 S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})) => sorry
+    | .left_disjunction A B S₁ S₂ S₃ (h₁ : Derivation 𝐓𝐁 S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation 𝐓𝐁 S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) => sorry
+    | .left_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation 𝐓𝐁 S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}) => sorry
+    | .left_bot (h : ⊥ ∈ Γ) => Derivation.left_bot h
+    | .right_conjunction A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation 𝐓𝐁 Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) => sorry
+    | .right_disjunction A B S (d₁ : Derivation 𝐓𝐁 Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}) => sorry
+    | .right_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}) => sorry
+    | .left_forall (A : Formula ℒₜ ℕ) (B) (h₁ : B = A↓) t S (d : Derivation 𝐓𝐁 S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) => sorry
+    | .left_exists A B (S₁ : Set (Formula ℒₜ ℕ)) (p : B = A↓) (d₁ : Derivation 𝐓𝐁 ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) => sorry
+    | .right_forall A B S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) => sorry
+    | .right_exists (A : Formula ℒₜ ℕ) B t S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) => sorry
+    | .cut A S₁ S₂ S₃ S₄ (d₁ : Derivation 𝐓𝐁 S₁ (S₂ ∪ {A})) (d₂ : Derivation 𝐓𝐁 ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) => sorry
 
-  -- def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
-  --   | .tax (f : Sentence ℒₜ) (h₁ : f ∈ 𝐓𝐁) (h₂ : (bf_empty_to_bf_N f) ∈ Δ) => by
-  --     cases f with
-  --       | falsum =>
-  --         apply Derivation.tax
-  --         rw[real_PA]
-  --         simp
-  --         apply And.intro h₁
-  --         rfl
-  --         exact h₂
-  --       | equal t₁ t₂ =>
-  --         apply Derivation.tax
-  --         rw[real_PA]
-  --         simp
-  --         apply And.intro h₁
-  --         rfl
-  --         exact h₂
-  --       | rel R ts =>
-  --         apply Derivation.tax
-  --         rw[real_PA]
-  --         simp
-  --         apply And.intro h₁
-  --         rfl
+  -- theorem conservativity_of_tb : ∀f ∈ real_LPA, (𝐓𝐁 ⊢ f) → (real_PA ⊢ f) := by
+  -- intro f
+  -- intro mem
+  -- intro h
+  -- rw[formula_provable,sequent_provable]
+  -- apply Nonempty.intro
+  -- rw[formula_provable,sequent_provable] at h
+  -- apply Classical.choice at h
+  -- have step1 : ∀f : Formula ℒₜ ℕ, f ∈ emptyFormSet → not_contains_T f := by
+  --   rw[emptyFormSet]
+  --   intro h₁
+  --   intro h₂
+  --   simp at h₂
+  -- have step2 : ∀f : Formula ℒₜ ℕ, f ∈ emptyFormSet ∪ {f} → not_contains_T f := by
 
-
-
-
-
-  --     sorry
-  --     -- have step1 : f ∈ real_PA := by
-
-
-
-
-
-  --     -- have step1 : ∃f : Sentence ℒₜ, f ∈ real_PA ∧ (bf_empty_to_bf_N f) ∈ Δ := by
-  --     --   rcases h with ⟨f, a₁, a₂⟩
-  --     --   have step2 : not_contains_T f := by
-  --     --     apply hb at a₂
-  --     --     exact a₂
-  --     --   have step3 : f ∈ real_PA := by
-  --     --     rw[real_PA]
-  --     --     simp
-  --     --     apply And.intro a₁ step2
-  --     --   have step4 : f ∈ real_PA ∧ f ∈ Δ := by
-  --     --     apply And.intro step3 a₂
-  --     --   apply Exists.intro f step4
-
-  --     apply Derivation.tax step1
-  --   | .lax (h : (Γ ∩ Δ) ≠ ∅) => Derivation.lax h
-  --   | .left_conjunction A B S (h₁ : Derivation 𝐓𝐁 S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})) => sorry
-  --   | .left_disjunction A B S₁ S₂ S₃ (h₁ : Derivation 𝐓𝐁 S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation 𝐓𝐁 S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) => sorry
-  --   | .left_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation 𝐓𝐁 S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}) => sorry
-  --   | .left_bot (h : ⊥ ∈ Γ) => Derivation.left_bot h
-  --   | .right_conjunction A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation 𝐓𝐁 Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) => sorry
-  --   | .right_disjunction A B S (d₁ : Derivation 𝐓𝐁 Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}) => sorry
-  --   | .right_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}) => sorry
-  --   | .right_bot S (d : Derivation 𝐓𝐁 Γ S) (h₁ : ⊥ ∈ S) (h₂ : Δ = S \ ⊥) => sorry
-  --   | .left_forall (A : Formula ℒₜ ℕ) (B) (h₁ : B = A↓) t S (d : Derivation 𝐓𝐁 S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) => sorry
-  --   | .left_exists A B (S₁ : Set (Formula ℒₜ ℕ)) (p : B = A↓) (d₁ : Derivation 𝐓𝐁 ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) => sorry
-  --   | .right_forall A B S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) => sorry
-  --   | .right_exists (A : Formula ℒₜ ℕ) B t S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) => sorry
-
-  theorem conservativity_of_tb : ∀f : Formula ℒ ℕ, (𝐓𝐁 ⊢ f) → (pre_peano_arithmetic ⊢ f) := by
-  intro f
-  intro h
-  rw[formula_provable,sequent_provable]
-  cases f with
-  | falsum => sorry
-  | equal t₁ t₂ => sorry
-  | rel R ts => sorry
-  | imp f₁ f₂ => sorry
-  | all f => sorry
+  -- simp[th_to_set_form] at h
+  -- apply Classical.choice
 
 end Conservativity
 
@@ -964,30 +868,4 @@ def tail {α} : {n : Nat} → Vector α (n+1) → Vector α n
 
   theorem eta {α} : ∀ {n : Nat} (v : Vector α (n+1)), Vector.cons (head v) (tail v) = v
   | n, Vector.cons a as => rfl
-
--- Define the predicate P for the subset
-def P (a : Nat) : Prop := a - 2 = 0
-
--- Define the subset B using a subtype
-def B : Type := { x : Nat // P x }
-#check B
-def a : B := ⟨2, rfl⟩
-#check a
-#eval a
-
-example : ∀i : B, i ∈ Set.univ := by
-
--- Define an element of B
-def b : B := ⟨4, rfl⟩
-
--- Define an element of A that is not in B
-def a : A := 3
-
--- Define a function that checks if an element of A is in B
-def is_in_B (x : A) : Prop := P x
-
--- Example usage
-#eval is_in_B 4 -- true
-#eval is_in_B 3 -- false
-
 end Hidden
