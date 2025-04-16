@@ -899,3 +899,31 @@ def tail {α} : {n : Nat} → Vector α (n+1) → Vector α n
 
   #eval northernTrees.append #["yeah"]
 end Hidden
+
+instance instdecidableEq {m}[∀ n, DecidableEq (L.Functions n)][∀p, DecidableEq (L.Relations p)][DecidableEq (α ⊕ Fin m)]: DecidableEq (BoundedFormula L α m)
+  | .falsum, f => by cases f with
+    | falsum =>
+      apply Decidable.isTrue
+      rfl
+    | _ =>
+      apply Decidable.isFalse
+      simp
+  | .equal t₁ t₂, f => by cases f with
+    | equal t₃ t₄ =>
+      by_cases h : t₁ = t₃ ∧ t₂ = t₄
+      simp[h]
+      apply Decidable.isTrue True.intro
+      simp[h]
+      apply Decidable.isFalse
+      simp
+    | _ =>
+      apply Decidable.isFalse
+      simp
+  | @BoundedFormula.rel _ _ _ m f xs, @BoundedFormula.rel _ _ _ n g ys =>
+      if h : m = n then
+        letI [DecidableEq (α ⊕ Fin m)]: DecidableEq (L.BoundedFormula α m) := instdecidableEq
+        decidable_of_iff (f = h ▸ g ∧ ∀ i : Fin m, xs i = ys (Fin.cast h i)) <| by
+          subst h
+          simp [funext_iff]
+      else
+        .isFalse <| by simp [h]
