@@ -266,16 +266,16 @@ namespace Languages
   namespace L_T
 
     inductive Func : ℕ → Type _ where
-      | zero : Func 0
+      | null : Func 0
       | succ : Func 1
-      | add : Func 2
+      | plus : Func 2
       | mult : Func 2
       | neg : Func 1
       | conj : Func 2
       | disj : Func 2
       | cond : Func 2
-      | forall : Func 1
-      | exists : Func 1
+      | all : Func 1
+      | ex : Func 1
       | denote : Func 1
       | subs : Func 3
 
@@ -294,16 +294,16 @@ namespace Languages
       ⟨Func, Rel⟩
 
     def funToStr {n}: Func n → String
-      | .zero => "0"
+      | .null => "0"
       | .succ => "S"
-      | .add => "+"
+      | .plus => "+"
       | .mult => "×"
       | .neg => "𝑛𝑒𝑔"
       | .conj => "𝑐𝑜𝑛𝑗"
       | .disj => "𝑑𝑖𝑠𝑗"
       | .cond => "𝑐𝑜𝑛𝑑"
-      | .forall => "𝑎𝑙𝑙"
-      | .exists => "𝑒𝑥"
+      | .all => "𝑎𝑙𝑙"
+      | .ex => "𝑒𝑥"
       | .denote => "𝑑𝑒𝑛"
       | .subs => "𝑠𝑢𝑏𝑠"
     instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
@@ -319,6 +319,89 @@ namespace Languages
       | .formlt => "𝑓𝑜𝑟𝑚𝑙𝑡"
       | .sentencelt => "𝑠𝑒𝑛𝑡𝑙𝑡"
     instance : ToString (signature.Relations n) := ⟨relToStr⟩
+
+    def func_decidable : (n : ℕ) → (a : L_T.Func n) → (b : L_T.Func n) → Decidable (a = b)
+      | 0, .null, f => by cases f with
+        | null =>
+          apply Decidable.isTrue
+          rfl
+      | 1, .succ, f => by cases f with
+        | succ =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 1, .neg, f => by cases f with
+        | neg =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 1, .all, f => by cases f with
+        | all =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 1, .ex, f => by cases f with
+        | ex =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 1, .denote, f => by cases f with
+        | denote =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 2, .plus, f => by cases f with
+        | plus =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 2, .mult, f => by cases f with
+        | mult =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 2, .conj, f => by cases f with
+        | conj =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 2, .disj, f => by cases f with
+        | disj =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 2, .cond, f => by cases f with
+        | cond =>
+          apply Decidable.isTrue
+          rfl
+        | _ =>
+          apply Decidable.isFalse
+          simp
+      | 3, .subs, f => by cases f with
+        | subs =>
+          apply Decidable.isTrue
+          rfl
+
+    instance : ∀n, DecidableEq (signature.Functions n) := by
+      apply func_decidable
 
     /-
     Some useful notation
@@ -346,6 +429,12 @@ namespace Languages
     notation "SentenceLT(" t ")" => BoundedFormula.rel L_T.Rel.sentencelt ![t]
     notation "ℒₜ" => signature
 
+    #check DecidableEq (signature.Term ℕ)
+    instance : DecidableEq (signature.Term ℕ) := by
+      apply Term.instDecidableEq
+
+
+
     def null : Term signature α :=
       zero
 
@@ -358,10 +447,10 @@ namespace Languages
         | .zero => Nat.pair 0 0 + 1
         | .succ => Nat.pair 1 0 + 1
         | .denote => Nat.pair 1 1 + 1
-        | .exists => Nat.pair 1 2 + 1
-        | .forall => Nat.pair 1 3 + 1
+        | .ex => Nat.pair 1 2 + 1
+        | .all => Nat.pair 1 3 + 1
         | .neg => Nat.pair 1 4 + 1
-        | .add => Nat.pair 2 0 + 1
+        | .plus => Nat.pair 2 0 + 1
         | .mult => Nat.pair 2 1 + 1
         | .cond => Nat.pair 2 2 + 1
         | .disj => Nat.pair 2 3 + 1
@@ -380,13 +469,13 @@ namespace Languages
               match e.unpair.2 with
                 | 0 => some (.succ)
                 | 1 => some (.denote)
-                | 2 => some (.exists)
-                | 3 => some (.forall)
+                | 2 => some (.ex)
+                | 3 => some (.all)
                 | 4 => some (.neg)
                 | _ => none
             | 2 =>
               match e.unpair.2 with
-                | 0 => some (.add)
+                | 0 => some (.plus)
                 | 1 => some (.mult)
                 | 2 => some (.cond)
                 | 3 => some (.disj)
@@ -745,14 +834,16 @@ namespace Calculus
   instance : Coe (Theory L) (Set (Formula L ℕ)) where
     coe := th_to_set_form
 
-  notation Δ"↑"  => (λf => (relabel shift_free_up f)) '' Δ
+  notation Δ"↑"  => List.map (relabel shift_free_up) Δ
   notation A"↓" => relabel shift_one_down A
 
+  variable [BEq (Formula L ℕ)][DecidableEq (Formula L ℕ)]
+
   /-- G3c sequent calculus -/
-  inductive Derivation : (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → (Set (Formula L ℕ)) → Type _ where
-    | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
-    | lax {Th Γ Δ} (h : (Γ ∩ Δ) ≠ ∅) : Derivation Th Γ Δ
-    | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
+  inductive Derivation : (Set (Formula L ℕ)) → (List (Formula L ℕ)) → (List (Formula L ℕ)) → Type _ where
+    | tax {Th Γ Δ} (S : List (Formula L ℕ)) (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ S) (h : Δ = S.dedup) : Derivation Th Γ Δ
+    | lax {Th Γ Δ} (h : ∃f, f ∈ Γ ∧ f ∈ Δ) : Derivation Th Γ Δ
+    | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ [A]) \ [B]) ∪ [A ∧' B])): Derivation Th Γ Δ
     | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
     | left_implication (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation Th S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}): Derivation Th Γ Δ
     | left_bot {Th Γ Δ} (h : ⊥ ∈ Γ) : Derivation Th Γ Δ
@@ -760,17 +851,17 @@ namespace Calculus
     | right_disjunction {Th Γ Δ} (A B S) (d₁ : Derivation Th Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}): Derivation Th Γ Δ
     | right_implication {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}): Derivation Th Γ Δ
     | left_forall {Th Γ Δ}  (A : Formula L ℕ) (B) (h₁ : B = A↓) (t S) (d : Derivation Th S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) : Derivation Th Γ Δ
-    | left_exists {Th Γ Δ} (A B) (S₁ : Set (Formula L ℕ)) (p : B = A↓) (d₁ : Derivation Th ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) : Derivation Th Γ Δ
+    | left_exists {Th Γ Δ} (A B) (S₁ : List (Formula L ℕ)) (p : B = A↓) (d₁ : Derivation Th ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) : Derivation Th Γ Δ
     | right_forall {Th Γ Δ} (A B S) (p : B = A↓) (d₁ : Derivation Th (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) : Derivation Th Γ Δ
     | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
     | cut {Th Γ Δ} (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ
 
-  def emptyFormSet : Set (Formula L ℕ) := ∅
-  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Set (Formula L ℕ)) : Prop :=
+  def emptyFormList : List (Formula L ℕ) := []
+  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : List (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
   notation Th " ⊢ " Γ Δ => sequent_provable Th Γ Δ
   def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
-    sequent_provable Th emptyFormSet {f}
+    sequent_provable Th emptyFormList [f]
   notation Th " ⊢ " f => formula_provable Th f
 
 end Calculus
@@ -799,6 +890,36 @@ namespace Conservativity
   /- Need to define -/
   /- ALSO TODO define a set translation coercion for sets of formula in ℒ
   to sets of formulas in ℒₜ -/
+
+  variable {α : Type} [DecidableEq α]
+
+  /-- Obtains a list of all formulas that are part of a sequent -/
+  def sequent_to_list_fml : List α → List α → List α :=
+    fun l₁ : List α =>
+      fun l₂ : List α =>
+        (l₁.append l₂).dedup
+
+  #eval sequent_to_list_fml [f₁] [f₁]
+
+  instance thing (a b: Formula ℒₜ ℕ) : Decidable (Eq a b) := by
+    sorry
+
+
+
+
+
+  instance : DecidableEq (Formula ℒₜ ℕ) :=
+    sorry
+
+  #eval sequent_to_list_fml [f₁] [f₁]
+
+  /-- Obtains a Finset of all formulas that occur in some derivation -/
+  def der_to_finset_fml {Δ Γ}: Derivation 𝐓𝐁 Δ Γ → Set Fml := sorry
+
+  /-- Builds tau from a Finset of formulas -/
+  def build_tau : Set Fml → Fml := sorry
+
+
   def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
     | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ 𝐓𝐁 ∧ f ∈ Δ) => by
       have step1 : ∃f : Formula ℒₜ ℕ, f ∈ real_PA ∧ f ∈ Δ := by
@@ -861,4 +982,9 @@ def tail {α} : {n : Nat} → Vector α (n+1) → Vector α n
 
   theorem eta {α} : ∀ {n : Nat} (v : Vector α (n+1)), Vector.cons (head v) (tail v) = v
   | n, Vector.cons a as => rfl
+
+  def northernTrees : Array String :=
+  #["sloe", "birch", "elm", "oak"]
+
+  #eval northernTrees.append #["yeah"]
 end Hidden
