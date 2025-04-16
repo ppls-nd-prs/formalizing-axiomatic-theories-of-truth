@@ -811,16 +811,17 @@ namespace Conservativity
       fun l₂ : List α =>
         (l₁.append l₂).dedup
 
-  instance thing (a b: Formula ℒₜ ℕ) : Decidable (Eq a b) := by
-    sorry
+  -- instance thing (a b: Formula ℒₜ ℕ) : Decidable (Eq a b) := by
+  --   sorry
 
 
 
 
 
-  instance : DecidableEq (Formula ℒₜ ℕ) :=
-    sorry
-
+  -- instance : DecidableEq (Formula ℒₜ ℕ) :=
+  --   sorry
+  #eval f₁
+  #eval [f₁]
   #eval sequent_to_list_fml [f₁] [f₁]
 
   /-- Obtains a Finset of all formulas that occur in some derivation -/
