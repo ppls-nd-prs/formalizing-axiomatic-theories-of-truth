@@ -7,6 +7,15 @@ import Mathlib.Logic.Equiv.List
 open FirstOrder
 open Language
 
+class isEmptyOrNat (α : Type) where
+   possible : α → (Empty ⊕ ℕ)
+
+instance : isEmptyOrNat Empty where
+  possible := fun e : Empty => .inl e
+
+instance : isEmptyOrNat ℕ where
+  possible := fun n : Nat => .inr n
+
 namespace String
   def vecToStr : ∀ {n}, (Fin n → String) → String
   | 0,     _ => ""
@@ -471,7 +480,7 @@ namespace Languages
   end L_T
 
   section Coding
-    variable {α : Type}[Encodable α]
+    variable {α : Type}[isEmptyOrNat α]
     /-- Encodes terms as natural numbers -/
     def term_tonat_N : Term ℒₜ α → ℕ :=
       fun t => Encodable.encodeList (Term.listEncode t)
@@ -551,9 +560,7 @@ open L
 open L_T
 open BoundedFormula
 
-variable {L : Language}{α : Type}[Encodable α]
-
-class Natlike (β : Type)
+variable {L : Language}{α : Type}[isEmptyOrNat α]
 
 notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
 -- notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
