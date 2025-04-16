@@ -266,18 +266,19 @@ namespace Languages
   namespace L_T
 
     inductive Func : ℕ → Type _ where
-      | null : Func 0
+      | zero : Func 0
       | succ : Func 1
-      | plus : Func 2
+      | add : Func 2
       | mult : Func 2
       | neg : Func 1
       | conj : Func 2
       | disj : Func 2
       | cond : Func 2
-      | all : Func 1
-      | ex : Func 1
+      | forall : Func 1
+      | exists : Func 1
       | denote : Func 1
       | subs : Func 3
+      deriving DecidableEq
 
     inductive Rel : ℕ → Type _ where
       | var : Rel 1
@@ -289,21 +290,22 @@ namespace Languages
       | sentencel: Rel 1
       | formlt : Rel 1
       | sentencelt : Rel 1
+      deriving DecidableEq
 
     def signature : Language :=
       ⟨Func, Rel⟩
 
     def funToStr {n}: Func n → String
-      | .null => "0"
+      | .zero => "0"
       | .succ => "S"
-      | .plus => "+"
+      | .add => "+"
       | .mult => "×"
       | .neg => "𝑛𝑒𝑔"
       | .conj => "𝑐𝑜𝑛𝑗"
       | .disj => "𝑑𝑖𝑠𝑗"
       | .cond => "𝑐𝑜𝑛𝑑"
-      | .all => "𝑎𝑙𝑙"
-      | .ex => "𝑒𝑥"
+      | .forall => "𝑎𝑙𝑙"
+      | .exists => "𝑒𝑥"
       | .denote => "𝑑𝑒𝑛"
       | .subs => "𝑠𝑢𝑏𝑠"
     instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
@@ -319,90 +321,6 @@ namespace Languages
       | .formlt => "𝑓𝑜𝑟𝑚𝑙𝑡"
       | .sentencelt => "𝑠𝑒𝑛𝑡𝑙𝑡"
     instance : ToString (signature.Relations n) := ⟨relToStr⟩
-
-    def func_decidable : (n : ℕ) → (a : L_T.Func n) → (b : L_T.Func n) → Decidable (a = b)
-      | 0, .null, f => by cases f with
-        | null =>
-          apply Decidable.isTrue
-          rfl
-      | 1, .succ, f => by cases f with
-        | succ =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 1, .neg, f => by cases f with
-        | neg =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 1, .all, f => by cases f with
-        | all =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 1, .ex, f => by cases f with
-        | ex =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 1, .denote, f => by cases f with
-        | denote =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 2, .plus, f => by cases f with
-        | plus =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 2, .mult, f => by cases f with
-        | mult =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 2, .conj, f => by cases f with
-        | conj =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 2, .disj, f => by cases f with
-        | disj =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 2, .cond, f => by cases f with
-        | cond =>
-          apply Decidable.isTrue
-          rfl
-        | _ =>
-          apply Decidable.isFalse
-          simp
-      | 3, .subs, f => by cases f with
-        | subs =>
-          apply Decidable.isTrue
-          rfl
-
-    instance : ∀n, DecidableEq (signature.Functions n) := by
-      apply func_decidable
-
     /-
     Some useful notation
     -/
@@ -429,12 +347,6 @@ namespace Languages
     notation "SentenceLT(" t ")" => BoundedFormula.rel L_T.Rel.sentencelt ![t]
     notation "ℒₜ" => signature
 
-    #check DecidableEq (signature.Term ℕ)
-    instance : DecidableEq (signature.Term ℕ) := by
-      apply Term.instDecidableEq
-
-
-
     def null : Term signature α :=
       zero
 
@@ -447,10 +359,10 @@ namespace Languages
         | .zero => Nat.pair 0 0 + 1
         | .succ => Nat.pair 1 0 + 1
         | .denote => Nat.pair 1 1 + 1
-        | .ex => Nat.pair 1 2 + 1
-        | .all => Nat.pair 1 3 + 1
+        | .exists => Nat.pair 1 2 + 1
+        | .forall => Nat.pair 1 3 + 1
         | .neg => Nat.pair 1 4 + 1
-        | .plus => Nat.pair 2 0 + 1
+        | .add => Nat.pair 2 0 + 1
         | .mult => Nat.pair 2 1 + 1
         | .cond => Nat.pair 2 2 + 1
         | .disj => Nat.pair 2 3 + 1
@@ -469,13 +381,13 @@ namespace Languages
               match e.unpair.2 with
                 | 0 => some (.succ)
                 | 1 => some (.denote)
-                | 2 => some (.ex)
-                | 3 => some (.all)
+                | 2 => some (.exists)
+                | 3 => some (.forall)
                 | 4 => some (.neg)
                 | _ => none
             | 2 =>
               match e.unpair.2 with
-                | 0 => some (.plus)
+                | 0 => some (.add)
                 | 1 => some (.mult)
                 | 2 => some (.cond)
                 | 3 => some (.disj)
@@ -898,8 +810,6 @@ namespace Conservativity
     fun l₁ : List α =>
       fun l₂ : List α =>
         (l₁.append l₂).dedup
-
-  #eval sequent_to_list_fml [f₁] [f₁]
 
   instance thing (a b: Formula ℒₜ ℕ) : Decidable (Eq a b) := by
     sorry
