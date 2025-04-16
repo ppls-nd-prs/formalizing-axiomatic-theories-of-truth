@@ -7,15 +7,6 @@ import Mathlib.Logic.Equiv.List
 open FirstOrder
 open Language
 
-class isEmptyOrNat (α : Type) where
-   possible : α → (Empty ⊕ ℕ)
-
-instance : isEmptyOrNat Empty where
-  possible := fun e : Empty => .inl e
-
-instance : isEmptyOrNat ℕ where
-  possible := fun n : Nat => .inr n
-
 namespace String
   def vecToStr : ∀ {n}, (Fin n → String) → String
   | 0,     _ => ""
@@ -480,18 +471,17 @@ namespace Languages
   end L_T
 
   section Coding
-    variable {α : Type}[isEmptyOrNat α]
     /-- Encodes terms as natural numbers -/
-    def term_tonat_N : Term ℒₜ α → ℕ :=
+    def term_tonat_N : Term ℒₜ ℕ → ℕ :=
       fun t => Encodable.encodeList (Term.listEncode t)
-    def term_tonat_N_fin : Term ℒₜ (α ⊕ Fin 0) → ℕ :=
+    def term_tonat_N_fin : Term ℒₜ (ℕ ⊕ Fin 0) → ℕ :=
       fun t => Encodable.encodeList (Term.listEncode t)
     /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_N_tonat {n : ℕ} : BoundedFormula ℒₜ α n → ℕ :=
+    def formula_N_tonat {n : ℕ} : BoundedFormula ℒₜ ℕ n → ℕ :=
       fun f => Encodable.encodeList (BoundedFormula.listEncode f)
-    -- /-- Encodes BoundedFormulas as natural numbers -/
-    -- def formula_Empty_tonat : BoundedFormula ℒₜ α 0 → ℕ :=
-    --   fun f => Encodable.encodeList (BoundedFormula.listEncode f)
+    /-- Encodes BoundedFormulas as natural numbers -/
+    def formula_Empty_tonat {n : ℕ} : BoundedFormula ℒₜ Empty 0 → ℕ :=
+      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
 
     def t₁ : Term ℒₜ ℕ :=
@@ -560,10 +550,10 @@ open L
 open L_T
 open BoundedFormula
 
-variable {L : Language}{α : Type}[isEmptyOrNat α]
+variable {L : Language}
 
 notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
--- notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
+notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
 notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
 notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N_fin t₁)
 /- Some notation -/
@@ -580,37 +570,37 @@ def lor (f₁ f₂ : BoundedFormula L α n) :=
   ((∼f₁) ⟹ f₂)
 notation f₁ "∨'" f₂ => lor f₁ f₂
 
-def neg_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
+def neg_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
-def conj_repres (φ ψ : Formula ℒₜ α): Formula ℒₜ α :=
+def conj_repres (φ ψ : Formula ℒₜ ℕ): Formula ℒₜ ℕ :=
   (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
-def disj_repres (φ ψ : Formula ℒₜ α) : Formula ℒₜ α :=
+def disj_repres (φ ψ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   (⌜φ⌝ ⬝∨ ⌜ψ⌝) =' (⌜φ ∨' ψ⌝)
-def cond_repres (φ ψ : Formula ℒₜ α) : Formula ℒₜ α :=
+def cond_repres (φ ψ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   (⌜φ⌝ ⬝⟹ ⌜ψ⌝) =' (⌜φ ⟹ ψ⌝)
-def forall_repres (φ : BoundedFormula ℒₜ α 1) : Formula ℒₜ α :=
+def forall_repres (φ : BoundedFormula ℒₜ ℕ 1) : Formula ℒₜ ℕ :=
   (⬝∀ ⌜φ⌝) =' (⌜∀'φ⌝)
-def exists_repres (φ : BoundedFormula ℒₜ α 1) : Formula ℒₜ α :=
+def exists_repres (φ : BoundedFormula ℒₜ ℕ 1) : Formula ℒₜ ℕ :=
   (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
-def subs_repres (φ : BoundedFormula ℒₜ α 1) (x : Term ℒₜ α) (t : Term ℒₜ α ) : Formula ℒₜ α :=
-  Subs(⌜φ⌝, ⌜x⌝, ⌜t⌝) =' ⌜φ/[t]⌝
-def term_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
+def subs_repres (φ : BoundedFormula ℒₜ ℕ 1) (x : Term ℒₜ ℕ) (t : Term ℒₜ ℕ ) : Formula ℒₜ ℕ :=
+  Subs(⌜φ⌝, ⌜x⌝, ⌜t⌝) =' ⌜φ /[ t ]⌝
+def term_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   Trm( ⌜φ⌝ )
-def formulaL_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
+def formulaL_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   FormL( ⌜φ⌝ )
-def formulaL_T_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
+def formulaL_T_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   FormLT( ⌜φ⌝ )
-def sentenceL_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
+def sentenceL_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   SentenceL( ⌜φ⌝ )
-def sentenceL_T_respres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
+def sentenceL_T_respres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t₁ : Term ℒₜ (α ⊕ Fin 0)) : Formula ℒₜ α :=
+def closed_term_repres (t₁ : Term ℒₜ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
   ClosedTerm( ⌜t₁⌝ )
-def var_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
+def var_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   Var( ⌜φ⌝ )
-def const_repres (φ : Formula ℒₜ α) : Formula ℒₜ α :=
+def const_repres (φ : Formula ℒₜ ℕ) : Formula ℒₜ ℕ :=
   Const( ⌜φ⌝ )
-def denote_repres (t₁ : Term ℒₜ (α ⊕ Fin 0)) : Formula ℒₜ α :=
+def denote_repres (t₁ : Term ℒₜ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
   ClosedTerm(⌜t₁⌝) ⟹ ((⬝°(⌜t₁⌝)) =' t₁)
 
 end SyntaxAxioms
@@ -619,8 +609,7 @@ namespace SyntaxTheory
 open Languages
 open L_T
 open SyntaxAxioms
-variable {α : Type}[Encodable α]
-inductive syntax_theory : Set (Formula ℒₜ α) where
+inductive syntax_theory : Set (Formula ℒₜ ℕ) where
   | negation_representation {φ} : syntax_theory (neg_repres φ)
   | conjunction_representation {φ ψ} : syntax_theory (conj_repres φ ψ)
   | disjunction_representation {φ ψ} : syntax_theory (disj_repres φ ψ)
@@ -644,17 +633,15 @@ namespace PA
   open L_T
   open BoundedFormula
 
-  variable {α : Type}
-
-  def replace_bv_with_non_var_term {L} (f : BoundedFormula L α 1) (t : Term L α) : Formula L α :=
-    subst f.toFormula (fun _ : α ⊕ Fin 1 => t)
+  def replace_bv_with_non_var_term {L} (f : BoundedFormula L ℕ 1) (t : Term L ℕ) : Formula L ℕ :=
+    subst f.toFormula (fun _ : ℕ ⊕ Fin 1 => t)
   notation A "//[" t "]" => replace_bv_with_non_var_term A t
-  def replace_bv_with_bv_term  {L} (f : BoundedFormula L α 1) (t : Term L (α ⊕ Fin 1)) : BoundedFormula L α 1 :=
-    (relabel id (subst (f.toFormula) (fun _ : (α ⊕ Fin 1) => t)))
+  def replace_bv_with_bv_term  {L} (f : BoundedFormula L ℕ 1) (t : Term L (ℕ ⊕ Fin 1)) : BoundedFormula L ℕ 1 :=
+    (relabel id (subst (f.toFormula) (fun _ : (ℕ ⊕ Fin 1) => t)))
   notation A "///[" t "]" => replace_bv_with_bv_term A t
 
   /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒ α 1) : Formula ℒ α :=
+  def induction (f : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
     ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
@@ -673,13 +660,12 @@ end PA
 
 namespace PAT
 open Languages
-  variable {α : Type}
   /-- The induction function for ℒₜ -/
-  def induction (f : BoundedFormula ℒₜ α 1) : Formula ℒₜ α :=
-    ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
+  def induction (f : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
+    ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
-  inductive peano_arithmetic_t : Set (Formula ℒₜ α) where
+  inductive peano_arithmetic_t : Set (Formula ℒₜ ℕ) where
     | first : peano_arithmetic_t (∀' ∼(L_T.null =' S(&0)))
     | second :peano_arithmetic_t (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_arithmetic_t (∀' ((&0 add L_T.null) =' &0))
@@ -697,10 +683,10 @@ open L_T
 open PAT
 open SyntaxTheory
 
-inductive tarski_biconditionals {α : Type}: Set (Formula ℒₜ α) where
+inductive tarski_biconditionals : Set (Formula ℒₜ ℕ) where
   | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
   | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
-  | disquotation {φ : Formula ℒₜ α} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
+  | disquotation {φ : Formula ℒₜ ℕ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
 
 notation "𝐓𝐁" => tarski_biconditionals
 end TB
