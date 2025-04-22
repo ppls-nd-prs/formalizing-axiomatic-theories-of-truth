@@ -826,10 +826,20 @@ def unrestricted_TB : Theory ℒₜ :=
 def syntax_and_PA_unres_TB : Theory ℒₜ :=
   syntax_and_PA ∪ unrestricted_TB
 
+-- theorem liar_paradox : syntax_and_PA_unres_TB ⊢ ⊥ := by
+--   let φ : BoundedFormula ℒₜ Empty 1 :=
+--     ¬(T( &0 ))
+--   obtain ⟨ψ, hψ⟩ := diagonal_lemma φ
+
 theorem liar_paradox : syntax_and_PA_unres_TB ⊢ ⊥ := by
-  let φ : BoundedFormula ℒₜ Empty 1 :=
-    ¬(T( &0 ))
+  let φ : BoundedFormula ℒₜ Empty 1 := ¬(T( &0 ))
   obtain ⟨ψ, hψ⟩ := diagonal_lemma φ
+
+  have h1 : syntax_and_PA_unres_TB ⊢ (ψ ⟹ ¬T(⌜ψ⌝)) := by
+    sorry
+
+  have h2 : syntax_and_PA_unres_TB ⊢ (¬T(⌜ψ⌝) ⟹ ψ) := by
+    sorry
 
 end LiarParadox
 
