@@ -841,10 +841,10 @@ namespace Conservativity
   variable {α : Type} [DecidableEq α]
 
   /-- Obtains a list of all formulas that are part of a sequent -/
-  def sequent_to_list_fml : List α → List α → List α :=
-    fun l₁ : List α =>
-      fun l₂ : List α =>
-        (l₁.append l₂).dedup
+  def sequent_to_finset : Finset α → Finset α → Finset α :=
+    fun l₁ : Finset α =>
+      fun l₂ : Finset α =>
+        (l₁ ∪ l₂)
 
   -- instance thing (a b: Formula ℒₜ ℕ) : Decidable (Eq a b) := by
   --   sorry
@@ -859,8 +859,23 @@ namespace Conservativity
   #eval [f₁]
   #eval sequent_to_list_fml [f₁] [f₁]
 
+  variable {L : Language} {Th : Set (Formula L ℕ)}[∀n, DecidableEq (L.Functions n)][∀p, DecidableEq (L.Relations p)]
   /-- Obtains a Finset of all formulas that occur in some derivation -/
-  def der_to_finset_fml {Δ Γ}: Derivation 𝐓𝐁 Δ Γ → Finset Fml := sorry
+  def der_to_finset_fml {Δ Γ}: Derivation Th Δ Γ → Finset (Formula L ℕ)
+    | .tax _ => Δ ∪ Γ
+    | .lax _ => Δ ∪ Γ
+    | .left_conjunction _ _ _ d _ _ _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
+    | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
+    | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
+    | .left_bot _ => Δ ∪ Γ
+    | .right_conjunction _ _ _ _ _ d₁ _ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
+    | .right_disjunction _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
+    | .right_implication _ _ _ _ _ d _ _ _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
+    | .left_forall _ _ _ _ _ d _ _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
+    | .left_exists _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
+    | .right_forall _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
+    | .right_exists _ _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
+    | .cut _ _ _ _ _ d₁ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
 
   /-- Builds tau from a Finset of formulas -/
   def build_tau : Set Fml → Fml := sorry
@@ -942,6 +957,9 @@ namespace Hidden
       simp[S₁,S₂,S₃]
       apply Derivation.right_disjunction f₁ f₂ S₄ step3 step4
     exact step5
+
+  open Conservativity
+  #check der_to_finset_fml der₁
 
   inductive Vector (α : Type u) : Nat → Type u
   | nil  : Vector α 0
