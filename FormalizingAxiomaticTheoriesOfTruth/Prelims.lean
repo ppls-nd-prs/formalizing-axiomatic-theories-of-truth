@@ -122,7 +122,7 @@ namespace Languages
     Useful notation
     -/
     notation "S(" n ")" => Term.func Func.succ ![n]
-    -- notation "zero" => Term.func Func.zero ![]
+    notation "zero" => Term.func Func.zero ![]
     notation n "add" m => Term.func Func.add ![n,m]
     notation n "times" m => Term.func Func.mult ![n,m]
     notation n "⬝∧" m => Term.func Func.conj ![n,m]
@@ -326,7 +326,7 @@ namespace Languages
     -/
     notation "T(" n ")" => BoundedFormula.rel Rel.t ![n]
     notation "S(" n ")" => Term.func Func.succ ![n]
-    -- notation "zero" => Term.func Func.zero ![]
+    notation "zero" => Term.func Func.zero ![]
     notation n "add" m => Term.func Func.add ![n,m]
     notation n "times" m => Term.func Func.mult ![n,m]
     notation n "⬝∧" m => Term.func Func.conj ![n,m]
@@ -803,12 +803,12 @@ namespace Calculus
     | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
     | cut {Th Γ Δ} (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ
 
-  def emptyFormList : List (Formula L ℕ) := []
-  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : List (Formula L ℕ)) : Prop :=
+  def emptyFormList : Finset (Formula L ℕ) := ∅
+  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Finset (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
   notation Th " ⊢ " Γ Δ => sequent_provable Th Γ Δ
   def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
-    sequent_provable Th emptyFormList [f]
+    sequent_provable Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
 
 end Calculus
@@ -850,7 +850,7 @@ namespace Conservativity
   --   sorry
 
 
-
+  abbrev Fml := Formula ℒₜ ℕ
 
 
   -- instance : DecidableEq (Formula ℒₜ ℕ) :=
@@ -860,7 +860,7 @@ namespace Conservativity
   #eval sequent_to_list_fml [f₁] [f₁]
 
   /-- Obtains a Finset of all formulas that occur in some derivation -/
-  def der_to_finset_fml {Δ Γ}: Derivation 𝐓𝐁 Δ Γ → Set Fml := sorry
+  def der_to_finset_fml {Δ Γ}: Derivation 𝐓𝐁 Δ Γ → Finset Fml := sorry
 
   /-- Builds tau from a Finset of formulas -/
   def build_tau : Set Fml → Fml := sorry
@@ -916,6 +916,33 @@ namespace Conservativity
 end Conservativity
 
 namespace Hidden
+  open Languages
+  open L_T
+  open Calculus
+
+  def f₁ : Formula ℒₜ ℕ :=
+    ∀' (&0 =' &0)
+  def f₂ : Formula ℒₜ ℕ :=
+    ∀' ∀' (&0 =' &1)
+  def S₁ : Set (Formula ℒₜ ℕ) := {f₁, f₂}
+  def S₂ : Finset (Formula ℒₜ ℕ) := ∅
+  def S₃ : Finset (Formula ℒₜ ℕ) := {f₁ ∨' f₂}
+  def der₁ : Derivation S₁ S₂ S₃ := by
+    let S₄ : Finset (Formula ℒₜ ℕ) := {f₁, f₂}
+    have step1 : f₁ ∈ S₁ ∧ f₁ ∈ S₄ := by
+      simp[S₁,S₄]
+    have step2 : ∃f, f ∈ S₁ ∧ f ∈ S₄ := by
+      apply Exists.intro f₁ step1
+    have step3 : Derivation S₁ S₂ S₄ := by
+      simp[S₁,S₂,S₄]
+      apply Derivation.tax step2
+    have step4 : S₃ = (S₄ \ {f₁, f₂}) ∪ {f₁ ∨' f₂} := by
+      simp[S₃,S₄]
+    have step5 : Derivation S₁ S₂ S₃ := by
+      simp[S₁,S₂,S₃]
+      apply Derivation.right_disjunction f₁ f₂ S₄ step3 step4
+    exact step5
+
   inductive Vector (α : Type u) : Nat → Type u
   | nil  : Vector α 0
   | cons : α → {n : Nat} → Vector α n → Vector α (n+1)
