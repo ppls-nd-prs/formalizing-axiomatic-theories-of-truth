@@ -819,45 +819,74 @@ namespace Conservativity
   open TB
   open PA
 
-  def not_contains_T {n} : BoundedFormula ℒₜ ℕ n → Prop
-  | .rel L_T.Rel.t _ => false
-  | .imp f₁ f₂ => not_contains_T f₁ ∧ not_contains_T f₂
-  | .all f => not_contains_T f
-  | _ => true
+  @[simp]
+  def contains_T {n} : BoundedFormula ℒₜ ℕ n → Prop
+  | .rel L_T.Rel.t _ => true
+  | .imp f₁ f₂ => contains_T f₁ ∨ contains_T f₂
+  | .all f => contains_T f
+  | _ => false
+
+  def decPred_contains_T : {n : ℕ} → (a : BoundedFormula ℒₜ ℕ n) → Decidable (contains_T a)
+  | _, .falsum => by
+    apply Decidable.isFalse
+    simp
+  | _, .equal t₁ t₂ => by
+    apply Decidable.isFalse
+    simp
+  | _, .rel R ts => by cases R with
+    | t =>
+      apply Decidable.isTrue
+      simp
+    | _ =>
+      apply Decidable.isFalse
+      simp
+  | _, .imp f₁ f₂ => by
+    simp[contains_T]
+    apply decPred_contains_T at f₁
+    apply decPred_contains_T at f₂
+    apply instDecidableOr
+  | _, .all f => by
+    apply decPred_contains_T at f
+    simp
+    exact f
+
+  instance : DecidablePred (@contains_T 0) := decPred_contains_T
+
+  open Matrix
+  @[simp]
+  def is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Prop
+  | .zero, (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) =>
+    if f₁ = f₂ ∧ ts₁ = ![⌜f₁⌝] ∧ ts₂ = ![⌜f₂⌝] then True
+    else False
+  | _, _ => False
+
+  def decPred_is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Decidable (is_disq_sent f)
+  | _, .falsum => by
+    apply Decidable.isFalse
+    simp
+  | _, .equal _ _ => by
+    apply Decidable.isFalse
+    simp
+  | _, .imp f₁ f₂ => by
+    apply decPred_is_disq_sent at f₁
+    apply decPred_is_disq_sent at f₂
+
+
+
+
 
   def not_contains_T_sent : Sentence ℒₜ → Prop :=
     fun s : Sentence ℒₜ =>
-      not_contains_T (bf_empty_to_bf_N s)
+      contains_T (bf_empty_to_bf_N s)
 
-  def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ 𝐓𝐁 ∧ (not_contains_T f)}
-  def real_LPA : Set (Formula ℒₜ ℕ) := {f | f ∈ Set.univ ∧ (not_contains_T f)}
+  def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ 𝐓𝐁 ∧ (contains_T f)}
+  def real_LPA : Set (Formula ℒₜ ℕ) := {f | f ∈ Set.univ ∧ (contains_T f)}
 
   instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
     coe S := ϕ.onFormula '' S
   /- Need to define -/
   /- ALSO TODO define a set translation coercion for sets of formula in ℒ
   to sets of formulas in ℒₜ -/
-
-  variable {α : Type} [DecidableEq α]
-
-  /-- Obtains a list of all formulas that are part of a sequent -/
-  def sequent_to_finset : Finset α → Finset α → Finset α :=
-    fun l₁ : Finset α =>
-      fun l₂ : Finset α =>
-        (l₁ ∪ l₂)
-
-  -- instance thing (a b: Formula ℒₜ ℕ) : Decidable (Eq a b) := by
-  --   sorry
-
-
-  abbrev Fml := Formula ℒₜ ℕ
-
-
-  -- instance : DecidableEq (Formula ℒₜ ℕ) :=
-  --   sorry
-  #eval f₁
-  #eval [f₁]
-  #eval sequent_to_list_fml [f₁] [f₁]
 
   variable {L : Language} {Th : Set (Formula L ℕ)}[∀n, DecidableEq (L.Functions n)][∀p, DecidableEq (L.Relations p)]
   /-- Obtains a Finset of all formulas that occur in some derivation -/
@@ -876,6 +905,14 @@ namespace Conservativity
     | .right_forall _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
     | .right_exists _ _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
     | .cut _ _ _ _ _ d₁ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
+
+  /-- Obtain a finset that contains only the formula containing a T from a finset -/
+  def get_T_fmls (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
+    {f ∈ S | contains_T f}
+
+  /-- Obtains all disquotation sentences in a finset -/
+  def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
+    {f ∈ S | is_disq_sent f}
 
   /-- Builds tau from a Finset of formulas -/
   def build_tau : Set Fml → Fml := sorry
