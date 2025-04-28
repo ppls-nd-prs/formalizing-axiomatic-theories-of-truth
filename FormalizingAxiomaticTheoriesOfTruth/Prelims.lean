@@ -944,8 +944,19 @@ namespace Conservativity
   def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
     {f ∈ S | is_disq_sent f}
 
+  def disq_to_tau : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0
+  | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) =>
+    #0 =' ⌜f₁⌝ ⇔ f₁
+  | _ => ⊥
+
+  -- def f₅ : Formula ℒₜ ℕ := (((.rel L_T.Rel.t ![⌜⊥⌝] ⟹ ⊥) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥)
+  -- #eval disq_to_tau
+
+  def transform_to_tau_disjunct (S : Finset (Formula ℒₜ ℕ)): (Finset (Formula ℒₜ ℕ)) :=
+    S.image disq_to_tau
 
   def s₁ : Finset (BoundedFormula ℒₜ ℕ 0) := {f₁, f₁}
+  #check s₁.image
   def mapping (s : Finset (BoundedFormula ℒₜ ℕ 0)) : { x : (BoundedFormula ℒₜ ℕ 0) // x ∈ s} → (BoundedFormula ℒₜ ℕ 0) := fun i => i.val
   #check Finite (Finset (Formula ℒₜ ℕ))
   -- instance : Finite (Finset (Formula ℒₜ ℕ))
@@ -954,7 +965,13 @@ namespace Conservativity
   -- instance : InfSet ({ x // x ∈ s₁}) := by sorry
   #check BoundedFormula.iInf (mapping s₁)
 
-  def con_slash_disjunction {Γ Δ} {th : Set (Formula ℒₜ ℕ)} : Derivation th Γ Δ → Derivation th {(BoundedFormula.iInf (mapping Γ))} {(BoundedFormula.iSup (mapping Δ))} := sorry
+  def length : Finset (Formula ℒₜ ℕ) → ℕ
+  | {} => 0
+  | s ∪ {a} => (length s) + 1
+
+  def con_slash_disjunction {Γ Δ} {th : Set (Formula ℒₜ ℕ)} : Derivation th Γ Δ → Derivation th {(BoundedFormula.iInf (mapping Γ))} {(BoundedFormula.iSup (mapping Δ))} := by
+
+    sorry
 
   /-- Builds tau from a Finset of formulas -/
   def build_tau : Set Fml → Fml := sorry
