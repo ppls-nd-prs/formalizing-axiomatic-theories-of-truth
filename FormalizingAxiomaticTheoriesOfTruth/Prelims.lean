@@ -349,7 +349,7 @@ namespace Languages
 
     def null : Term signature α :=
       zero
-
+    @[simp]
     def numeral : ℕ → Term signature α
       | .zero => zero
       | .succ n => S(numeral n)
@@ -478,6 +478,7 @@ namespace Languages
     def term_tonat_N_fin : Term ℒₜ (ℕ ⊕ Fin 0) → ℕ :=
       fun t => Encodable.encodeList (Term.listEncode t)
     /-- Encodes BoundedFormulas as natural numbers -/
+    @[simp]
     def formula_N_tonat {n : ℕ} : BoundedFormula ℒₜ ℕ n → ℕ :=
       fun f => Encodable.encodeList (BoundedFormula.listEncode f)
     /-- Encodes BoundedFormulas as natural numbers -/
@@ -856,24 +857,53 @@ namespace Conservativity
   @[simp]
   def is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Prop
   | .zero, (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) =>
-    if f₁ = f₂ ∧ ts₁ = ![⌜f₁⌝] ∧ ts₂ = ![⌜f₂⌝] then True
-    else False
-  | _, _ => False
+    f₁ = f₂ ∧ (ts₁ 0) = ⌜f₁⌝ ∧ (ts₂ 0) = ⌜f₂⌝
+  | _,  _ => False
+
+  @[simp]
+  instance dec_eq_terms : DecidableEq (Term ℒₜ (ℕ ⊕ Fin 0)) := Term.instDecidableEq
+
+  @[simp]
+  def dec_first_elem_disq (ts : (Fin 1) → Term ℒₜ (ℕ ⊕ Fin 0)) (f : BoundedFormula ℒₜ ℕ 0) : Decidable ((ts 0) = ⌜f⌝) :=
+    dec_eq_terms (ts 0) ⌜f⌝
 
   def decPred_is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Decidable (is_disq_sent f)
-  | _, .falsum => by
-    apply Decidable.isFalse
+  | .zero, f => by
+    cases f <;> try { apply isFalse; simp }
+    case imp f₁ f₂ =>
+    cases f₂ <;> try { apply isFalse; simp }
+    case falsum =>
+    cases f₁ <;> try { apply isFalse; simp }
+    case imp f₃ f₄ =>
+    cases f₃ <;> try { apply isFalse; simp }
+    case imp f₅ f₆ =>
+    cases f₅ <;> try { apply isFalse; simp }
+    case rel R ts₆ =>
+    cases R <;> try { apply isFalse; simp }
+    case t =>
+    cases f₄ <;> try { apply isFalse; simp }
+    case imp f₇ f₈ =>
+    cases f₈ <;> try { apply isFalse; simp }
+    case falsum =>
+    cases f₇ <;> try { apply isFalse; simp }
+    case imp f₉ f₁₀ =>
+    cases f₁₀ <;> try { apply isFalse; simp }
+    case rel R ts₉ =>
+    cases R <;> try { apply isFalse; simp }
+    case t =>
+      have step1: Decidable (f₆ = f₉) := by
+        apply hasDecEq
+      apply dec_first_elem_disq at ts₆
+      apply ts₆ at f₆
+      apply dec_first_elem_disq at ts₉
+      apply ts₉ at f₉
+      simp
+      apply instDecidableAnd
+  | .succ n, _ => by
+    apply isFalse
     simp
-  | _, .equal _ _ => by
-    apply Decidable.isFalse
-    simp
-  | _, .imp f₁ f₂ => by
-    apply decPred_is_disq_sent at f₁
-    apply decPred_is_disq_sent at f₂
 
-
-
-
+  instance : DecidablePred (@is_disq_sent 0) := decPred_is_disq_sent
 
   def not_contains_T_sent : Sentence ℒₜ → Prop :=
     fun s : Sentence ℒₜ =>
@@ -913,6 +943,18 @@ namespace Conservativity
   /-- Obtains all disquotation sentences in a finset -/
   def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
     {f ∈ S | is_disq_sent f}
+
+
+  def s₁ : Finset (BoundedFormula ℒₜ ℕ 0) := {f₁, f₁}
+  def mapping (s : Finset (BoundedFormula ℒₜ ℕ 0)) : { x : (BoundedFormula ℒₜ ℕ 0) // x ∈ s} → (BoundedFormula ℒₜ ℕ 0) := fun i => i.val
+  #check Finite (Finset (Formula ℒₜ ℕ))
+  -- instance : Finite (Finset (Formula ℒₜ ℕ))
+
+  -- instance : Finite s₁ := by exact Finset.finite_toSet s₁
+  -- instance : InfSet ({ x // x ∈ s₁}) := by sorry
+  #check BoundedFormula.iInf (mapping s₁)
+
+  def con_slash_disjunction {Γ Δ} {th : Set (Formula ℒₜ ℕ)} : Derivation th Γ Δ → Derivation th {(BoundedFormula.iInf (mapping Γ))} {(BoundedFormula.iSup (mapping Δ))} := sorry
 
   /-- Builds tau from a Finset of formulas -/
   def build_tau : Set Fml → Fml := sorry
