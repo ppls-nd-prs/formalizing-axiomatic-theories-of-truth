@@ -3,6 +3,7 @@ import Mathlib.ModelTheory.Syntax
 import Mathlib.ModelTheory.Encoding
 import Mathlib.Data.Set.Enumerate
 import Mathlib.Logic.Equiv.List
+import Mathlib.ModelTheory.Semantics
 
 open FirstOrder
 open Language
@@ -297,7 +298,7 @@ namespace Languages
 
     def funToStr {n}: Func n → String
       | .zero => "0"
-      | .succ => "S"
+      | .succ => ""
       | .add => "+"
       | .mult => "×"
       | .neg => "𝑛𝑒𝑔"
@@ -820,13 +821,14 @@ namespace Conservativity
   open TB
   open PA
 
-  @[simp]
-  def contains_T {n} : BoundedFormula ℒₜ ℕ n → Prop
+  /-- Gives whether a BoundedFormula contains a T predicate-/
+  @[simp] def contains_T {n} : BoundedFormula ℒₜ ℕ n → Prop
   | .rel L_T.Rel.t _ => true
   | .imp f₁ f₂ => contains_T f₁ ∨ contains_T f₂
   | .all f => contains_T f
   | _ => false
 
+  /-- Proves that contains_T is a decidable predicate-/
   def decPred_contains_T : {n : ℕ} → (a : BoundedFormula ℒₜ ℕ n) → Decidable (contains_T a)
   | _, .falsum => by
     apply Decidable.isFalse
@@ -854,19 +856,19 @@ namespace Conservativity
   instance : DecidablePred (@contains_T 0) := decPred_contains_T
 
   open Matrix
-  @[simp]
-  def is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Prop
+  /-- Gives whether a formula is a disquotation axiom -/
+  @[simp] def is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Prop
   | .zero, (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) =>
     f₁ = f₂ ∧ (ts₁ 0) = ⌜f₁⌝ ∧ (ts₂ 0) = ⌜f₂⌝
   | _,  _ => False
 
-  @[simp]
+
   instance dec_eq_terms : DecidableEq (Term ℒₜ (ℕ ⊕ Fin 0)) := Term.instDecidableEq
 
-  @[simp]
-  def dec_first_elem_disq (ts : (Fin 1) → Term ℒₜ (ℕ ⊕ Fin 0)) (f : BoundedFormula ℒₜ ℕ 0) : Decidable ((ts 0) = ⌜f⌝) :=
+  @[simp] def dec_first_elem_disq (ts : (Fin 1) → Term ℒₜ (ℕ ⊕ Fin 0)) (f : BoundedFormula ℒₜ ℕ 0) : Decidable ((ts 0) = ⌜f⌝) :=
     dec_eq_terms (ts 0) ⌜f⌝
 
+  /-- Proof that is_disq_sent is a decidable Predicate -/
   def decPred_is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Decidable (is_disq_sent f)
   | .zero, f => by
     cases f <;> try { apply isFalse; simp }
@@ -905,7 +907,7 @@ namespace Conservativity
 
   instance : DecidablePred (@is_disq_sent 0) := decPred_is_disq_sent
 
-  def not_contains_T_sent : Sentence ℒₜ → Prop :=
+  def contains_T_sent : Sentence ℒₜ → Prop :=
     fun s : Sentence ℒₜ =>
       contains_T (bf_empty_to_bf_N s)
 
@@ -920,7 +922,7 @@ namespace Conservativity
 
   variable {L : Language} {Th : Set (Formula L ℕ)}[∀n, DecidableEq (L.Functions n)][∀p, DecidableEq (L.Relations p)]
   /-- Obtains a Finset of all formulas that occur in some derivation -/
-  def der_to_finset_fml {Δ Γ}: Derivation Th Δ Γ → Finset (Formula L ℕ)
+  def der_to_finset_fml {Δ Γ} : Derivation Th Δ Γ → Finset (Formula L ℕ)
     | .tax _ => Δ ∪ Γ
     | .lax _ => Δ ∪ Γ
     | .left_conjunction _ _ _ d _ _ _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
@@ -944,6 +946,7 @@ namespace Conservativity
   def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
     {f ∈ S | is_disq_sent f}
 
+  /-- Transforms a disquotation axiom to the corresponding tau disjunct -/
   def disq_to_tau : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0
   | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) =>
     #0 =' ⌜f₁⌝ ⇔ f₁
@@ -952,12 +955,71 @@ namespace Conservativity
   -- def f₅ : Formula ℒₜ ℕ := (((.rel L_T.Rel.t ![⌜⊥⌝] ⟹ ⊥) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥)
   -- #eval disq_to_tau
 
-  def transform_to_tau_disjunct (S : Finset (Formula ℒₜ ℕ)): (Finset (Formula ℒₜ ℕ)) :=
+  /-- transforms all disquotation axioms in a given Finset to their corresponding tau disjunct -/
+  def transform_to_tau_disjuncts (S : Finset (Formula ℒₜ ℕ)): (Finset (Formula ℒₜ ℕ)) :=
     S.image disq_to_tau
+
+  /-- mapping necessary for glueing together all disjuncts into one big disjunction -/
+  def mapping (s : Finset (BoundedFormula ℒₜ ℕ 0)) : { x : (BoundedFormula ℒₜ ℕ 0) // x ∈ s} → (BoundedFormula ℒₜ ℕ 0) := fun i => i.val
+  def f₂ : Formula ℒₜ ℕ := ⊥
+  #eval BoundedFormula.Realize f₂ id id
+  def le : BoundedFormula L α n → BoundedFormula L α n :=
+  instance : LinearOrder (BoundedFormula L α n) where
+    le a b :=
+  def left_comm_max (a b c : BoundedFormula L α n) : max a (max b c) = max b (max a c):= by
+    rw[Max.left_comm]
+
+  def structure_fun : {n : ℕ} → L_T.Func n → (Fin n → ℕ) → ℕ
+    | _, .zero, _ => 0
+    | _, .succ, _ => 1
+    | _, L_T.Func.subs, _ => 2
+    | _, L_T.Func.denote, _ => 3
+    | _, L_T.Func.exists, _ => 4
+    | _, L_T.Func.forall, _ => 5
+    | _, L_T.Func.cond, _ => 6
+    | _, L_T.Func.disj, _ => 7
+    | _, L_T.Func.conj, _ => 8
+    | _, L_T.Func.neg, _ => 9
+    | _, L_T.Func.mult, _ => 10
+    | _, L_T.Func.add, _ => 11
+
+  def linear_ordering_bf : BoundedFormula L α n → BoundedFormula L α n → Prop
+  | _, _ => True
+
+
+  #check Formula.realize_top.mp ⊤.Realize
+
+  variable {M : Type _}[L.Structure M]{α : Type _}{v : α → M}
+  instance struct : Structure ℒₜ ℕ where
+    funMap := structure_fun
+    RelMap := sorry
+  def f₉ : Formula ℒₜ ℕ := ⊤
+  def mapp : ℕ → ℕ := id
+  example : f₉.Realize mapp := by
+
+
+  #check Formula.realize_top.mp (f₉.Realize mapp)
+  instance : LinearOrder (BoundedFormula L α n) where
+    le := linear_ordering_bf
+    lt := linear_ordering_bf
+
+  instance : Max (BoundedFormula L α n) := BoundedFormula.instMax
+  instance : LeftCommutative (@max (BoundedFormula L ℕ 0) BoundedFormula.instMax) := by sorry
+  noncomputable def iSup [Finite β] (f : β → L.BoundedFormula α n) : L.BoundedFormula α n :=
+    let _ := Fintype.ofFinite β
+    ((Finset.univ : Finset β).1.map f).foldr (· ⊔ ·) ⊥
+
+  /-- takes a set of disjuncts to their disjunction -/
+  noncomputable def disjuncts_to_disjunction (S : Finset (Formula ℒₜ ℕ)) : Formula ℒₜ ℕ :=
+    BoundedFormula.iSup (mapping S)
+
+  variable {th : Set (Formula ℒₜ ℕ)}
+  /-- takes a derivation and builds the corresponding tau formula -/
+  noncomputable def build_tau {Γ Δ} (d : Derivation th Γ Δ) : Formula ℒₜ ℕ :=
+    disjuncts_to_disjunction (transform_to_tau_disjuncts (get_disq_sents (der_to_finset_fml d)))
 
   def s₁ : Finset (BoundedFormula ℒₜ ℕ 0) := {f₁, f₁}
   #check s₁.image
-  def mapping (s : Finset (BoundedFormula ℒₜ ℕ 0)) : { x : (BoundedFormula ℒₜ ℕ 0) // x ∈ s} → (BoundedFormula ℒₜ ℕ 0) := fun i => i.val
   #check Finite (Finset (Formula ℒₜ ℕ))
   -- instance : Finite (Finset (Formula ℒₜ ℕ))
 
@@ -965,16 +1027,16 @@ namespace Conservativity
   -- instance : InfSet ({ x // x ∈ s₁}) := by sorry
   #check BoundedFormula.iInf (mapping s₁)
 
-  def length : Finset (Formula ℒₜ ℕ) → ℕ
-  | {} => 0
-  | s ∪ {a} => (length s) + 1
+  -- def length : Finset (Formula ℒₜ ℕ) → ℕ
+  -- | {} => 0
+  -- | s ∪ {a} => (length s) + 1
 
   def con_slash_disjunction {Γ Δ} {th : Set (Formula ℒₜ ℕ)} : Derivation th Γ Δ → Derivation th {(BoundedFormula.iInf (mapping Γ))} {(BoundedFormula.iSup (mapping Δ))} := by
 
     sorry
 
   /-- Builds tau from a Finset of formulas -/
-  def build_tau : Set Fml → Fml := sorry
+  -- def build_tau : Set Fml → Fml := sorry
 
 
   def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
@@ -1033,8 +1095,9 @@ namespace Hidden
 
   def f₁ : Formula ℒₜ ℕ :=
     ∀' (&0 =' &0)
+  def f₃ : Formula ℒₜ ℕ := ⊥
   def f₂ : Formula ℒₜ ℕ :=
-    ∀' ∀' (&0 =' &1)
+    (T(⌜f₃⌝) ⇔ f₁)
   def S₁ : Set (Formula ℒₜ ℕ) := {f₁, f₂}
   def S₂ : Finset (Formula ℒₜ ℕ) := ∅
   def S₃ : Finset (Formula ℒₜ ℕ) := {f₁ ∨' f₂}
@@ -1055,7 +1118,8 @@ namespace Hidden
     exact step5
 
   open Conservativity
-  #check der_to_finset_fml der₁
+  #eval der_to_finset_fml der₁
+  -- #eval (transform_to_tau_disjuncts (get_disq_sents (der_to_finset_fml der₁)))
 
   inductive Vector (α : Type u) : Nat → Type u
   | nil  : Vector α 0
