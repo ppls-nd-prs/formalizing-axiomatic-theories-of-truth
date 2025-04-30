@@ -123,7 +123,7 @@ namespace Languages
     Useful notation
     -/
     notation "S(" n ")" => Term.func Func.succ ![n]
-    notation "zero" => Term.func Func.zero ![]
+    -- notation "zero" => Term.func Func.zero ![]
     notation n "add" m => Term.func Func.add ![n,m]
     notation n "times" m => Term.func Func.mult ![n,m]
     notation n "⬝∧" m => Term.func Func.conj ![n,m]
@@ -327,7 +327,7 @@ namespace Languages
     -/
     notation "T(" n ")" => BoundedFormula.rel Rel.t ![n]
     notation "S(" n ")" => Term.func Func.succ ![n]
-    notation "zero" => Term.func Func.zero ![]
+    -- notation "zero" => Term.func Func.zero ![]
     notation n "add" m => Term.func Func.add ![n,m]
     notation n "times" m => Term.func Func.mult ![n,m]
     notation n "⬝∧" m => Term.func Func.conj ![n,m]
@@ -963,11 +963,14 @@ namespace Conservativity
   def mapping (s : Finset (BoundedFormula ℒₜ ℕ 0)) : { x : (BoundedFormula ℒₜ ℕ 0) // x ∈ s} → (BoundedFormula ℒₜ ℕ 0) := fun i => i.val
   def f₂ : Formula ℒₜ ℕ := ⊥
   #eval BoundedFormula.Realize f₂ id id
-  def le : BoundedFormula L α n → BoundedFormula L α n :=
-  instance : LinearOrder (BoundedFormula L α n) where
-    le a b :=
+  -- def le : BoundedFormula L α n → BoundedFormula L α n :=
+  -- instance : LinearOrder (BoundedFormula L α n) where
+  --   le a b :=
+#check @Max.left_comm (BoundedFormula ℒₜ ℕ 0)
   def left_comm_max (a b c : BoundedFormula L α n) : max a (max b c) = max b (max a c):= by
-    rw[Max.left_comm]
+    rw[Max.left_comm a b c]
+
+
 
   def structure_fun : {n : ℕ} → L_T.Func n → (Fin n → ℕ) → ℕ
     | _, .zero, _ => 0
@@ -983,8 +986,16 @@ namespace Conservativity
     | _, L_T.Func.mult, _ => 10
     | _, L_T.Func.add, _ => 11
 
-  def linear_ordering_bf : BoundedFormula L α n → BoundedFormula L α n → Prop
-  | _, _ => True
+  def number : BoundedFormula ℒₜ ℕ 0 → ℕ :=
+    fun f => formula_N_tonat f
+
+  def le_bf : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0 → Prop :=
+    fun f₁ f₂ => (number f₁) ≤ (number f₂)
+
+  def lt_bf : Formula ℒₜ ℕ → Formula ℒₜ ℕ → Prop :=
+    fun f₁ f₂ => (number f₁) < (number f₂)
+
+  #check Multiset.card
 
 
   #check Formula.realize_top.mp ⊤.Realize
@@ -997,11 +1008,21 @@ namespace Conservativity
   def mapp : ℕ → ℕ := id
   example : f₉.Realize mapp := by
 
-
   #check Formula.realize_top.mp (f₉.Realize mapp)
-  instance : LinearOrder (BoundedFormula L α n) where
-    le := linear_ordering_bf
-    lt := linear_ordering_bf
+  instance : LinearOrder (BoundedFormula ℒₜ ℕ 0) where
+    le := le_bf
+    lt := lt_bf
+    le_refl := by
+      simp[le_bf]
+    le_trans := by
+      simp[le_bf,number,toString,String.length]
+      intro f₁ f₂ f₃
+      intro h₁ h₂
+
+
+
+
+
 
   instance : Max (BoundedFormula L α n) := BoundedFormula.instMax
   instance : LeftCommutative (@max (BoundedFormula L ℕ 0) BoundedFormula.instMax) := by sorry
@@ -1031,7 +1052,37 @@ namespace Conservativity
   -- | {} => 0
   -- | s ∪ {a} => (length s) + 1
 
-  def con_slash_disjunction {Γ Δ} {th : Set (Formula ℒₜ ℕ)} : Derivation th Γ Δ → Derivation th {(BoundedFormula.iInf (mapping Γ))} {(BoundedFormula.iSup (mapping Δ))} := by
+  lemma one : ∀s : Finset (Formula ℒₜ ℕ), ∀n, s.card = n → ⊥ ∈ (s ∪ {⊥}) := by
+    intro s
+    intro n
+    induction n with
+    | zero =>
+      intro h
+      simp at h
+      simp[h]
+    | succ n ih =>
+      intro h
+      simp
+
+  def two (h: ∀s : Finset (Formula ℒₜ ℕ), ∀n, s.card = n → ⊥ ∈ (s ∪ {⊥})) : ∀Γ : Finset (Formula ℒₜ ℕ), ⊥ ∈ (Γ ∪ {⊥}) := by
+    intro Γ
+    let n : ℕ := Γ.card
+    apply h at Γ
+    apply Γ at n
+
+
+  example : ∀s : Multiset (Formula ℒₜ ℕ), ⊥ ∈ (s ∪ {⊥}) := by
+    intro s
+    induction s.card using Nat.strong_induction_on with
+    | h n a =>
+      induction n with
+      | zero =>
+
+        sorry
+      | succ n ih => sorry
+
+
+  def con_slash_disjunction {th : Set (Formula ℒₜ ℕ)} : ∀Γ,∀Δ, Derivation th Γ Δ → Derivation th {(BoundedFormula.iInf (mapping Γ))} {(BoundedFormula.iSup (mapping Δ))} := by
 
     sorry
 
@@ -1039,11 +1090,11 @@ namespace Conservativity
   -- def build_tau : Set Fml → Fml := sorry
 
 
-  def translation {Γ Δ : Set (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, not_contains_T f) (hb : ∀f ∈ Δ, not_contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
+  def translation {Γ Δ : Finset (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, contains_T f) (hb : ∀f ∈ Δ, contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
     | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ 𝐓𝐁 ∧ f ∈ Δ) => by
       have step1 : ∃f : Formula ℒₜ ℕ, f ∈ real_PA ∧ f ∈ Δ := by
         rcases h with ⟨f, a₁, a₂⟩
-        have step2 : not_contains_T f := by
+        have step2 : contains_T f := by
           apply hb at a₂
           exact a₂
         have step3 : f ∈ real_PA := by
