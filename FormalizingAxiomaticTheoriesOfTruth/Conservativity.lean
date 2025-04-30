@@ -5,28 +5,29 @@ open Language
 
 namespace PA
   open Languages
-  open L
+  open LPA
   open L_T
   open BoundedFormula
 
-  def replace_bv_with_non_var_term {L} (f : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
+  variable{L : Language}
+  def replace_bv_with_non_var_term (f : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
     subst f.toFormula (fun _ : Empty ⊕ Fin 1 => t)
   notation A "//[" t "]" => replace_bv_with_non_var_term A t
-  def replace_bv_with_bv_term  {L} (f : BoundedFormula L Empty 1) (t : Term L (Empty ⊕ Fin 1)) : BoundedFormula L Empty 1 :=
+  def replace_bv_with_bv_term  (f : BoundedFormula L Empty 1) (t : Term L (Empty ⊕ Fin 1)) : BoundedFormula L Empty 1 :=
     (relabel id (subst (f.toFormula) (fun _ : (Empty ⊕ Fin 1) => t)))
   notation A "///[" t "]" => replace_bv_with_bv_term A t
 
   /-- The induction function for ℒₚₐ -/
   def induction (f : BoundedFormula ℒ Empty 1) : Sentence ℒ :=
-    ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
+    ∼ (f//[LPA.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
   inductive peano_arithmetic : Theory ℒ where
-    | first : peano_arithmetic (∀' ∼(L.null =' S(&0)))
+    | first : peano_arithmetic (∀' ∼(LPA.null =' S(&0)))
     | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-    | third : peano_arithmetic (∀' ((&0 add L.null) =' &0))
+    | third : peano_arithmetic (∀' ((&0 add LPA.null) =' &0))
     | fourth : peano_arithmetic (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-    | fifth : peano_arithmetic (∀' ((&0 times L.null) =' L.null))
+    | fifth : peano_arithmetic (∀' ((&0 times LPA.null) =' LPA.null))
     | sixth : peano_arithmetic (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
     | induction (φ) : peano_arithmetic (induction φ)
 
@@ -36,6 +37,7 @@ end PA
 
 namespace PAT
 open Languages
+  open L_T
  /-- The induction function for ℒₚₐ -/
   def induction (f : BoundedFormula ℒₜ Empty 1) : Sentence ℒₜ :=
     ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
@@ -56,8 +58,10 @@ end PAT
 namespace TB
 open Languages
 open L_T
+open LPA
 open PAT
 open SyntaxTheory
+open TermEncoding
 
 inductive tarski_biconditionals : Theory ℒₜ where
   | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ

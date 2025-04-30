@@ -10,16 +10,6 @@ namespace Calculus
   /- Some notation -/
   notation f " ↑' " n " at "  m => liftAt n m f
   notation f "↑" n => f ↑' n at 0
-  def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
-    fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
-  notation A "/[" t "]" => subst A (g₁ t)
-
-  def land (f₁ f₂: BoundedFormula L α n) :=
-    ∼(f₁ ⟹ ∼f₂)
-  notation f₁ "∧'" f₂ => land f₁ f₂
-  def lor (f₁ f₂ : BoundedFormula L α n) :=
-    ((∼f₁) ⟹ f₂)
-  notation f₁ "∨'" f₂ => lor f₁ f₂
 
   /-- Shifts all variable references one down so one is pushed into
   the to-be-bound category -/
@@ -135,70 +125,3 @@ namespace Calculus
   notation Th " ⊢ " f => formula_provable Th f
 
 end Calculus
-
-namespace SyntaxAxioms
-open Languages
-open L
-open L_T
-
-notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
-notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
-notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
-notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
-
-def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
-def conj_repres (φ ψ : Formula ℒ ℕ): Sentence ℒₜ :=
-  (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
-def disj_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  (⌜φ⌝ ⬝∨ ⌜ψ⌝) =' (⌜φ ∨' ψ⌝)
-def cond_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  (⌜φ⌝ ⬝⟹ ⌜ψ⌝) =' (⌜φ ⟹ ψ⌝)
-def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
-  (⬝∀ ⌜φ⌝) =' (⌜∀'φ⌝)
-def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
-  (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
-def subs_repres (φ : BoundedFormula ℒ ℕ 1) (x : Term ℒ ℕ) (t : Term ℒ ℕ ) : Sentence ℒₜ :=
-  Subs(⌜φ⌝, ⌜x⌝, ⌜t⌝) =' ⌜φ /[ t ]⌝
-def term_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  Trm( ⌜φ⌝ )
-def formulaL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  FormL( ⌜φ⌝ )
-def formulaL_T_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  FormLT( ⌜φ⌝ )
-def sentenceL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  SentenceL( ⌜φ⌝ )
-def sentenceL_T_respres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
-  ClosedTerm( ⌜t₁⌝ )
-def var_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  Var( ⌜φ⌝ )
-def const_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
-  Const( ⌜φ⌝ )
-def denote_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
-  ClosedTerm(⌜t₁⌝) ⟹ ((⬝°(⌜t₁⌝)) =' t₁)
-
-end SyntaxAxioms
-
-namespace SyntaxTheory
-open Languages
-open L_T
-open SyntaxAxioms
-inductive syntax_theory : Theory ℒₜ where
-  | negation_representation {φ} : syntax_theory (neg_repres φ)
-  | conjunction_representation {φ ψ} : syntax_theory (conj_repres φ ψ)
-  | disjunction_representation {φ ψ} : syntax_theory (disj_repres φ ψ)
-  | conditional_representation {φ ψ} : syntax_theory (cond_repres φ ψ)
-  | forall_representation {φ} : syntax_theory (forall_repres φ)
-  | exists_representation {φ} : syntax_theory (exists_repres φ)
-  | term_representation {φ} : syntax_theory (term_repres φ)
-  | formula_L_representation {φ} : syntax_theory (formulaL_repres φ)
-  | formula_L_T_representation {φ} : syntax_theory (formulaL_T_repres φ)
-  | sentence_L_representation {φ} : syntax_theory (sentenceL_repres φ)
-  | sentence_L_T_representation {φ} : syntax_theory (sentenceL_T_respres φ)
-  | closed_term_representation {φ} : syntax_theory (closed_term_repres φ)
-  | variable_representation {φ} : syntax_theory (var_repres φ)
-  | constant_representation {φ} : syntax_theory (const_repres φ)
-  | denote_representation {t} : syntax_theory (denote_repres t)
-end SyntaxTheory
