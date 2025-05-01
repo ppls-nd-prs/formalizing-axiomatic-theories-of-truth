@@ -539,6 +539,8 @@ end TermEncoding
     coe := LHom.onSentence ϕ
   instance : Coe (Term ℒ (Empty ⊕ Fin 0)) (Term ℒₜ (Empty ⊕ Fin 0)) where
     coe := LHom.onTerm ϕ
+  instance : Coe (Theory ℒ) (Theory ℒₜ) where
+    coe := LHom.onTheory ϕ
 
 end Languages
 
@@ -587,14 +589,14 @@ def sentenceL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   SentenceL( ⌜φ⌝ )
 def sentenceL_T_respres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
-  ClosedTerm( ⌜t₁⌝ )
+def closed_term_repres (t : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
+  ClosedTerm( ⌜t⌝ )
 def var_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   Var( ⌜φ⌝ )
 def const_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   Const( ⌜φ⌝ )
-def denote_repres (t₁ : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
-  ClosedTerm(⌜t₁⌝) ⟹ ((⬝°(⌜t₁⌝)) =' t₁)
+def denote_repres (t : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
+  ClosedTerm(⌜t⌝) ⟹ ((⬝°(⌜t⌝)) =' t)
 
 end SyntaxAxioms
 
