@@ -491,25 +491,10 @@ namespace TermEncoding
   def formula_Empty_tonat : BoundedFormula L Empty 0 → ℕ :=
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
-<<<<<<< HEAD:FormalizingAxiomaticTheoriesOfTruth/Prelims.lean
-        /-- Encodes terms as natural numbers -/
-    def term_tonat_N_L_T : Term ℒₜ ℕ → ℕ :=
-      fun t => Encodable.encodeList (Term.listEncode t)
-    def term_tonat_Empty_L_T : Term ℒₜ (Empty ⊕ Fin 0) → ℕ :=
-      fun t => Encodable.encodeList (Term.listEncode t)
-    /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_N_tonat_L_T {n : ℕ} : BoundedFormula ℒₜ ℕ n → ℕ :=
-      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
-    /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_Empty_tonat_L_T {n : ℕ} : BoundedFormula ℒₜ Empty 0 → ℕ :=
-      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
-
-=======
   scoped notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
   scoped notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
   scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
   scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
->>>>>>> 9fc924203567c60983577fa570157290b2fef3a0:FormalizingAxiomaticTheoriesOfTruth/Syntax.lean
 
 end TermEncoding
 
@@ -569,31 +554,16 @@ namespace FirstOrder.Language.BoundedFormula
   scoped notation f₁ "∧'" f₂ => land f₁ f₂
   def lor (f₁ f₂ : BoundedFormula L α n) :=
     ((∼f₁) ⟹ f₂)
-<<<<<<< HEAD:FormalizingAxiomaticTheoriesOfTruth/Prelims.lean
-  notation f₁ "∨'" f₂ => lor f₁ f₂
-  def not (f₁ : BoundedFormula L α n) :=
-    BoundedFormula.not f₁
-  notation "¬" f₁ => not f₁
-=======
   scoped notation f₁ "∨'" f₂ => lor f₁ f₂
 end FirstOrder.Language.BoundedFormula
->>>>>>> 9fc924203567c60983577fa570157290b2fef3a0:FormalizingAxiomaticTheoriesOfTruth/Syntax.lean
 
 
 namespace SyntaxAxioms
 open Languages
 open L_T
-<<<<<<< HEAD:FormalizingAxiomaticTheoriesOfTruth/Prelims.lean
-
-notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
-notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
-notation "⌜" t "⌝" => L_T.numeral (term_tonat_N t)
-notation "⌜" t "⌝" => L_T.numeral (term_tonat_Empty t)
-=======
 open LPA
 open BoundedFormula
 open TermEncoding
->>>>>>> 9fc924203567c60983577fa570157290b2fef3a0:FormalizingAxiomaticTheoriesOfTruth/Syntax.lean
 
 def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
@@ -651,167 +621,3 @@ inductive syntax_theory : Theory ℒₜ where
   | constant_representation {φ} : syntax_theory (const_repres φ)
   | denote_representation {t} : syntax_theory (denote_repres t)
 end SyntaxTheory
-<<<<<<< HEAD:FormalizingAxiomaticTheoriesOfTruth/Prelims.lean
-
-namespace PA
-  open Languages
-  open L
-  open L_T
-  open BoundedFormula
-
-  def replace_bv_with_non_var_term {L} (f : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
-    subst f.toFormula (fun _ : Empty ⊕ Fin 1 => t)
-  notation A "//[" t "]" => replace_bv_with_non_var_term A t
-  def replace_bv_with_bv_term  {L} (f : BoundedFormula L Empty 1) (t : Term L (Empty ⊕ Fin 1)) : BoundedFormula L Empty 1 :=
-    (relabel id (subst (f.toFormula) (fun _ : (Empty ⊕ Fin 1) => t)))
-  notation A "///[" t "]" => replace_bv_with_bv_term A t
-
-  /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒ Empty 1) : Sentence ℒ :=
-    ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
-
-  /-- Peano arithemtic -/
-  inductive peano_arithmetic : Theory ℒ where
-    | first : peano_arithmetic (∀' ∼(L.null =' S(&0)))
-    | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-    | third : peano_arithmetic (∀' ((&0 add L.null) =' &0))
-    | fourth : peano_arithmetic (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-    | fifth : peano_arithmetic (∀' ((&0 times L.null) =' L.null))
-    | sixth : peano_arithmetic (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-    | induction (φ) : peano_arithmetic (induction φ)
-
-  notation "𝐏𝐀" => peano_arithmetic
-
-end PA
-
-namespace PAT
-open Languages
- /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒₜ Empty 1) : Sentence ℒₜ :=
-    ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
-
-  /-- Peano arithemtic -/
-  inductive peano_arithmetic_t : Theory ℒₜ where
-    | first : peano_arithmetic_t (∀' ∼(L_T.null =' S(&0)))
-    | second :peano_arithmetic_t (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-    | third : peano_arithmetic_t (∀' ((&0 add L_T.null) =' &0))
-    | fourth : peano_arithmetic_t (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-    | fifth : peano_arithmetic_t (∀' ((&0 times L_T.null) =' L_T.null))
-    | sixth : peano_arithmetic_t (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-    | induction (φ) : peano_arithmetic_t (induction φ)
-
-  notation "𝐏𝐀𝐓" => peano_arithmetic_t
-end PAT
-
-namespace TB
-open Languages
-open L_T
-open PAT
-open SyntaxTheory
-
-inductive tarski_biconditionals : Theory ℒₜ where
-  | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
-  | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
-  | disquotation {φ : Sentence ℒ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
-
-notation "𝐓𝐁" => tarski_biconditionals
-end TB
-
-namespace Conservativity
-  open Languages
-  open Calculus
-  open TB
-  open PA
-
-  -- theorem conservativity_of_tb (f : Formula ℒ ℕ) : (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
-  --   sorry
-end Conservativity
-
-namespace LiarParadox
-open Languages
-open L
-open L_T
-open SyntaxTheory
-open Calculus
-open PA
-
-notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat_L_T φ)
-notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat_L_T φ)
-notation "⌜" t "⌝" => L_T.numeral (term_tonat_N_L_T t)
-notation "⌜" t "⌝" => L_T.numeral (term_tonat_Empty_L_T t)
-
-def syntax_and_PA : Theory ℒₜ :=
-  syntax_theory ∪ peano_arithmetic
-
-axiom diagonal_lemma {syntax_and_PA_unres_TB} (φ : BoundedFormula ℒₜ Empty 1) :
-  let φ := φ.toFormula.relabel (fun x => match x with | Sum.inr i => i)
-  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PA_unres_TB ⊢ (ψ ⇔ φ /[⌜ψ⌝])
-
--- def unrestricted_TB (φ : Formula ℒₜ ℕ) :=
---   T(⌜φ⌝) ⇔ φ
-
-def unrestricted_TB : Theory ℒₜ :=
-  { φ | ∃ ψ : Formula ℒₜ ℕ, φ = (T(⌜ψ⌝) ⇔ ψ) }
-
-def syntax_and_PA_unres_TB : Theory ℒₜ :=
-  syntax_and_PA ∪ unrestricted_TB
-
--- theorem liar_paradox : syntax_and_PA_unres_TB ⊢ ⊥ := by
---   let φ : BoundedFormula ℒₜ Empty 1 :=
---     ¬(T( &0 ))
---   obtain ⟨ψ, hψ⟩ := diagonal_lemma φ
-
-theorem liar_paradox : syntax_and_PA_unres_TB ⊢ ⊥ := by
-  let φ : BoundedFormula ℒₜ Empty 1 := ¬(T( &0 ))
-  obtain ⟨ψ, hψ⟩ := diagonal_lemma φ
-
-  have h1 : syntax_and_PA_unres_TB ⊢ (ψ ⟹ ¬T(⌜ψ⌝)) := by
-    sorry
-
-  have h2 : syntax_and_PA_unres_TB ⊢ (¬T(⌜ψ⌝) ⟹ ψ) := by
-    sorry
-
-end LiarParadox
-
-namespace SandBox
-variable (p q r : Prop)
-
--- commutativity of ∧ and ∨
-example : p ∧ q ↔ q ∧ p := by
-apply Iff.intro
-intro h
-apply And.intro
-exact And.right h
-exact And.left h
-intro hp
-apply And.intro
-exact And.right hp
-exact And.left hp
-
-example : p ∨ q ↔ q ∨ p := by
-apply Iff.intro
-intro h
-cases h
-apply Or.inr
-assumption
-apply Or.inl
-assumption
-intro hq
-cases hq
-apply Or.inr
-assumption
-apply Or.inl
-assumption
-
--- associativity of ∧ and ∨
-example : (p ∧ q) ∧ r ↔ p ∧ (q ∧ r) := by
-sorry
-
-example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) := sorry
-
--- distributivity
-example : p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) := sorry
-example : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) := sorry
-end SandBox
-=======
->>>>>>> 9fc924203567c60983577fa570157290b2fef3a0:FormalizingAxiomaticTheoriesOfTruth/Syntax.lean
