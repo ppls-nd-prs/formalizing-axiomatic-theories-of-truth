@@ -1,1 +1,1 @@
-import FormalizingAxiomaticTheoriesOfTruth.Prelims
+import FormalizingAxiomaticTheoriesOfTruth.Conservativity

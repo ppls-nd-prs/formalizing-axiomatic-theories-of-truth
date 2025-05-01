@@ -1,8 +1,6 @@
 import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
 import Mathlib.ModelTheory.Encoding
-import Mathlib.Data.Set.Enumerate
-import Mathlib.Logic.Equiv.List
 
 open FirstOrder
 open Language
@@ -48,7 +46,7 @@ end Term
 
 namespace BoundedFormula
   section ToString
-    variable {L : Language} {α : Type}
+    variable {L : Language} {α : Type} {n : ℕ}
     variable [∀ k, ToString (L.Functions k)] [∀ k, ToString (L.Relations k)] [ToString α]
 
     def toStr {n} : BoundedFormula L α n → String
@@ -64,7 +62,7 @@ namespace BoundedFormula
 end BoundedFormula
 
 namespace Languages
-  namespace L
+  namespace LPA
     inductive Func : ℕ → Type _ where
       | zero : Func 0
       | succ : Func 1
@@ -118,41 +116,43 @@ namespace Languages
       | .sentencel => "𝑠𝑒𝑛𝑡𝑙"
       | .formlt => "𝑓𝑜𝑟𝑚𝑙𝑡"
       | .sentencelt => "𝑠𝑒𝑛𝑡𝑙𝑡"
-    instance : ToString (signature.Relations n) := ⟨relToStr⟩
+    instance {n} : ToString (signature.Relations n) := ⟨relToStr⟩
 
     /-
     Useful notation
     -/
-    notation "S(" n ")" => Term.func Func.succ ![n]
-    notation "zero" => Term.func Func.zero ![]
-    notation n "add" m => Term.func Func.add ![n,m]
-    notation n "times" m => Term.func Func.mult ![n,m]
-    notation n "⬝∧" m => Term.func Func.conj ![n,m]
-    notation n "⬝∨" m => Term.func Func.disj ![n,m]
-    notation "⬝∼" n => Term.func Func.neg ![n]
-    notation n "⬝⟹" m => Term.func Func.cond ![n,m]
-    notation "⬝∀" n => Term.func Func.forall ![n]
-    notation "⬝∃" n => Term.func Func.exists ![n]
-    notation "⬝°"n  => Term.func Func.denote ![n]
-    notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n, x, t]
-    notation "Var(" x ")" => BoundedFormula.rel Rel.var ![x]
-    notation "Const(" c ")" => BoundedFormula.rel Rel.const ![c]
-    notation "Trm(" t ")" => BoundedFormula.rel Rel.term ![t]
-    notation "ClosedTerm(" t")" => BoundedFormula.rel Rel.clterm ![t]
-    notation "FormL(" t ")" => BoundedFormula.rel Rel.forml ![t]
-    notation "SentenceL(" t ")" => BoundedFormula.rel Rel.sentencel ![t]
-    notation "FormLT(" t ")" => BoundedFormula.rel Rel.formlt ![t]
-    notation "SentenceLT(" t ")" => BoundedFormula.rel Rel.sentencelt ![t]
-    notation "ℒ" => signature
+    scoped notation "S(" n ")" => Term.func Func.succ ![n]
+    scoped notation "zero" => Term.func Func.zero ![]
+    scoped notation n "add" m => Term.func Func.add ![n,m]
+    scoped notation n "times" m => Term.func Func.mult ![n,m]
+    scoped notation n "⬝∧" m => Term.func Func.conj ![n,m]
+    scoped notation n "⬝∨" m => Term.func Func.disj ![n,m]
+    scoped notation "⬝∼" n => Term.func Func.neg ![n]
+    scoped notation n "⬝⟹" m => Term.func Func.cond ![n,m]
+    scoped notation "⬝∀" n => Term.func Func.forall ![n]
+    scoped notation "⬝∃" n => Term.func Func.exists ![n]
+    scoped notation "⬝°"n  => Term.func Func.denote ![n]
+    scoped notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n, x, t]
+    scoped notation "Var(" x ")" => BoundedFormula.rel Rel.var ![x]
+    scoped notation "Const(" c ")" => BoundedFormula.rel Rel.const ![c]
+    scoped notation "Trm(" t ")" => BoundedFormula.rel Rel.term ![t]
+    scoped notation "ClosedTerm(" t")" => BoundedFormula.rel Rel.clterm ![t]
+    scoped notation "FormL(" t ")" => BoundedFormula.rel Rel.forml ![t]
+    scoped notation "SentenceL(" t ")" => BoundedFormula.rel Rel.sentencel ![t]
+    scoped notation "FormLT(" t ")" => BoundedFormula.rel Rel.formlt ![t]
+    scoped notation "SentenceLT(" t ")" => BoundedFormula.rel Rel.sentencelt ![t]
+    abbrev ℒ := signature
     scoped[Languages] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
     /-
     Some useful terms
     -/
+    variable {α : Type}
     def null : Term signature α :=
       zero
 
     section Coding
+      variable {k : ℕ}
       def Func_enc : signature.Functions k → ℕ
         | .zero => Nat.pair 0 0 + 1
         | .succ => Nat.pair 1 0 + 1
@@ -197,7 +197,7 @@ namespace Languages
                 | _ => none
             | _ => none
 
-      lemma Func_enc_dec {k : ℕ}: ∀ f : signature.Functions k, Func_dec (Func_enc f) = (some f) := by
+      lemma Func_enc_dec : ∀ f : signature.Functions k, Func_dec (Func_enc f) = (some f) := by
         intro h
         induction h
         simp [Func_enc,Nat.pair,Func_dec]
@@ -213,7 +213,7 @@ namespace Languages
         simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
         simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-      instance enc_f (k : ℕ) : Encodable (signature.Functions k) where
+      instance enc_f : Encodable (signature.Functions k) where
         encode := Func_enc
         decode := Func_dec
         encodek := Func_enc_dec
@@ -228,7 +228,7 @@ namespace Languages
         | .formlt => Nat.pair 1 6 + 1
         | .sentencelt => Nat.pair 1 7 + 1
 
-      def Rel_dec {k} : (n : ℕ) → Option (signature.Relations k)
+      def Rel_dec : (n : ℕ) → Option (signature.Relations k)
         | 0 => none
         | e + 1 =>
           match k with
@@ -245,7 +245,7 @@ namespace Languages
                 | _ => none
             | _ => none
 
-      lemma Rel_enc_dec {k : ℕ}: ∀ f : signature.Relations k, Rel_dec (Rel_enc f) = (some f) := by
+      lemma Rel_enc_dec : ∀ f : signature.Relations k, Rel_dec (Rel_enc f) = (some f) := by
         intro h
         induction h
         simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
@@ -257,13 +257,13 @@ namespace Languages
         simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
         simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-      instance enc_r (k : ℕ) : Encodable (signature.Relations k) where
+      instance enc_r : Encodable (signature.Relations k) where
         encode := Rel_enc
         decode := Rel_dec
         encodek := Rel_enc_dec
 
     end Coding
-  end L
+  end LPA
 
   namespace L_T
 
@@ -297,7 +297,8 @@ namespace Languages
     def signature : Language :=
       ⟨Func, Rel⟩
 
-    def funToStr {n}: Func n → String
+    variable {n : ℕ}
+    def funToStr : Func n → String
       | .zero => "0"
       | .succ => "S"
       | .add => "+"
@@ -310,9 +311,9 @@ namespace Languages
       | .exists => "𝑒𝑥"
       | .denote => "𝑑𝑒𝑛"
       | .subs => "𝑠𝑢𝑏𝑠"
-    instance {n : ℕ}: ToString (signature.Functions n) := ⟨funToStr⟩
+    instance : ToString (signature.Functions n) := ⟨funToStr⟩
 
-    def relToStr {n} : signature.Relations n → String
+    def relToStr : signature.Relations n → String
       | .var => "𝑣𝑎𝑟"
       | .const => "𝑐𝑜𝑛𝑠𝑡"
       | .t => "T"
@@ -327,29 +328,30 @@ namespace Languages
     /-
     Some useful notation
     -/
-    notation "T(" n ")" => BoundedFormula.rel Rel.t ![n]
-    notation "S(" n ")" => Term.func Func.succ ![n]
-    notation "zero" => Term.func Func.zero ![]
-    notation n "add" m => Term.func Func.add ![n,m]
-    notation n "times" m => Term.func Func.mult ![n,m]
-    notation n "⬝∧" m => Term.func Func.conj ![n,m]
-    notation n "⬝∨" m => Term.func Func.disj ![n,m]
-    notation "⬝∼" n => Term.func Func.neg ![n]
-    notation n "⬝⟹" m => Term.func Func.cond ![n,m]
-    notation "⬝∀" n => Term.func Func.forall ![n]
-    notation "⬝∃" n => Term.func Func.exists ![n]
-    notation "⬝°" n  => Term.func Func.denote ![n]
-    notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n, x, t]
-    notation "Var(" x ")" => BoundedFormula.rel L_T.Rel.var ![x]
-    notation "Const(" c ")" => BoundedFormula.rel L_T.Rel.const ![c]
-    notation "Trm(" t ")" => BoundedFormula.rel Rel.term ![t]
-    notation "ClosedTerm(" t")" => BoundedFormula.rel L_T.Rel.clterm ![t]
-    notation "FormL(" t ")" => BoundedFormula.rel L_T.Rel.forml ![t]
-    notation "SentenceL(" t ")" => BoundedFormula.rel L_T.Rel.sentencel ![t]
-    notation "FormLT(" t ")" => BoundedFormula.rel L_T.Rel.formlt ![t]
-    notation "SentenceLT(" t ")" => BoundedFormula.rel L_T.Rel.sentencelt ![t]
-    notation "ℒₜ" => signature
+    scoped notation "T(" n ")" => BoundedFormula.rel Rel.t ![n]
+    scoped notation "S(" n ")" => Term.func Func.succ ![n]
+    scoped notation "zero" => Term.func Func.zero ![]
+    scoped notation n "add" m => Term.func Func.add ![n,m]
+    scoped notation n "times" m => Term.func Func.mult ![n,m]
+    scoped notation n "⬝∧" m => Term.func Func.conj ![n,m]
+    scoped notation n "⬝∨" m => Term.func Func.disj ![n,m]
+    scoped notation "⬝∼" n => Term.func Func.neg ![n]
+    scoped notation n "⬝⟹" m => Term.func Func.cond ![n,m]
+    scoped notation "⬝∀" n => Term.func Func.forall ![n]
+    scoped notation "⬝∃" n => Term.func Func.exists ![n]
+    scoped notation "⬝°" n  => Term.func Func.denote ![n]
+    scoped notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n, x, t]
+    scoped notation "Var(" x ")" => BoundedFormula.rel L_T.Rel.var ![x]
+    scoped notation "Const(" c ")" => BoundedFormula.rel L_T.Rel.const ![c]
+    scoped notation "Trm(" t ")" => BoundedFormula.rel Rel.term ![t]
+    scoped notation "ClosedTerm(" t")" => BoundedFormula.rel L_T.Rel.clterm ![t]
+    scoped notation "FormL(" t ")" => BoundedFormula.rel L_T.Rel.forml ![t]
+    scoped notation "SentenceL(" t ")" => BoundedFormula.rel L_T.Rel.sentencel ![t]
+    scoped notation "FormLT(" t ")" => BoundedFormula.rel L_T.Rel.formlt ![t]
+    scoped notation "SentenceLT(" t ")" => BoundedFormula.rel L_T.Rel.sentencelt ![t]
+    abbrev ℒₜ := signature
 
+    variable {α : Type}
     def null : Term signature α :=
       zero
 
@@ -358,6 +360,7 @@ namespace Languages
       | .succ n => S(numeral n)
 
     section Coding
+      variable {k : ℕ}
       def Func_enc : signature.Functions k → ℕ
         | .zero => Nat.pair 0 0 + 1
         | .succ => Nat.pair 1 0 + 1
@@ -402,7 +405,7 @@ namespace Languages
                 | _ => none
             | _ => none
 
-      lemma Func_enc_dec {k : ℕ}: ∀ f : signature.Functions k, Func_dec (Func_enc f) = (some f) := by
+      lemma Func_enc_dec : ∀ f : signature.Functions k, Func_dec (Func_enc f) = (some f) := by
         intro h
         induction h
         simp [Func_enc,Nat.pair,Func_dec]
@@ -418,7 +421,7 @@ namespace Languages
         simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
         simp [Func_enc,Nat.pair,Func_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
-      instance enc_f (k : ℕ) : Encodable (signature.Functions k) where
+      instance enc_f : Encodable (signature.Functions k) where
         encode := Func_enc
         decode := Func_dec
         encodek := Func_enc_dec
@@ -452,7 +455,7 @@ namespace Languages
                 | _ => none
             | _ => none
 
-      lemma Rel_enc_dec {k : ℕ}: ∀ f : signature.Relations k, Rel_dec (Rel_enc f) = (some f) := by
+      lemma Rel_enc_dec : ∀ f : signature.Relations k, Rel_dec (Rel_enc f) = (some f) := by
         intro h
         induction h
         simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
@@ -466,7 +469,7 @@ namespace Languages
         simp [Rel_enc,Nat.pair,Rel_dec,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
 
 
-      instance enc_r (k : ℕ) : Encodable (signature.Relations k) where
+      instance enc_r : Encodable (signature.Relations k) where
         encode := Rel_enc
         decode := Rel_dec
         encodek := Rel_enc_dec
@@ -474,44 +477,35 @@ namespace Languages
     end Coding
   end L_T
 
-  section Coding
-    /-- Encodes terms as natural numbers -/
-    def term_tonat_N : Term ℒ ℕ → ℕ :=
-      fun t => Encodable.encodeList (Term.listEncode t)
-    def term_tonat_Empty : Term ℒ (Empty ⊕ Fin 0) → ℕ :=
-      fun t => Encodable.encodeList (Term.listEncode t)
-    /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_N_tonat {n : ℕ} : BoundedFormula ℒ ℕ n → ℕ :=
-      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
-    /-- Encodes BoundedFormulas as natural numbers -/
-    def formula_Empty_tonat {n : ℕ} : BoundedFormula ℒ Empty 0 → ℕ :=
-      fun f => Encodable.encodeList (BoundedFormula.listEncode f)
+namespace TermEncoding
+  variable {L : Language}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)]
+  /-- Encodes terms as natural numbers -/
+  def term_tonat_N : Term L ℕ → ℕ :=
+    fun t => Encodable.encodeList (Term.listEncode t)
+  def term_tonat_Empty : Term L (Empty ⊕ Fin 0) → ℕ :=
+    fun t => Encodable.encodeList (Term.listEncode t)
+  /-- Encodes BoundedFormulas as natural numbers -/
+  def formula_N_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
+    fun f => Encodable.encodeList (BoundedFormula.listEncode f)
+  /-- Encodes BoundedFormulas as natural numbers -/
+  def formula_Empty_tonat : BoundedFormula L Empty 0 → ℕ :=
+    fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
+  scoped notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
+  scoped notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
+  scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
+  scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
 
-    def t₁ : Term ℒ ℕ :=
-      Term.var 0
-    def f₁ : BoundedFormula ℒ ℕ 0 :=
-      #0 =' #1
+end TermEncoding
 
-    #eval term_tonat_N t₁ -- output : 1
-    #eval formula_N_tonat f₁ -- output : 52
+  open LPA
+  open L_T
 
-    -- notation "#" t => term_tonat_N t
-    -- notation "#" φ => formula_tonat φ
-
-  end Coding
-
-  /-
-  Some useful notation
-  -/
-  variable (l : Language)
-  abbrev Fml : Type _ := Formula l ℕ -- perhaps
-
-  /-
+  /--
   A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
   also lt formulas
   -/
-  def to_lt_func ⦃arity : ℕ⦄ : (L.Func arity) → (L_T.Func arity)
+  def to_lt_func ⦃arity : ℕ⦄ : (ℒ.Functions arity) → (ℒₜ.Functions arity)
     | .zero => .zero
     | .succ => .succ
     | .add => .add
@@ -525,7 +519,7 @@ namespace Languages
     | .denote => .denote
     | .subs => .subs
 
-  def to_lt_rel ⦃n : ℕ⦄ : (L.signature.Relations n) → (L_T.signature.Relations n)
+  def to_lt_rel ⦃n : ℕ⦄ : (ℒ.Relations n) → (ℒₜ.Relations n)
       | .var => .var
       | .const => .const
       | .term => .term
@@ -548,148 +542,26 @@ namespace Languages
 
 end Languages
 
-namespace Calculus
-  open Languages
-  open BoundedFormula
-  variable {L : Language}{n : ℕ}{α : Type}
-  /- Some notation -/
-  notation f " ↑' " n " at "  m => liftAt n m f
-  notation f "↑" n => f ↑' n at 0
+namespace FirstOrder.Language.BoundedFormula
+  variable {L : Language}{α : Type}{n : ℕ}
   def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
     fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
-  notation A "/[" t "]" => subst A (g₁ t)
-
+  scoped notation A "/[" t "]" => subst A (g₁ t)
   def land (f₁ f₂: BoundedFormula L α n) :=
     ∼(f₁ ⟹ ∼f₂)
-  notation f₁ "∧'" f₂ => land f₁ f₂
+  scoped notation f₁ "∧'" f₂ => land f₁ f₂
   def lor (f₁ f₂ : BoundedFormula L α n) :=
     ((∼f₁) ⟹ f₂)
-  notation f₁ "∨'" f₂ => lor f₁ f₂
+  scoped notation f₁ "∨'" f₂ => lor f₁ f₂
+end FirstOrder.Language.BoundedFormula
 
-  /-- Shifts all variable references one down so one is pushed into
-  the to-be-bound category -/
-  def shift_one_down : ℕ → ℕ ⊕ Fin 1
-    | .zero => .inr Nat.zero
-    | .succ n => .inl n
-
-  /-- Shifts all free variables (that are not to be bound) up by one-/
-  def shift_free_up : ℕ → ℕ ⊕ Fin 0
-    | .zero => .inl (.succ .zero)
-    | .succ n => .inl (.succ (n + 1))
-
-  /-- Proof that addition is also transitive in BoundedFormula types -/
-  def m_add_eq_add_m {m} : BoundedFormula L ℕ (m + n) → BoundedFormula L ℕ (n + m) := by
-    rw[add_comm]
-    intro h
-    exact h
-  instance {m} : Coe (BoundedFormula L ℕ (m + n)) (BoundedFormula L ℕ (n + m)) where
-    coe := m_add_eq_add_m
-
-  /-- Proof that adding zero als does nothing in BoundedFormula types -/
-  def add_zero_does_nothing : BoundedFormula L ℕ (0 + n) → BoundedFormula L ℕ n := by
-    intro h
-    rw[zero_add] at h
-    exact h
-  instance : Coe (BoundedFormula L ℕ (0 + n)) (BoundedFormula L ℕ n) where
-    coe := add_zero_does_nothing
-  instance : Coe (BoundedFormula L ℕ (n + 0)) (BoundedFormula L ℕ (0 + n)) where
-    coe := m_add_eq_add_m
-
-  def sent_term_to_formula_term : Term L (Empty ⊕ Fin n) → Term L (ℕ ⊕ Fin n)
-      | .var n => match n with
-        | .inl _ => .var (.inl Nat.zero)
-        | .inr k => .var (.inr k)
-      | .func f ts => .func f (fun i => sent_term_to_formula_term (ts i))
-  instance : Coe (Term L (Empty ⊕ Fin n)) (Term L (ℕ ⊕ Fin n)) where
-    coe := sent_term_to_formula_term
-  def bf_empty_to_bf_N : ∀{n}, BoundedFormula L Empty n → BoundedFormula L ℕ n
-      | _, .falsum => .falsum
-      | _, .equal t₁ t₂ => .equal t₁ t₂
-      | _, .rel R ts => .rel R (fun i => ts i)
-      | _, .imp f₁ f₂ => .imp (bf_empty_to_bf_N f₁) (bf_empty_to_bf_N f₂)
-      | _, .all f => .all (bf_empty_to_bf_N f)
-  instance : Coe (Sentence L) (Formula L ℕ) where
-    coe := bf_empty_to_bf_N
-  def th_to_set_form : Theory L → (Set (Formula L ℕ)) :=
-    fun Th : Theory L => bf_empty_to_bf_N '' Th
-  instance : Coe (Theory L) (Set (Formula L ℕ)) where
-    coe := th_to_set_form
-
-  variable [∀ n, DecidableEq (L.Functions n)][∀p, DecidableEq (L.Relations p)][∀m, DecidableEq (α ⊕ Fin m)]
-  /-- Source for parts : https://github.com/FormalizedFormalLogic/Foundation/blob/94d18217bf9b11d3a0b1944424b1e028e50710a3/Foundation/FirstOrder/Basic/Syntax/Formula.lean -/
-  def hasDecEq : {n : ℕ} → (f₁ f₂ : BoundedFormula L α n) → Decidable (f₁ = f₂)
-    | _, .falsum, f => by
-      cases f <;> try { simp; exact isFalse not_false }
-      case falsum => apply Decidable.isTrue rfl
-    | _, .equal t₁ t₂, .equal t₃ t₄ => decidable_of_iff (t₁ = t₃ ∧ t₂ = t₄) <| by simp
-    | _, .equal _ _, .falsum | _, .equal t₁ t₂, .rel _ _ | _, .equal _ _, .imp _ _ | _, .equal _ _, .all _ => .isFalse <| by simp
-    | _, @BoundedFormula.rel _ _ _ m f xs, @BoundedFormula.rel _ _ _ n g ys =>
-        if h : m = n then
-          decidable_of_iff (f = h ▸ g ∧ ∀ i : Fin m, xs i = ys (Fin.cast h i)) <| by
-            subst h
-            simp [funext_iff]
-        else
-          .isFalse <| by simp [h]
-    | _, .rel _ _, .falsum | _, .rel _ _, .equal _ _ | _, .rel _ _, .imp _ _ | _, .rel _ _, .all _ => .isFalse <| by simp
-    | _, .all f₁, f => by
-      cases f <;> try { simp; exact isFalse not_false }
-      case all f' => simp; exact hasDecEq f₁ f'
-    | _, .imp f₁ f₂, f => by
-      cases f <;> try { simp; exact isFalse not_false }
-      case imp f₁' f₂' =>
-        exact match hasDecEq f₁ f₁' with
-        | isTrue hp =>
-          match hasDecEq f₂ f₂' with
-          | isTrue hq  => isTrue (hp ▸ hq ▸ rfl)
-          | isFalse hq => isFalse (by simp[hp, hq])
-        | isFalse hp => isFalse (by simp[hp])
-
-  instance : DecidableEq (L.Formula ℕ) := hasDecEq
-
-  def shift_finset_up (Δ : Finset (L.Formula ℕ)) : Finset (L.Formula ℕ) :=
-    Finset.image (relabel shift_free_up) Δ
-
-  notation Δ"↑"  => shift_finset_up Δ
-  notation A"↓" => relabel shift_one_down A
-
-  variable [BEq (Formula L ℕ)][DecidableEq (Formula L ℕ)]
-
-  /-- G3c sequent calculus -/
-  inductive Derivation : (Set (Formula L ℕ)) → (Finset (Formula L ℕ)) → (Finset (Formula L ℕ)) → Type _ where
-    | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
-    | lax {Th Γ Δ} (h : ∃f, f ∈ Γ ∧ f ∈ Δ) : Derivation Th Γ Δ
-    | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
-    | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
-    | left_implication (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation Th S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}): Derivation Th Γ Δ
-    | left_bot {Th Γ Δ} (h : ⊥ ∈ Γ) : Derivation Th Γ Δ
-    | right_conjunction {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) : Derivation Th Γ Δ
-    | right_disjunction {Th Γ Δ} (A B S) (d₁ : Derivation Th Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}): Derivation Th Γ Δ
-    | right_implication {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}): Derivation Th Γ Δ
-    | left_forall {Th Γ Δ}  (A : Formula L ℕ) (B) (h₁ : B = A↓) (t S) (d : Derivation Th S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) : Derivation Th Γ Δ
-    | left_exists {Th Γ Δ} (A B) (S₁ : Finset (Formula L ℕ)) (p : B = A↓) (d₁ : Derivation Th ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) : Derivation Th Γ Δ
-    | right_forall {Th Γ Δ} (A B S) (p : B = A↓) (d₁ : Derivation Th (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) : Derivation Th Γ Δ
-    | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
-    | cut {Th Γ Δ} (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ
-
-  def emptyFormList : Finset (Formula L ℕ) := ∅
-  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Finset (Formula L ℕ)) : Prop :=
-    Nonempty (Derivation Th Γ Δ)
-  notation Th " ⊢ " Γ Δ => sequent_provable Th Γ Δ
-  def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
-    sequent_provable Th emptyFormList {f}
-  notation Th " ⊢ " f => formula_provable Th f
-
-end Calculus
 
 namespace SyntaxAxioms
 open Languages
-open L
 open L_T
-
-notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
-notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
-notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
-notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
+open LPA
+open BoundedFormula
+open TermEncoding
 
 def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
@@ -747,77 +619,3 @@ inductive syntax_theory : Theory ℒₜ where
   | constant_representation {φ} : syntax_theory (const_repres φ)
   | denote_representation {t} : syntax_theory (denote_repres t)
 end SyntaxTheory
-
-namespace PA
-  open Languages
-  open L
-  open L_T
-  open BoundedFormula
-
-  def replace_bv_with_non_var_term {L} (f : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
-    subst f.toFormula (fun _ : Empty ⊕ Fin 1 => t)
-  notation A "//[" t "]" => replace_bv_with_non_var_term A t
-  def replace_bv_with_bv_term  {L} (f : BoundedFormula L Empty 1) (t : Term L (Empty ⊕ Fin 1)) : BoundedFormula L Empty 1 :=
-    (relabel id (subst (f.toFormula) (fun _ : (Empty ⊕ Fin 1) => t)))
-  notation A "///[" t "]" => replace_bv_with_bv_term A t
-
-  /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒ Empty 1) : Sentence ℒ :=
-    ∼ (f//[L.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
-
-  /-- Peano arithemtic -/
-  inductive peano_arithmetic : Theory ℒ where
-    | first : peano_arithmetic (∀' ∼(L.null =' S(&0)))
-    | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-    | third : peano_arithmetic (∀' ((&0 add L.null) =' &0))
-    | fourth : peano_arithmetic (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-    | fifth : peano_arithmetic (∀' ((&0 times L.null) =' L.null))
-    | sixth : peano_arithmetic (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-    | induction (φ) : peano_arithmetic (induction φ)
-
-  notation "𝐏𝐀" => peano_arithmetic
-
-end PA
-
-namespace PAT
-open Languages
- /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒₜ Empty 1) : Sentence ℒₜ :=
-    ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
-
-  /-- Peano arithemtic -/
-  inductive peano_arithmetic_t : Theory ℒₜ where
-    | first : peano_arithmetic_t (∀' ∼(L_T.null =' S(&0)))
-    | second :peano_arithmetic_t (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-    | third : peano_arithmetic_t (∀' ((&0 add L_T.null) =' &0))
-    | fourth : peano_arithmetic_t (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
-    | fifth : peano_arithmetic_t (∀' ((&0 times L_T.null) =' L_T.null))
-    | sixth : peano_arithmetic_t (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
-    | induction (φ) : peano_arithmetic_t (induction φ)
-
-  notation "𝐏𝐀𝐓" => peano_arithmetic_t
-end PAT
-
-namespace TB
-open Languages
-open L_T
-open PAT
-open SyntaxTheory
-
-inductive tarski_biconditionals : Theory ℒₜ where
-  | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
-  | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
-  | disquotation {φ : Sentence ℒ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
-
-notation "𝐓𝐁" => tarski_biconditionals
-end TB
-
-namespace Conservativity
-  open Languages
-  open Calculus
-  open TB
-  open PA
-
-  -- theorem conservativity_of_tb (f : Formula ℒ ℕ) : (𝐓𝐁 ⊢ f) → (𝐏𝐀 ⊢ f) := by
-  --   sorry
-end Conservativity
