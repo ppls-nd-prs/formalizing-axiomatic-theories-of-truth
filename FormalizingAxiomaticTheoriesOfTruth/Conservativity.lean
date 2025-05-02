@@ -137,49 +137,49 @@ namespace Conservativity
     dec_eq_terms (ts 0) ⌜f⌝
 
   /-- Proof that is_disq_sent is a decidable Predicate -/
-  def decPred_is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Decidable (is_disq_sent f)
-  | .zero, f => by
-    cases f <;> try { apply isFalse; simp }
-    case imp f₁ f₂ =>
-    cases f₂ <;> try { apply isFalse; simp }
-    case falsum =>
-    cases f₁ <;> try { apply isFalse; simp }
-    case imp f₃ f₄ =>
-    cases f₃ <;> try { apply isFalse; simp }
-    case imp f₅ f₆ =>
-    cases f₅ <;> try { apply isFalse; simp }
-    case rel R ts₆ =>
-    cases R <;> try { apply isFalse; simp }
-    case t =>
-    cases f₄ <;> try { apply isFalse; simp }
-    case imp f₇ f₈ =>
-    cases f₈ <;> try { apply isFalse; simp }
-    case falsum =>
-    cases f₇ <;> try { apply isFalse; simp }
-    case imp f₉ f₁₀ =>
-    cases f₁₀ <;> try { apply isFalse; simp }
-    case rel R ts₉ =>
-    cases R <;> try { apply isFalse; simp }
-    case t =>
-      have step1: Decidable (f₆ = f₉) := by
-        apply hasDecEq
-      apply dec_first_elem_disq at ts₆
-      apply ts₆ at f₆
-      apply dec_first_elem_disq at ts₉
-      apply ts₉ at f₉
-      simp
-      apply instDecidableAnd
-  | .succ n, _ => by
-    apply isFalse
-    simp
+  -- def decPred_is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Decidable (is_disq_sent f)
+  -- | .zero, f => by
+  --   cases f <;> try { apply isFalse; simp }
+  --   case imp f₁ f₂ =>
+  --   cases f₂ <;> try { apply isFalse; simp }
+  --   case falsum =>
+  --   cases f₁ <;> try { apply isFalse; simp }
+  --   case imp f₃ f₄ =>
+  --   cases f₃ <;> try { apply isFalse; simp }
+  --   case imp f₅ f₆ =>
+  --   cases f₅ <;> try { apply isFalse; simp }
+  --   case rel R ts₆ =>
+  --   cases R <;> try { apply isFalse; simp }
+  --   case t =>
+  --   cases f₄ <;> try { apply isFalse; simp }
+  --   case imp f₇ f₈ =>
+  --   cases f₈ <;> try { apply isFalse; simp }
+  --   case falsum =>
+  --   cases f₇ <;> try { apply isFalse; simp }
+  --   case imp f₉ f₁₀ =>
+  --   cases f₁₀ <;> try { apply isFalse; simp }
+  --   case rel R ts₉ =>
+  --   cases R <;> try { apply isFalse; simp }
+  --   case t =>
+  --     have step1: Decidable (f₆ = f₉) := by
+  --       apply hasDecEq
+  --     apply dec_first_elem_disq at ts₆
+  --     apply ts₆ at f₆
+  --     apply dec_first_elem_disq at ts₉
+  --     apply ts₉ at f₉
+  --     simp
+  --     apply instDecidableAnd
+  -- | .succ n, _ => by
+  --   apply isFalse
+  --   simp
 
-  instance : DecidablePred (@is_disq_sent 0) := decPred_is_disq_sent
+  -- instance : DecidablePred (@is_disq_sent 0) := decPred_is_disq_sent
 
   def contains_T_sent : Sentence ℒₜ → Prop :=
     fun s : Sentence ℒₜ =>
       contains_T (bf_empty_to_bf_N s)
 
-  def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ 𝐓𝐁 ∧ (contains_T f)}
+  -- def real_PA : Set (Formula ℒₜ ℕ) := {f | f ∈ 𝐓𝐁 ∧ (contains_T f)}
   def real_LPA : Set (Formula ℒₜ ℕ) := {f | f ∈ Set.univ ∧ (contains_T f)}
   open LPA
   instance : Coe (Set (Formula ℒ ℕ)) (Set (Formula ℒₜ ℕ)) where
@@ -206,13 +206,13 @@ namespace Conservativity
     | .right_exists _ _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
     | .cut _ _ _ _ _ d₁ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
 
-  /-- Obtain a finset that contains only the formula containing a T from a finset -/
-  def get_T_fmls (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
-    {f ∈ S | contains_T f}
+  /- Obtain a finset that contains only the formula containing a T from a finset -/
+  -- def get_T_fmls (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
+  --   {f ∈ S | contains_T f}
 
-  /-- Obtains all disquotation sentences in a finset -/
-  def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
-    {f ∈ S | is_disq_sent f}
+  /- Obtains all disquotation sentences in a finset -/
+  -- def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
+  --   {f ∈ S | is_disq_sent f}
 
   /-- Transforms a disquotation axiom to the corresponding tau disjunct -/
   def disq_to_tau : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0
@@ -231,15 +231,11 @@ namespace Conservativity
   def mapping (s : Finset (BoundedFormula ℒₜ ℕ 0)) : { x : (BoundedFormula ℒₜ ℕ 0) // x ∈ s} → (BoundedFormula ℒₜ ℕ 0) := fun i => i.val
 
   def f₂ : Formula ℒₜ ℕ := ⊥
-  #eval BoundedFormula.Realize f₂ id id
+  -- #eval BoundedFormula.Realize f₂ id id
   -- def le : BoundedFormula L α n → BoundedFormula L α n :=
   -- instance : LinearOrder (BoundedFormula L α n) where
   --   le a b :=
 #check @Max.left_comm (BoundedFormula ℒₜ ℕ 0)
-  def left_comm_max (a b c : BoundedFormula L α n) : max a (max b c) = max b (max a c):= by
-    rw[Max.left_comm a b c]
-
-
 
   def structure_fun : {n : ℕ} → L_T.Func n → (Fin n → ℕ) → ℕ
     | _, .zero, _ => 0
@@ -255,49 +251,138 @@ namespace Conservativity
     | _, L_T.Func.mult, _ => 10
     | _, L_T.Func.add, _ => 11
 
-  def number : BoundedFormula ℒₜ ℕ 0 → ℕ :=
-    fun f => formula_N_tonat f
 
-  def le_bf : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0 → Prop :=
-    fun f₁ f₂ => (number f₁) ≤ (number f₂)
-
-  def lt_bf : Formula ℒₜ ℕ → Formula ℒₜ ℕ → Prop :=
-    fun f₁ f₂ => (number f₁) < (number f₂)
 
   #check Multiset.card
 
 
-  #check Formula.realize_top.mp ⊤.Realize
+  -- #check Formula.realize_top.mp ⊤.Realize
 
-  variable {M : Type _}[L.Structure M]{α : Type _}{v : α → M}
-  instance struct : Structure ℒₜ ℕ where
-    funMap := structure_fun
-    RelMap := sorry
-  def f₉ : Formula ℒₜ ℕ := ⊤
-  def mapp : ℕ → ℕ := id
-  example : f₉.Realize mapp := by
+  -- variable {M : Type _}[L.Structure M]{α : Type _}{v : α → M}
+  -- instance struct : Structure ℒₜ ℕ where
+  --   funMap := structure_fun
+  --   RelMap := sorry
+  -- def f₉ : Formula ℒₜ ℕ := ⊤
+  -- def mapp : ℕ → ℕ := id
+  -- example : f₉.Realize mapp := by
 
-  #check Formula.realize_top.mp (f₉.Realize mapp)
-  instance : LinearOrder (BoundedFormula ℒₜ ℕ 0) where
+  -- #check Formula.realize_top.mp (f₉.Realize mapp)
+  -- instance : LinearOrder (BoundedFormula ℒₜ ℕ 0) where
+  --   le := le_bf
+  --   lt := lt_bf
+  --   le_refl := by
+  --     simp[le_bf]
+  --   le_trans := by
+  --     simp[le_bf,number,toString,String.length]
+  --     intro f₁ f₂ f₃
+  --     intro h₁ h₂
+
+  @[simp]
+  def number : BoundedFormula ℒₜ ℕ 0 → ℕ :=
+    fun f => formula_N_tonat f
+
+  @[simp]
+  def le_bf : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0 → Prop :=
+    fun f₁ f₂ => (number f₁) ≤ (number f₂)
+
+  @[simp]
+  def lt_bf : Formula ℒₜ ℕ → Formula ℒₜ ℕ → Prop :=
+    fun f₁ f₂ => (number f₁) < (number f₂)
+
+  instance : LE (ℒₜ.Formula ℕ) where
     le := le_bf
+  instance : LT (ℒₜ.Formula ℕ) where
     lt := lt_bf
-    le_refl := by
-      simp[le_bf]
-    le_trans := by
-      simp[le_bf,number,toString,String.length]
-      intro f₁ f₂ f₃
-      intro h₁ h₂
+
+  def f₁ : ℒₜ.BoundedFormula ℕ 0 := .falsum
+  open L_T
+  open Term
+  open Computability
+  open BoundedFormula
+  open TermEncoding
+  def encoding_Γ : ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) → ℕ
+    | .inl α =>
+      match α with
+      | .mk k t  => Nat.pair 0 (Nat.pair k ((@term_tonat_fin_n ℒₜ (@L_T.enc_f)) t))
+    | .inr α =>
+      match α with
+      | .inl β =>
+        match β with
+        | .mk _ R => Nat.pair 1 (L_T.Rel_enc R)
+      | .inr n => Nat.pair 2 n
+
+  def decode_Γ : ℕ → Option ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) :=
+    fun n => match n.unpair with
+    | ⟨0, m⟩ =>
+      match m.unpair with
+      | ⟨k, e⟩ =>
+        sorry
+    | ⟨1, m⟩ => sorry
+    | ⟨2, m⟩ => sorry
+    | _ => none
+
+  /- Encodable ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) -/
+  instance : Encodable ((@BoundedFormula.encoding ℒₜ ℕ).Γ) where
+    encode := encoding_Γ
+    decode := sorry
+    encodek := sorry
+  -- variable {α} [Encodable (BoundedFormula.encoding.Γ)]
+  #check BoundedFormula.encoding.Γ
+  #check Encodable.encodeList (BoundedFormula.encoding.encode ⟨0,f₁⟩)
+  open List
+  /-- An encoding of bounded formulas as lists. -/
+@[simp]
+protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
+  Γ := (Σk, L.Term (α ⊕ Fin k)) ⊕ ((Σ n, L.Relations n) ⊕ ℕ)
+  encode φ := φ.2.listEncode
+  decode l := (listDecode l)[0]?
+  decode_encode φ := by
+    have h := listDecode_encode_list [φ]
+    rw [flatMap_singleton] at h
+    simp only
+    rw [h]
+    rfl
+  -- def f₁_sigma : Σn, ℒₜ.BoundedFormula ℕ n :=
+  -- #check Encodable.encodeList (BoundedFormula.encoding.encode (Σn, f₁))
+
+  def big_disjunction : (s : Multiset (ℒₜ.Formula ℕ)) → ℒₜ.Formula ℕ := by
+    intro S
+    cases S using Multiset.recOn with
+    | C_0 => apply BoundedFormula.falsum
+    | C_cons a M b =>
+      apply big_disjunction at M
+      apply BoundedFormula.lor M
+      exact a
+    | C_cons_heq a b M c => sorry
 
 
+  -- def left_comm_max (a b c : BoundedFormula ℒₜ ℕ 0) : max a (max b c) = max b (max a c):= by
+  --   -- rw[Max.left_comm a b c]
+  --   sorry
 
 
+  -- instance : Max (BoundedFormula ℒₜ ℕ 0) := BoundedFormula.instMax
+  -- instance : LeftCommutative (@max (BoundedFormula ℒₜ ℕ 0) BoundedFormula.instMax) := by
+  --   sorry
+  open BoundedFormula
+
+  lemma three : ∀S₁:Finset (ℒₜ.Formula ℕ),∀S₂:Finset (ℒₜ.Formula ℕ), ⊥ ∈ S₁ → ⊥ ∈ (S₁ ∪ S₂) := by
+    intro S₁ S₂ h₁
+    induction S₁ using Finset.induction_on with
+    | empty =>
+      simp at h₁
+    | insert a ih =>
+      simp
+      simp at h₁ ih
+      cases h₁ with
+      | inl a =>
+        simp[a]
+      | inr a =>
+        simp[a]
 
 
-  instance : Max (BoundedFormula L α n) := BoundedFormula.instMax
-  instance : LeftCommutative (@max (BoundedFormula L ℕ 0) BoundedFormula.instMax) := by sorry
-  noncomputable def iSup [Finite β] (f : β → L.BoundedFormula α n) : L.BoundedFormula α n :=
-    let _ := Fintype.ofFinite β
-    ((Finset.univ : Finset β).1.map f).foldr (· ⊔ ·) ⊥
+  -- def iSup (f : Finset (ℒₜ.Formula ℕ)) : ℒₜ.BoundedFormula ℕ 0 :=
+  --   f.1.fold (· ⊔ ·) ⊥
 
   /-- takes a set of disjuncts to their disjunction -/
   noncomputable def disjuncts_to_disjunction (S : Finset (Formula ℒₜ ℕ)) : Formula ℒₜ ℕ :=
@@ -321,17 +406,17 @@ namespace Conservativity
   -- | {} => 0
   -- | s ∪ {a} => (length s) + 1
 
-  lemma one : ∀s : Finset (Formula ℒₜ ℕ), ∀n, s.card = n → ⊥ ∈ (s ∪ {⊥}) := by
-    intro s
-    intro n
-    induction n with
-    | zero =>
-      intro h
-      simp at h
-      simp[h]
-    | succ n ih =>
-      intro h
-      simp
+  -- lemma one : ∀s : Finset (Formula ℒₜ ℕ), ∀n, s.card = n → ⊥ ∈ (s ∪ {⊥}) := by
+  --   intro s
+  --   intro n
+  --   induction n with
+  --   | zero =>
+  --     intro h
+  --     simp at h
+  --     simp[h]
+  --   | succ n ih =>
+  --     intro h
+  --     simp
 
   def two (h: ∀s : Finset (Formula ℒₜ ℕ), ∀n, s.card = n → ⊥ ∈ (s ∪ {⊥})) : ∀Γ : Finset (Formula ℒₜ ℕ), ⊥ ∈ (Γ ∪ {⊥}) := by
     intro Γ
@@ -340,15 +425,13 @@ namespace Conservativity
     apply Γ at n
 
 
-  example : ∀s : Multiset (Formula ℒₜ ℕ), ⊥ ∈ (s ∪ {⊥}) := by
-    intro s
-    induction s.card using Nat.strong_induction_on with
-    | h n a =>
-      induction n with
-      | zero =>
-
-        sorry
-      | succ n ih => sorry
+  -- example : ∀s : Multiset (Formula ℒₜ ℕ), ⊥ ∈ (s ∪ {⊥}) := by
+  --   intro s
+  --   induction s.card using Nat.strong_induction_on with
+  --   | h n a =>
+  --     induction n with
+  --     | zero => sorry
+  --     | succ n ih => sorry
 
 
   def con_slash_disjunction {th : Set (Formula ℒₜ ℕ)} : ∀Γ,∀Δ, Derivation th Γ Δ → Derivation th {(BoundedFormula.iInf (mapping Γ))} {(BoundedFormula.iSup (mapping Δ))} := by

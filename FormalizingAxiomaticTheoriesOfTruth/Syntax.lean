@@ -484,7 +484,10 @@ namespace TermEncoding
     fun t => Encodable.encodeList (Term.listEncode t)
   def term_tonat_Empty : Term L (Empty ⊕ Fin 0) → ℕ :=
     fun t => Encodable.encodeList (Term.listEncode t)
+  def term_tonat_fin_n {n} : Term L (ℕ ⊕ Fin n) → ℕ :=
+    fun t => Encodable.encodeList (Term.listEncode t)
   /-- Encodes BoundedFormulas as natural numbers -/
+  @[simp]
   def formula_N_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
   /-- Encodes BoundedFormulas as natural numbers -/
