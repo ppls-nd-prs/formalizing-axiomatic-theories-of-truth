@@ -1,4 +1,5 @@
 import FormalizingAxiomaticTheoriesOfTruth.ProofTheory
+import Mathlib.Logic.Encodable.Basic
 
 open FirstOrder
 open Language
@@ -256,6 +257,12 @@ namespace Conservativity
   #check Multiset.card
 
 
+  instance : Encodable (Formula ℒₜ ℕ) where
+    encode f := Encodable.encodeList (BoundedFormula.listEncode f)
+    decode n := BoundedFormula.listDecode (Encodable.decodeList n)
+  def f₁ : Formula ℒₜ ℕ := ⊥
+  #check Encodable.encodeList (BoundedFormula.listEncode f₁)
+
   -- #check Formula.realize_top.mp ⊤.Realize
 
   -- variable {M : Type _}[L.Structure M]{α : Type _}{v : α → M}
@@ -277,17 +284,28 @@ namespace Conservativity
   --     intro f₁ f₂ f₃
   --     intro h₁ h₂
 
-  @[simp]
-  def number : BoundedFormula ℒₜ ℕ 0 → ℕ :=
-    fun f => formula_N_tonat f
+  -- @[simp]
+  -- def number : (Σn, BoundedFormula ℒₜ ℕ n) → ℕ :=
+  --   fun f => Encodable.encodeList (BoundedFormula.encoding.encode f)
 
-  @[simp]
-  def le_bf : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0 → Prop :=
-    fun f₁ f₂ => (number f₁) ≤ (number f₂)
+  -- @[simp]
+  -- def le_bf : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0 → Prop :=
+  --   fun f₁ f₂ => (number f₁) ≤ (number f₂)
 
-  @[simp]
-  def lt_bf : Formula ℒₜ ℕ → Formula ℒₜ ℕ → Prop :=
-    fun f₁ f₂ => (number f₁) < (number f₂)
+  -- @[simp]
+  -- def lt_bf : Formula ℒₜ ℕ → Formula ℒₜ ℕ → Prop :=
+  --   fun f₁ f₂ => (number f₁) < (number f₂)
+
+  -- instance : LinearOrder (BoundedFormula ℒₜ ℕ 0) where
+  --   le := le_bf
+  --   lt := lt_bf
+  --   le_refl := by
+  --     simp[le_bf]
+  --   le_trans := by
+  --     simp[le_bf,number,toString,String.length]
+  --     intro f₁ f₂ f₃
+  --     intro h₁ h₂
+
 
   instance : LE (ℒₜ.Formula ℕ) where
     le := le_bf
@@ -301,30 +319,79 @@ namespace Conservativity
   open BoundedFormula
   open TermEncoding
   def encoding_Γ : ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) → ℕ
-    | .inl α =>
-      match α with
-      | .mk k t  => Nat.pair 0 (Nat.pair k ((@term_tonat_fin_n ℒₜ (@L_T.enc_f)) t))
-    | .inr α =>
-      match α with
-      | .inl β =>
-        match β with
-        | .mk _ R => Nat.pair 1 (L_T.Rel_enc R)
-      | .inr n => Nat.pair 2 n
+    | .inl (.mk k t) => Nat.pair 0 (Nat.pair k (instEncodableOfSigmaNatFunctions.encode t))
+    | .inr (.inl (.mk p R)) => Nat.pair 1 (Nat.pair p (L_T.enc_r.encode R))
+    | .inr (.inr n) => Nat.pair 2 n
 
+  def L_T.dflt_Rel : ℒₜ.Relations 1 := L_T.Rel.t
+  def dflt_term : ℒₜ.Term (ℕ ⊕ Fin n) := #0
   def decode_Γ : ℕ → Option ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) :=
-    fun n => match n.unpair with
-    | ⟨0, m⟩ =>
-      match m.unpair with
-      | ⟨k, e⟩ =>
-        sorry
-    | ⟨1, m⟩ => sorry
-    | ⟨2, m⟩ => sorry
-    | _ => none
+    fun n => match n.unpair.1, n.unpair.2.unpair with
+    | 0, ⟨k, e⟩ =>
+      some ((Sum.inl (Sigma.mk k ((instEncodableOfSigmaNatFunctions.decode e).getD dflt_term))))
+    | 1, m =>
+      match m with
+      | ⟨1, R⟩ => some (Sum.inr (Sum.inl (Sigma.mk 1 ((@L_T.Rel_dec 1 R).getD L_T.dflt_Rel))))
+      | ⟨_, _⟩ => none
+    | 2, m =>
+      some (Sum.inr (Sum.inr (m.1.pair m.2)))
+    | _, _ => none
 
+  instance {n} {t : Term ℒₜ (ℕ ⊕ Fin n)}: HEq (@nat_to_term_fin_n ℒₜ (fun k => @L_T.enc_f k) n (@term_tonat_fin_n ℒₜ (fun k => @L_T.enc_f k) n (t))) t := by
+    simp[nat_to_term_fin_n,term_tonat_fin_n]
+
+    sorry
+
+  lemma encodek_for_term : ∀t : ℒₜ.Term (ℕ ⊕ Fin 0), Encodable.decode (Encodable.encode t) = some (t) := by
+    intro t
+    simp
+
+  lemma Γ_enc_dec : ∀ f : BoundedFormula.encoding.Γ, decode_Γ (encoding_Γ f) = (some f) := by
+    intro h
+    cases h with
+    | inl a =>
+      cases a with
+      | mk k t =>
+        induction k with
+        | succ n =>
+          sorry
+        | _ =>
+          induction t with
+          | var a =>
+            cases a with
+            | inl n =>
+              induction n with
+              | succ n ih =>
+                simp [encoding_Γ,Nat.pair,decode_Γ,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+
+
+
+
+
+
+                -- let j : ℒₜ.Term (ℕ ⊕ Fin 0) := (var (Sum.inl (n + 1)))
+                -- let i : Option (ℒₜ.Term (ℕ ⊕ Fin 0)) := (Encodable.decode (Encodable.encode j))
+                -- have step1 : i = (some j) := by
+                --   simp[i,j]
+
+
+                -- simp only [i,j] at step1
+                -- simp[instEncodableOfSigmaNatFunctions.encodek]
+
+                -- apply HEq.refl
+                -- simp only [nat_to_term_fin_n,term_tonat_fin_n]
+                -- apply HEq.refl
+                -- simp[Encodable.encode_inj]
+                sorry
+
+              | _ => sorry
+            | inr v => sorry
+          | func => sorry
+    | inr a => sorry
   /- Encodable ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) -/
   instance : Encodable ((@BoundedFormula.encoding ℒₜ ℕ).Γ) where
     encode := encoding_Γ
-    decode := sorry
+    decode := decode_Γ
     encodek := sorry
   -- variable {α} [Encodable (BoundedFormula.encoding.Γ)]
   #check BoundedFormula.encoding.Γ
@@ -345,15 +412,18 @@ protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
   -- def f₁_sigma : Σn, ℒₜ.BoundedFormula ℕ n :=
   -- #check Encodable.encodeList (BoundedFormula.encoding.encode (Σn, f₁))
 
-  def big_disjunction : (s : Multiset (ℒₜ.Formula ℕ)) → ℒₜ.Formula ℕ := by
-    intro S
-    cases S using Multiset.recOn with
-    | C_0 => apply BoundedFormula.falsum
-    | C_cons a M b =>
-      apply big_disjunction at M
-      apply BoundedFormula.lor M
-      exact a
-    | C_cons_heq a b M c => sorry
+
+  -- def big_disjunction : (s : Multiset (ℒₜ.Formula ℕ)) → ℒₜ.Formula ℕ := by
+  --   intro S
+  --   induction S using Multiset.rec with
+  --   | C_0 => apply BoundedFormula.falsum
+  --   | C_cons a M b =>
+  --     apply big_disjunction at M
+  --     apply BoundedFormula.lor M
+  --     exact a
+  --   | C_cons_heq a b M c =>
+  --     simp
+  --     sorry
 
 
   -- def left_comm_max (a b c : BoundedFormula ℒₜ ℕ 0) : max a (max b c) = max b (max a c):= by

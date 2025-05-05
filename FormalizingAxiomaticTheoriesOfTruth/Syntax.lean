@@ -478,14 +478,21 @@ namespace Languages
   end L_T
 
 namespace TermEncoding
-  variable {L : Language}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)]
+  open Term
+  variable {L : Language}{α : Type}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)]
   /-- Encodes terms as natural numbers -/
   def term_tonat_N : Term L ℕ → ℕ :=
-    fun t => Encodable.encodeList (Term.listEncode t)
+    fun t => instEncodableOfSigmaNatFunctions.encode t
   def term_tonat_Empty : Term L (Empty ⊕ Fin 0) → ℕ :=
     fun t => Encodable.encodeList (Term.listEncode t)
   def term_tonat_fin_n {n} : Term L (ℕ ⊕ Fin n) → ℕ :=
     fun t => Encodable.encodeList (Term.listEncode t)
+  def dflt_list : List α := []
+  def dflt_term : Term L (ℕ ⊕ Fin n) := #0
+  instance : Inhabited (Term L (ℕ ⊕ Fin n)) := Inhabited.mk dflt_term
+  def nat_to_term_fin_n {k} : ℕ → Term L (ℕ ⊕ Fin k) :=
+    fun n => (Term.listDecode ((Encodable.decodeList n).getD dflt_list))[0]!
+  open L_T
   /-- Encodes BoundedFormulas as natural numbers -/
   @[simp]
   def formula_N_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
