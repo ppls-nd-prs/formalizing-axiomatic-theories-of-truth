@@ -255,10 +255,73 @@ namespace Conservativity
 
   #check Multiset.card
 
+  open Term
+  open Computability
+  open BoundedFormula
+  open TermEncoding
+  variable {L : Language} [Encodable ((i : ℕ) × L.Functions i)][∀i, Encodable (L.Relations i)]
+  def Γ_encode : ((k : ℕ) × L.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × L.Relations n ⊕ ℕ) → ℕ
+    | .inl (.mk k t) => Nat.pair 0 (Nat.pair k (instEncodableOfSigmaNatFunctions.encode t))
+    | .inr (.inl (.mk p R)) => Nat.pair 1 (Nat.pair p (Encodable.encode R))
+    | .inr (.inr n) => Nat.pair 2 n
+
+  class HasIaryRel (l : Language) where
+    rels : ℕ → Type _
+    iary_rel {i : ℕ} : l.Relations i
+
+  variable [HasIaryRel L]
+  def dflt_Rel (i : ℕ) : L.Relations i := @HasIaryRel.iary_rel L _ i
+  def dflt_term : L.Term (ℕ ⊕ Fin n) := #0
+
+  -- def opt_opt_to_opt {β : Type} : Option (Σk, Option (ℒₜ.Term (ℕ ⊕ Fin k)) ⊕ β) → Option (Σk, (ℒₜ.Term (ℕ ⊕ Fin k)))
+  --   | some (Sum.inl (Sigma.mk k (some t))) => some (Sum.inl (Sigma.mk k t))
+
+  def Γ_decode : ℕ → Option ((k : ℕ) × L.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × L.Relations n ⊕ ℕ) :=
+    fun n => match n.unpair.1, n.unpair.2.unpair with
+    | 0, ⟨k, e⟩ =>
+      some ((Sum.inl (Sigma.mk k ((instEncodableOfSigmaNatFunctions.decode e).getD dflt_term))))
+    | 1, m =>
+      match m with
+      | ⟨i, R⟩ => some (Sum.inr (Sum.inl (Sigma.mk i ((Encodable.decode R).getD (dflt_Rel i)))))
+    | 2, m =>
+      some (Sum.inr (Sum.inr (m.1.pair m.2)))
+    | _, _ => none
+
+  lemma Γ_encodek : ∀ f : BoundedFormula.encoding.Γ, @Γ_decode L _ _ _ (Γ_encode f) = (some f) := by
+    intro h
+    cases h with
+    | inl a =>
+      cases a with
+      | mk k t =>
+        simp[Γ_encode,Γ_decode]
+    | inr a =>
+      cases a with
+      | inl s =>
+        cases s with
+        | mk n R =>
+          simp[Γ_encode,Γ_decode]
+      | inr n =>
+        simp[Γ_encode,Γ_decode]
+
+  /- Encodable ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) -/
+  instance : Encodable ((@BoundedFormula.encoding L ℕ).Γ) where
+    encode := Γ_encode
+    decode := Γ_decode
+    encodek := Γ_encodek
+
+  def dflt_list : List ((Σk, L.Term (α ⊕ Fin k)) ⊕ ((Σ n, L.Relations n) ⊕ ℕ)) := []
+open List
+instance [Encodable (Σ i, L.Functions i)] : Encodable (L.BoundedFormula ℕ n) :=
+  Encodable.ofLeftInjection BoundedFormula.listEncode (fun l => (BoundedFormula.listDecode l).head?.join) fun t => by
+    simp only
+    rw [← flatMap_singleton BoundedFormula.listEncode, BoundedFormula.listDecode_encode_list]
+    simp only [Option.join, head?_cons, Option.pure_def, Option.bind_eq_bind, Option.some_bind,
+      id_eq]
 
   instance : Encodable (Formula ℒₜ ℕ) where
-    encode f := Encodable.encodeList (BoundedFormula.listEncode f)
-    decode n := BoundedFormula.listDecode (Encodable.decodeList n)
+    encode f := Encodable.encodeList (BoundedFormula.encoding.encode ⟨0, f⟩)
+    decode n := BoundedFormula.encoding.decode ((Encodable.decodeList n).getD dflt_list)[0]!
+
   def f₁ : Formula ℒₜ ℕ := ⊥
   #check Encodable.encodeList (BoundedFormula.listEncode f₁)
 
@@ -313,60 +376,7 @@ namespace Conservativity
 
   -- def f₁ : ℒₜ.BoundedFormula ℕ 0 := .falsum
   -- open L_T
-  open Term
-  open Computability
-  open BoundedFormula
-  open TermEncoding
-  def Γ_encode : ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) → ℕ
-    | .inl (.mk k t) => Nat.pair 0 (Nat.pair k (instEncodableOfSigmaNatFunctions.encode t))
-    | .inr (.inl (.mk p R)) => Nat.pair 1 (Nat.pair p (L_T.enc_r.encode R))
-    | .inr (.inr n) => Nat.pair 2 n
 
-  def L_T.dflt_Rel : ℒₜ.Relations 1 := L_T.Rel.t
-  def dflt_term : ℒₜ.Term (ℕ ⊕ Fin n) := #0
-
-  -- def opt_opt_to_opt {β : Type} : Option (Σk, Option (ℒₜ.Term (ℕ ⊕ Fin k)) ⊕ β) → Option (Σk, (ℒₜ.Term (ℕ ⊕ Fin k)))
-  --   | some (Sum.inl (Sigma.mk k (some t))) => some (Sum.inl (Sigma.mk k t))
-
-  def Γ_decode : ℕ → Option ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) :=
-    fun n => match n.unpair.1, n.unpair.2.unpair with
-    | 0, ⟨k, e⟩ =>
-      some ((Sum.inl (Sigma.mk k ((instEncodableOfSigmaNatFunctions.decode e).getD dflt_term))))
-    | 1, m =>
-      match m with
-      | ⟨1, R⟩ => some (Sum.inr (Sum.inl (Sigma.mk 1 ((L_T.enc_r.decode R).getD L_T.dflt_Rel))))
-      | ⟨_, _⟩ => none
-    | 2, m =>
-      some (Sum.inr (Sum.inr (m.1.pair m.2)))
-    | _, _ => none
-
-  lemma Γ_encodek : ∀ f : BoundedFormula.encoding.Γ, Γ_decode (Γ_encode f) = (some f) := by
-    intro h
-    cases h with
-    | inl a =>
-      cases a with
-      | mk k t =>
-        simp[Γ_encode,Γ_decode]
-    | inr a =>
-      cases a with
-      | inl s =>
-        cases s with
-        | mk n R =>
-          match n with
-            | Nat.zero =>
-              cases R
-            | Nat.succ Nat.zero =>
-              simp[Γ_encode,Γ_decode]
-            | Nat.succ (Nat.succ _) =>
-              cases R
-      | inr n =>
-        simp[Γ_encode,Γ_decode]
-
-  /- Encodable ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) -/
-  instance : Encodable ((@BoundedFormula.encoding ℒₜ ℕ).Γ) where
-    encode := Γ_encode
-    decode := Γ_decode
-    encodek := Γ_encodek
   -- variable {α} [Encodable (BoundedFormula.encoding.Γ)]
   #check BoundedFormula.encoding.Γ
   #check Encodable.encodeList (BoundedFormula.encoding.encode ⟨0,f₁⟩)
