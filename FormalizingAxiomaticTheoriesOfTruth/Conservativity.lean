@@ -131,50 +131,49 @@ namespace Conservativity
     f₁ = f₂ ∧ (ts₁ 0) = ⌜f₁⌝ ∧ (ts₂ 0) = ⌜f₂⌝
   | _,  _ => False
 
-
   instance dec_eq_terms : DecidableEq (Term ℒₜ (ℕ ⊕ Fin 0)) := Term.instDecidableEq
 
   @[simp] def dec_first_elem_disq (ts : (Fin 1) → Term ℒₜ (ℕ ⊕ Fin 0)) (f : BoundedFormula ℒₜ ℕ 0) : Decidable ((ts 0) = ⌜f⌝) :=
     dec_eq_terms (ts 0) ⌜f⌝
 
   /-- Proof that is_disq_sent is a decidable Predicate -/
-  -- def decPred_is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Decidable (is_disq_sent f)
-  -- | .zero, f => by
-  --   cases f <;> try { apply isFalse; simp }
-  --   case imp f₁ f₂ =>
-  --   cases f₂ <;> try { apply isFalse; simp }
-  --   case falsum =>
-  --   cases f₁ <;> try { apply isFalse; simp }
-  --   case imp f₃ f₄ =>
-  --   cases f₃ <;> try { apply isFalse; simp }
-  --   case imp f₅ f₆ =>
-  --   cases f₅ <;> try { apply isFalse; simp }
-  --   case rel R ts₆ =>
-  --   cases R <;> try { apply isFalse; simp }
-  --   case t =>
-  --   cases f₄ <;> try { apply isFalse; simp }
-  --   case imp f₇ f₈ =>
-  --   cases f₈ <;> try { apply isFalse; simp }
-  --   case falsum =>
-  --   cases f₇ <;> try { apply isFalse; simp }
-  --   case imp f₉ f₁₀ =>
-  --   cases f₁₀ <;> try { apply isFalse; simp }
-  --   case rel R ts₉ =>
-  --   cases R <;> try { apply isFalse; simp }
-  --   case t =>
-  --     have step1: Decidable (f₆ = f₉) := by
-  --       apply hasDecEq
-  --     apply dec_first_elem_disq at ts₆
-  --     apply ts₆ at f₆
-  --     apply dec_first_elem_disq at ts₉
-  --     apply ts₉ at f₉
-  --     simp
-  --     apply instDecidableAnd
-  -- | .succ n, _ => by
-  --   apply isFalse
-  --   simp
+  def decPred_is_disq_sent : {n : ℕ} → (f : BoundedFormula ℒₜ ℕ n) → Decidable (is_disq_sent f)
+  | .zero, f => by
+    cases f <;> try { apply isFalse; simp }
+    case imp f₁ f₂ =>
+    cases f₂ <;> try { apply isFalse; simp }
+    case falsum =>
+    cases f₁ <;> try { apply isFalse; simp }
+    case imp f₃ f₄ =>
+    cases f₃ <;> try { apply isFalse; simp }
+    case imp f₅ f₆ =>
+    cases f₅ <;> try { apply isFalse; simp }
+    case rel R ts₆ =>
+    cases R <;> try { apply isFalse; simp }
+    case t =>
+    cases f₄ <;> try { apply isFalse; simp }
+    case imp f₇ f₈ =>
+    cases f₈ <;> try { apply isFalse; simp }
+    case falsum =>
+    cases f₇ <;> try { apply isFalse; simp }
+    case imp f₉ f₁₀ =>
+    cases f₁₀ <;> try { apply isFalse; simp }
+    case rel R ts₉ =>
+    cases R <;> try { apply isFalse; simp }
+    case t =>
+      have step1: Decidable (f₆ = f₉) := by
+        apply hasDecEq
+      apply dec_first_elem_disq at ts₆
+      apply ts₆ at f₆
+      apply dec_first_elem_disq at ts₉
+      apply ts₉ at f₉
+      simp
+      apply instDecidableAnd
+  | .succ n, _ => by
+    apply isFalse
+    simp
 
-  -- instance : DecidablePred (@is_disq_sent 0) := decPred_is_disq_sent
+  instance : DecidablePred (@is_disq_sent 0) := decPred_is_disq_sent
 
   def contains_T_sent : Sentence ℒₜ → Prop :=
     fun s : Sentence ℒₜ =>
@@ -207,13 +206,13 @@ namespace Conservativity
     | .right_exists _ _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
     | .cut _ _ _ _ _ d₁ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
 
-  /- Obtain a finset that contains only the formula containing a T from a finset -/
-  -- def get_T_fmls (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
-  --   {f ∈ S | contains_T f}
+  /-- Obtain a finset that contains only the formula containing a T from a finset -/
+  def get_T_fmls (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
+    {f ∈ S | contains_T f}
 
-  /- Obtains all disquotation sentences in a finset -/
-  -- def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
-  --   {f ∈ S | is_disq_sent f}
+  /-- Obtains all disquotation sentences in a finset -/
+  def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
+    {f ∈ S | is_disq_sent f}
 
   /-- Transforms a disquotation axiom to the corresponding tau disjunct -/
   def disq_to_tau : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0
@@ -307,95 +306,71 @@ namespace Conservativity
   --     intro h₁ h₂
 
 
-  instance : LE (ℒₜ.Formula ℕ) where
-    le := le_bf
-  instance : LT (ℒₜ.Formula ℕ) where
-    lt := lt_bf
+  -- instance : LE (ℒₜ.Formula ℕ) where
+  --   le := le_bf
+  -- instance : LT (ℒₜ.Formula ℕ) where
+  --   lt := lt_bf
 
-  def f₁ : ℒₜ.BoundedFormula ℕ 0 := .falsum
-  open L_T
+  -- def f₁ : ℒₜ.BoundedFormula ℕ 0 := .falsum
+  -- open L_T
   open Term
   open Computability
   open BoundedFormula
   open TermEncoding
-  def encoding_Γ : ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) → ℕ
+  def Γ_encode : ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) → ℕ
     | .inl (.mk k t) => Nat.pair 0 (Nat.pair k (instEncodableOfSigmaNatFunctions.encode t))
     | .inr (.inl (.mk p R)) => Nat.pair 1 (Nat.pair p (L_T.enc_r.encode R))
     | .inr (.inr n) => Nat.pair 2 n
 
   def L_T.dflt_Rel : ℒₜ.Relations 1 := L_T.Rel.t
   def dflt_term : ℒₜ.Term (ℕ ⊕ Fin n) := #0
-  def decode_Γ : ℕ → Option ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) :=
+
+  -- def opt_opt_to_opt {β : Type} : Option (Σk, Option (ℒₜ.Term (ℕ ⊕ Fin k)) ⊕ β) → Option (Σk, (ℒₜ.Term (ℕ ⊕ Fin k)))
+  --   | some (Sum.inl (Sigma.mk k (some t))) => some (Sum.inl (Sigma.mk k t))
+
+  def Γ_decode : ℕ → Option ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) :=
     fun n => match n.unpair.1, n.unpair.2.unpair with
     | 0, ⟨k, e⟩ =>
       some ((Sum.inl (Sigma.mk k ((instEncodableOfSigmaNatFunctions.decode e).getD dflt_term))))
     | 1, m =>
       match m with
-      | ⟨1, R⟩ => some (Sum.inr (Sum.inl (Sigma.mk 1 ((@L_T.Rel_dec 1 R).getD L_T.dflt_Rel))))
+      | ⟨1, R⟩ => some (Sum.inr (Sum.inl (Sigma.mk 1 ((L_T.enc_r.decode R).getD L_T.dflt_Rel))))
       | ⟨_, _⟩ => none
     | 2, m =>
       some (Sum.inr (Sum.inr (m.1.pair m.2)))
     | _, _ => none
 
-  instance {n} {t : Term ℒₜ (ℕ ⊕ Fin n)}: HEq (@nat_to_term_fin_n ℒₜ (fun k => @L_T.enc_f k) n (@term_tonat_fin_n ℒₜ (fun k => @L_T.enc_f k) n (t))) t := by
-    simp[nat_to_term_fin_n,term_tonat_fin_n]
-
-    sorry
-
-  lemma encodek_for_term : ∀t : ℒₜ.Term (ℕ ⊕ Fin 0), Encodable.decode (Encodable.encode t) = some (t) := by
-    intro t
-    simp
-
-  lemma Γ_enc_dec : ∀ f : BoundedFormula.encoding.Γ, decode_Γ (encoding_Γ f) = (some f) := by
+  lemma Γ_encodek : ∀ f : BoundedFormula.encoding.Γ, Γ_decode (Γ_encode f) = (some f) := by
     intro h
     cases h with
     | inl a =>
       cases a with
       | mk k t =>
-        induction k with
-        | succ n =>
-          sorry
-        | _ =>
-          induction t with
-          | var a =>
-            cases a with
-            | inl n =>
-              induction n with
-              | succ n ih =>
-                simp [encoding_Γ,Nat.pair,decode_Γ,Nat.unpair,Nat.sqrt,Nat.sqrt.iter]
+        simp[Γ_encode,Γ_decode]
+    | inr a =>
+      cases a with
+      | inl s =>
+        cases s with
+        | mk n R =>
+          match n with
+            | Nat.zero =>
+              cases R
+            | Nat.succ Nat.zero =>
+              simp[Γ_encode,Γ_decode]
+            | Nat.succ (Nat.succ _) =>
+              cases R
+      | inr n =>
+        simp[Γ_encode,Γ_decode]
 
-
-
-
-
-
-                -- let j : ℒₜ.Term (ℕ ⊕ Fin 0) := (var (Sum.inl (n + 1)))
-                -- let i : Option (ℒₜ.Term (ℕ ⊕ Fin 0)) := (Encodable.decode (Encodable.encode j))
-                -- have step1 : i = (some j) := by
-                --   simp[i,j]
-
-
-                -- simp only [i,j] at step1
-                -- simp[instEncodableOfSigmaNatFunctions.encodek]
-
-                -- apply HEq.refl
-                -- simp only [nat_to_term_fin_n,term_tonat_fin_n]
-                -- apply HEq.refl
-                -- simp[Encodable.encode_inj]
-                sorry
-
-              | _ => sorry
-            | inr v => sorry
-          | func => sorry
-    | inr a => sorry
   /- Encodable ((k : ℕ) × ℒₜ.Term (ℕ ⊕ Fin k) ⊕ (n : ℕ) × ℒₜ.Relations n ⊕ ℕ) -/
   instance : Encodable ((@BoundedFormula.encoding ℒₜ ℕ).Γ) where
-    encode := encoding_Γ
-    decode := decode_Γ
-    encodek := sorry
+    encode := Γ_encode
+    decode := Γ_decode
+    encodek := Γ_encodek
   -- variable {α} [Encodable (BoundedFormula.encoding.Γ)]
   #check BoundedFormula.encoding.Γ
   #check Encodable.encodeList (BoundedFormula.encoding.encode ⟨0,f₁⟩)
+  #eval Encodable.encodeList (BoundedFormula.encoding.encode ⟨0, f₁⟩)
   open List
   /-- An encoding of bounded formulas as lists. -/
 @[simp]
@@ -493,6 +468,7 @@ protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
     let n : ℕ := Γ.card
     apply h at Γ
     apply Γ at n
+    sorry
 
 
   -- example : ∀s : Multiset (Formula ℒₜ ℕ), ⊥ ∈ (s ∪ {⊥}) := by
@@ -508,38 +484,38 @@ protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
 
     sorry
 
-  /-- Builds tau from a Finset of formulas -/
+  /- Builds tau from a Finset of formulas -/
   -- def build_tau : Set Fml → Fml := sorry
 
 
-  def translation {Γ Δ : Finset (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, contains_T f) (hb : ∀f ∈ Δ, contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
-    | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ 𝐓𝐁 ∧ f ∈ Δ) => by
-      have step1 : ∃f : Formula ℒₜ ℕ, f ∈ real_PA ∧ f ∈ Δ := by
-        rcases h with ⟨f, a₁, a₂⟩
-        have step2 : contains_T f := by
-          apply hb at a₂
-          exact a₂
-        have step3 : f ∈ real_PA := by
-          rw[real_PA]
-          simp
-          apply And.intro a₁ step2
-        have step4 : f ∈ real_PA ∧ f ∈ Δ := by
-          apply And.intro step3 a₂
-        apply Exists.intro f step4
-      apply Derivation.tax step1
-    | .lax (h : (Γ ∩ Δ) ≠ ∅) => Derivation.lax h
-    | .left_conjunction A B S (h₁ : Derivation 𝐓𝐁 S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})) => sorry
-    | .left_disjunction A B S₁ S₂ S₃ (h₁ : Derivation 𝐓𝐁 S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation 𝐓𝐁 S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) => sorry
-    | .left_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation 𝐓𝐁 S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}) => sorry
-    | .left_bot (h : ⊥ ∈ Γ) => Derivation.left_bot h
-    | .right_conjunction A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation 𝐓𝐁 Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) => sorry
-    | .right_disjunction A B S (d₁ : Derivation 𝐓𝐁 Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}) => sorry
-    | .right_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}) => sorry
-    | .left_forall (A : Formula ℒₜ ℕ) (B) (h₁ : B = A↓) t S (d : Derivation 𝐓𝐁 S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) => sorry
-    | .left_exists A B (S₁ : Set (Formula ℒₜ ℕ)) (p : B = A↓) (d₁ : Derivation 𝐓𝐁 ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) => sorry
-    | .right_forall A B S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) => sorry
-    | .right_exists (A : Formula ℒₜ ℕ) B t S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) => sorry
-    | .cut A S₁ S₂ S₃ S₄ (d₁ : Derivation 𝐓𝐁 S₁ (S₂ ∪ {A})) (d₂ : Derivation 𝐓𝐁 ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) => sorry
+  -- def translation {Γ Δ : Finset (Formula ℒₜ ℕ)} (ha : ∀f ∈ Γ, contains_T f) (hb : ∀f ∈ Δ, contains_T f) : Derivation 𝐓𝐁 Γ Δ  → Derivation real_PA Γ Δ
+  --   | .tax (h : ∃f : Formula ℒₜ ℕ, f ∈ 𝐓𝐁 ∧ f ∈ Δ) => by
+  --     have step1 : ∃f : Formula ℒₜ ℕ, f ∈ real_PA ∧ f ∈ Δ := by
+  --       rcases h with ⟨f, a₁, a₂⟩
+  --       have step2 : contains_T f := by
+  --         apply hb at a₂
+  --         exact a₂
+  --       have step3 : f ∈ real_PA := by
+  --         rw[real_PA]
+  --         simp
+  --         apply And.intro a₁ step2
+  --       have step4 : f ∈ real_PA ∧ f ∈ Δ := by
+  --         apply And.intro step3 a₂
+  --       apply Exists.intro f step4
+  --     apply Derivation.tax step1
+  --   | .lax (h : (Γ ∩ Δ) ≠ ∅) => Derivation.lax h
+  --   | .left_conjunction A B S (h₁ : Derivation 𝐓𝐁 S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})) => sorry
+  --   | .left_disjunction A B S₁ S₂ S₃ (h₁ : Derivation 𝐓𝐁 S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation 𝐓𝐁 S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) => sorry
+  --   | .left_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation 𝐓𝐁 S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}) => sorry
+  --   | .left_bot (h : ⊥ ∈ Γ) => Derivation.left_bot h
+  --   | .right_conjunction A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation 𝐓𝐁 Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) => sorry
+  --   | .right_disjunction A B S (d₁ : Derivation 𝐓𝐁 Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}) => sorry
+  --   | .right_implication A B S₁ S₂ S₃ (d₁ : Derivation 𝐓𝐁 S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}) => sorry
+  --   | .left_forall (A : Formula ℒₜ ℕ) (B) (h₁ : B = A↓) t S (d : Derivation 𝐓𝐁 S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) => sorry
+  --   | .left_exists A B (S₁ : Set (Formula ℒₜ ℕ)) (p : B = A↓) (d₁ : Derivation 𝐓𝐁 ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) => sorry
+  --   | .right_forall A B S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) => sorry
+  --   | .right_exists (A : Formula ℒₜ ℕ) B t S (p : B = A↓) (d₁ : Derivation 𝐓𝐁 Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) => sorry
+  --   | .cut A S₁ S₂ S₃ S₄ (d₁ : Derivation 𝐓𝐁 S₁ (S₂ ∪ {A})) (d₂ : Derivation 𝐓𝐁 ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) => sorry
 
   -- theorem conservativity_of_tb : ∀f ∈ real_LPA, (𝐓𝐁 ⊢ f) → (real_PA ⊢ f) := by
   -- intro f
@@ -561,70 +537,70 @@ protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
 
 end Conservativity
 
-namespace Hidden
-  open Languages
-  open L_T
-  open Calculus
+-- namespace Hidden
+--   open Languages
+--   open L_T
+--   open Calculus
 
-  def f₁ : Formula ℒₜ ℕ :=
-    ∀' (&0 =' &0)
-  def f₃ : Formula ℒₜ ℕ := ⊥
-  def f₂ : Formula ℒₜ ℕ :=
-    (T(⌜f₃⌝) ⇔ f₁)
-  def S₁ : Set (Formula ℒₜ ℕ) := {f₁, f₂}
-  def S₂ : Finset (Formula ℒₜ ℕ) := ∅
-  def S₃ : Finset (Formula ℒₜ ℕ) := {f₁ ∨' f₂}
-  def der₁ : Derivation S₁ S₂ S₃ := by
-    let S₄ : Finset (Formula ℒₜ ℕ) := {f₁, f₂}
-    have step1 : f₁ ∈ S₁ ∧ f₁ ∈ S₄ := by
-      simp[S₁,S₄]
-    have step2 : ∃f, f ∈ S₁ ∧ f ∈ S₄ := by
-      apply Exists.intro f₁ step1
-    have step3 : Derivation S₁ S₂ S₄ := by
-      simp[S₁,S₂,S₄]
-      apply Derivation.tax step2
-    have step4 : S₃ = (S₄ \ {f₁, f₂}) ∪ {f₁ ∨' f₂} := by
-      simp[S₃,S₄]
-    have step5 : Derivation S₁ S₂ S₃ := by
-      simp[S₁,S₂,S₃]
-      apply Derivation.right_disjunction f₁ f₂ S₄ step3 step4
-    exact step5
+--   def f₁ : Formula ℒₜ ℕ :=
+--     ∀' (&0 =' &0)
+--   def f₃ : Formula ℒₜ ℕ := ⊥
+--   def f₂ : Formula ℒₜ ℕ :=
+--     (T(⌜f₃⌝) ⇔ f₁)
+--   def S₁ : Set (Formula ℒₜ ℕ) := {f₁, f₂}
+--   def S₂ : Finset (Formula ℒₜ ℕ) := ∅
+--   def S₃ : Finset (Formula ℒₜ ℕ) := {f₁ ∨' f₂}
+--   def der₁ : Derivation S₁ S₂ S₃ := by
+--     let S₄ : Finset (Formula ℒₜ ℕ) := {f₁, f₂}
+--     have step1 : f₁ ∈ S₁ ∧ f₁ ∈ S₄ := by
+--       simp[S₁,S₄]
+--     have step2 : ∃f, f ∈ S₁ ∧ f ∈ S₄ := by
+--       apply Exists.intro f₁ step1
+--     have step3 : Derivation S₁ S₂ S₄ := by
+--       simp[S₁,S₂,S₄]
+--       apply Derivation.tax step2
+--     have step4 : S₃ = (S₄ \ {f₁, f₂}) ∪ {f₁ ∨' f₂} := by
+--       simp[S₃,S₄]
+--     have step5 : Derivation S₁ S₂ S₃ := by
+--       simp[S₁,S₂,S₃]
+--       apply Derivation.right_disjunction f₁ f₂ S₄ step3 step4
+--     exact step5
 
-  open Conservativity
-  #eval der_to_finset_fml der₁
-  -- #eval (transform_to_tau_disjuncts (get_disq_sents (der_to_finset_fml der₁)))
+--   open Conservativity
+--   #eval der_to_finset_fml der₁
+--   -- #eval (transform_to_tau_disjuncts (get_disq_sents (der_to_finset_fml der₁)))
 
-  inductive Vector (α : Type u) : Nat → Type u
-  | nil  : Vector α 0
-  | cons : α → {n : Nat} → Vector α n → Vector α (n+1)
+--   inductive Vector (α : Type u) : Nat → Type u
+--   | nil  : Vector α 0
+--   | cons : α → {n : Nat} → Vector α n → Vector α (n+1)
 
-def head {α} : {n : Nat} → Vector α (n+1) → α
-  | n, Vector.cons a as => a
+-- def head {α} : {n : Nat} → Vector α (n+1) → α
+--   | n, Vector.cons a as => a
 
-def tail {α} : {n : Nat} → Vector α (n+1) → Vector α n
-  | n, Vector.cons a as => as
+-- def tail {α} : {n : Nat} → Vector α (n+1) → Vector α n
+--   | n, Vector.cons a as => as
 
-  theorem eta {α} : ∀ {n : Nat} (v : Vector α (n+1)), Vector.cons (head v) (tail v) = v
-  | n, Vector.cons a as => rfl
+--   theorem eta {α} : ∀ {n : Nat} (v : Vector α (n+1)), Vector.cons (head v) (tail v) = v
+--   | n, Vector.cons a as => rfl
 
-  def northernTrees : Array String :=
-  #["sloe", "birch", "elm", "oak"]
+--   def northernTrees : Array String :=
+--   #["sloe", "birch", "elm", "oak"]
 
-  #eval northernTrees.append #["yeah"]
-end Hidden
+--   #eval northernTrees.append #["yeah"]
+-- end Hidden
 
-variable {L : Language}
+-- variable {L : Language}
 
-@[elab_as_elim]
-def cases' {C : ∀ n, BoundedFormula L α n → Sort w}
-  (hfalsum : ∀ {n : ℕ}, C n ⊥)
-  (hequal  : ∀ {n : ℕ} (t₁ t₂ : Term L (α ⊕ Fin n)), C n (t₁ =' t₂))
-  (hrel    : ∀ {n k : ℕ} (r : L.Relations k) (v : Fin k → Term L (α ⊕ Fin n)), C n (.rel r v))
-  (hall    : ∀ {n : ℕ} (φ : BoundedFormula L α (n + 1)), C n (∀' φ))
-  (himp    : ∀ {n : ℕ} (φ ψ : BoundedFormula L α n), C n (φ ⟹ ψ)) :
-    ∀ {n : ℕ} (φ : BoundedFormula L α n), C n φ
-  | _, .falsum   => hfalsum
-  | _, .rel r v  => hrel r v
-  | _, .all φ    => hall φ
-  | _, .imp f₁ f₂ => himp f₁ f₂
-  | _, .equal t₁ t₂ => hequal t₁ t₂
+-- @[elab_as_elim]
+-- def cases' {C : ∀ n, BoundedFormula L α n → Sort w}
+--   (hfalsum : ∀ {n : ℕ}, C n ⊥)
+--   (hequal  : ∀ {n : ℕ} (t₁ t₂ : Term L (α ⊕ Fin n)), C n (t₁ =' t₂))
+--   (hrel    : ∀ {n k : ℕ} (r : L.Relations k) (v : Fin k → Term L (α ⊕ Fin n)), C n (.rel r v))
+--   (hall    : ∀ {n : ℕ} (φ : BoundedFormula L α (n + 1)), C n (∀' φ))
+--   (himp    : ∀ {n : ℕ} (φ ψ : BoundedFormula L α n), C n (φ ⟹ ψ)) :
+--     ∀ {n : ℕ} (φ : BoundedFormula L α n), C n φ
+--   | _, .falsum   => hfalsum
+--   | _, .rel r v  => hrel r v
+--   | _, .all φ    => hall φ
+--   | _, .imp f₁ f₂ => himp f₁ f₂
+--   | _, .equal t₁ t₂ => hequal t₁ t₂
