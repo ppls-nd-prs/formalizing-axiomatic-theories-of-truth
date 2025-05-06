@@ -423,11 +423,33 @@ protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
 
   #eval instEncodableSigmaNatBoundedFormulaℒₜ.encode ⟨0, f₁⟩
 
-  def number (f : ℒₜ.Formula ℕ) : ℕ := instEncodableSigmaNatBoundedFormulaℒₜ.encode ⟨0, f⟩
+  variable  {L : Language} {M : Type w} [ℒₜ.Structure M] {α : Type u'} {l : ℕ} {φ ψ : L.BoundedFormula α l} {v : α → M} {xs : Fin l → M}
+
+  @[simp]
+  def number (f : ℒₜ.BoundedFormula ℕ 0) : Prop := f.Realize v xs
+
+  @[simp]
+  instance instLE : LE (ℒₜ.BoundedFormula ℕ 0) where
+    le := fun f₁ f₂ => (number f₁) ≤ (number f₂)
+
+  @[simp]
+  instance instLT : LT (ℒₜ.BoundedFormula ℕ 0) where
+    lt := fun f₁ f₂ => (number f₁) < (number f₂)
+
+  @[simp]
+  instance instDecLE : DecidableLE (ℒₜ.BoundedFormula ℕ 0) := by
+    simp[DecidableLE,DecidableRel]
+    intro f₁ f₂
+    apply Nat.decLe
+
+instance instMin : Min (BoundedFormula ℒₜ ℕ 0) where
+  min := fun f₁ f₂ => if (number f₁) ≤ (number f₂) then f₁ else f₂
+instance instMax : Max (BoundedFormula ℒₜ ℕ 0) where
+  max := fun f₁ f₂ => if (number f₁) ≤ (number f₂) then f₂ else f₁
 
   instance : LinearOrder (BoundedFormula ℒₜ ℕ 0) where
-    le f₁ f₂ := (number f₁) ≤ (number f₂)
-    lt f₁ f₂ := (number f₁) < (number f₂)
+    le := instLE.le
+    lt := instLT.lt
     le_refl := by
       simp
     le_trans := by
@@ -441,33 +463,46 @@ protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
       intro f₁ f₂ h₁ h₂
       apply Nat.instLinearOrder.le_antisymm at h₁
       apply h₁ at h₂
-      simp[number] at h₂
+      simp at h₂
       exact h₂
     le_total := by
-      intro f₁ f₂
-      sorry
-    decidableLE := by
-      sorry
+      simp[Nat.instLinearOrder.le_total]
+    decidableLE := instDecLE
     lt_iff_le_not_le := by
-      sorry
+      intro f₁ f₂
+      apply Iff.intro
+      intro h₁
+      apply Nat.lt_iff_le_and_not_ge.mp at h₁
+      exact h₁
+      intro h₁
+      apply Nat.lt_iff_le_and_not_ge.mpr at h₁
+      exact h₁
     min_def := by
-      sorry
+      intro f₁ f₂
+      simp
+      rfl
     max_def := by
-      sorry
+      intro f₁ f₂
+      simp
+      rfl
 
+-- def left_comm_max (a b c : BoundedFormula ℒₜ ℕ 0) : max a (max b c) = max b (max a c):= by
+--   rw[Max.left_comm a b c]
 
+-- instance : LeftCommutative (@max (BoundedFormula ℒₜ ℕ 0) BoundedFormula.instMax) where
+--   left_comm := left_comm_max
 
-
-def left_comm_max (a b c : BoundedFormula ℒₜ ℕ 0) : max a (max b c) = max b (max a c):= by
-  rw[Max.left_comm a b c]
-  sorry
-
-instance : Max (BoundedFormula ℒₜ ℕ 0) := BoundedFormula.instMax
-instance : LeftCommutative (@max (BoundedFormula ℒₜ ℕ 0) BoundedFormula.instMax) := by
-  sorry
+noncomputable def iSupp (s : Finset (β)) (f : β → ℒₜ.BoundedFormula ℕ 0) : ℒₜ.BoundedFormula ℕ 0 :=
+  (s.toList.map f).foldr (· ⊔ ·) ⊥
 
 def iSup (f : Finset (ℒₜ.Formula ℕ)) : ℒₜ.BoundedFormula ℕ 0 :=
   f.1.foldr (· ⊔ ·) ⊥
+
+def f₃ : ℒₜ.Formula ℕ := #0 =' #0
+def s₃ : Finset (ℒₜ.Formula ℕ) := {f₃,f₃}
+#check s₃.1
+#check iSupp s₃ id
+-- #eval iSupp s₃ id
 
 
   /-- takes a set of disjuncts to their disjunction -/
