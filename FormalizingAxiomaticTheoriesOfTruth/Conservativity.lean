@@ -423,10 +423,18 @@ protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
 
   #eval instEncodableSigmaNatBoundedFormulaℒₜ.encode ⟨0, f₁⟩
 
-  variable  {L : Language} {M : Type w} [ℒₜ.Structure M] {α : Type u'} {l : ℕ} {φ ψ : L.BoundedFormula α l} {v : α → M} {xs : Fin l → M}
+  variable  {L : Language} {M : Type w} [L.Structure M] {α : Type u'} {l : ℕ} {φ ψ : L.BoundedFormula α l} {v : α → M} {xs : Fin l → M}
 
   @[simp]
-  def number (f : ℒₜ.BoundedFormula ℕ 0) : Prop := f.Realize v xs
+  def number (f : ℒₜ.BoundedFormula ℕ 0) : ℕ :=  instEncodableSigmaNatBoundedFormulaℒₜ.encode ⟨0,f⟩
+
+  def number_alternative (f : ℒₜ.BoundedFormula ℕ 0) : Prop :=  f.Realize v xs
+
+  variable {a b c : Prop}
+  example : a → (b → c) = b → (a → c) := by
+    simp
+    intro h₁ h₂
+    sorry
 
   @[simp]
   instance instLE : LE (ℒₜ.BoundedFormula ℕ 0) where
@@ -498,12 +506,13 @@ noncomputable def iSupp (s : Finset (β)) (f : β → ℒₜ.BoundedFormula ℕ 
 def iSup (f : Finset (ℒₜ.Formula ℕ)) : ℒₜ.BoundedFormula ℕ 0 :=
   f.1.foldr (· ⊔ ·) ⊥
 
+def iInf (f : Finset (ℒₜ.Formula ℕ)) : ℒₜ.BoundedFormula ℕ 0 :=
+  f.1.foldr (· ⊓ ·) ⊥
+
 def f₃ : ℒₜ.Formula ℕ := #0 =' #0
 def s₃ : Finset (ℒₜ.Formula ℕ) := {f₃,f₃}
-#check s₃.1
-#check iSupp s₃ id
--- #eval iSupp s₃ id
-
+#eval iSup s₃ -- output: ⊥
+#eval iInf s₃ -- output: #0 = #0
 
   /-- takes a set of disjuncts to their disjunction -/
   noncomputable def disjuncts_to_disjunction (S : Finset (Formula ℒₜ ℕ)) : Formula ℒₜ ℕ :=
