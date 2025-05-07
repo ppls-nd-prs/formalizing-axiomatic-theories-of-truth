@@ -220,6 +220,11 @@ namespace Conservativity
   def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
     {f ∈ S | is_disq_sent f}
 
+  @[simp]
+  def get_disq_sent_fmls (S: Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
+
+    sorry
+
   /-- Transforms a disquotation axiom to the corresponding tau disjunct -/
   @[simp]
   def disq_to_tau : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0
@@ -254,11 +259,35 @@ namespace Conservativity
 
   open BoundedFormula
   def tau_disj_phi_func (d : Derivation th Γ Δ) (f : ℒₜ.Formula ℕ) (h : f ∈ (fmls d)) : Derivation th ∅ {((τ(d))/[⌜f⌝] ⇔ f)} := by
-    simp[BoundedFormula.iSup,]
-  lemma tau_disj_phi {Γ Δ th} : ∀d : Derivation th Γ Δ, ∀f ∈ (fmls d), Nonempty (Derivation th ∅ {((τ(d))/[⌜f⌝] ⇔ f)}) := by
-    intro d f mem
-
+    simp
     sorry
+  lemma tau_disj_phi {th} :∀Γ, ∀Δ, ∀d : Derivation th Γ Δ, ∀f ∈ (fmls d), Nonempty (Derivation th ∅ {((τ(d))/[⌜f⌝] ⇔ f)}) := by
+    intro Γ Δ
+    induction Γ using Finset.induction_on with
+    | empty =>
+      intro d f mem
+
+      sorry
+    | insert a ih => sorry
+    induction d with
+    | tax h =>
+
+
+      sorry
+    | lax h => sorry
+    | left_conjunction A B S d₁ h₁ h₂ h₃ ih => sorry
+    | left_disjunction A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ ih₁ ih₂ => sorry
+    | left_implication A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ ih₁ ih₂ => sorry
+    | left_bot h => sorry
+    | right_conjunction A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ ih₁ ih₂ => sorry
+    | right_disjunction A B S d₁ h₁ ih₁ => sorry
+    | right_implication A B S₁ S₂ S₃ d₁ h₁ h₂ h₃ ih₁ => sorry
+    | left_forall A B h₁ t S d h₂ h₃ ih₁ => sorry
+    | left_exists A B S₁ p d₁ h₁ ih₁ => sorry
+    | right_forall A B S p d₁ h₁ ih₁ => sorry
+    | right_exists A B t S p d₁ h₁ ih₁ => sorry
+    | cut A S₁ S₂ S₃ S₄ d₁ d₂ h₁ h₂ ih₁ ih₂ => sorry
+
 
   def f₂ : Formula ℒₜ ℕ := ⊥
   -- #eval BoundedFormula.Realize f₂ id id
