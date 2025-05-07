@@ -193,31 +193,35 @@ namespace Conservativity
 
   variable {L : Language} {Th : Set (Formula L ℕ)}[∀n, DecidableEq (L.Functions n)][∀p, DecidableEq (L.Relations p)]
   /-- Obtains a Finset of all formulas that occur in some derivation -/
-  def der_to_finset_fml {Δ Γ} : Derivation Th Δ Γ → Finset (Formula L ℕ)
+  @[simp]
+  def fmls {Δ Γ} : Derivation Th Δ Γ → Finset (Formula L ℕ)
     | .tax _ => Δ ∪ Γ
     | .lax _ => Δ ∪ Γ
-    | .left_conjunction _ _ _ d _ _ _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
-    | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
-    | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
+    | .left_conjunction _ _ _ d _ _ _ => (fmls d) ∪ Δ ∪ Γ
+    | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (fmls d₁) ∪ (fmls d₂) ∪ Δ ∪ Γ
+    | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (fmls d₁) ∪ (fmls d₂) ∪ Δ ∪ Γ
     | .left_bot _ => Δ ∪ Γ
-    | .right_conjunction _ _ _ _ _ d₁ _ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
-    | .right_disjunction _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
-    | .right_implication _ _ _ _ _ d _ _ _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
-    | .left_forall _ _ _ _ _ d _ _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
-    | .left_exists _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
-    | .right_forall _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
-    | .right_exists _ _ _ _ _ d _ => (der_to_finset_fml d) ∪ Δ ∪ Γ
-    | .cut _ _ _ _ _ d₁ d₂ _ _ => (der_to_finset_fml d₁) ∪ (der_to_finset_fml d₂) ∪ Δ ∪ Γ
+    | .right_conjunction _ _ _ _ _ d₁ _ d₂ _ _ => (fmls d₁) ∪ (fmls d₂) ∪ Δ ∪ Γ
+    | .right_disjunction _ _ _ d _ => (fmls d) ∪ Δ ∪ Γ
+    | .right_implication _ _ _ _ _ d _ _ _ => (fmls d) ∪ Δ ∪ Γ
+    | .left_forall _ _ _ _ _ d _ _ => (fmls d) ∪ Δ ∪ Γ
+    | .left_exists _ _ _ _ d _ => (fmls d) ∪ Δ ∪ Γ
+    | .right_forall _ _ _ _ d _ => (fmls d) ∪ Δ ∪ Γ
+    | .right_exists _ _ _ _ _ d _ => (fmls d) ∪ Δ ∪ Γ
+    | .cut _ _ _ _ _ d₁ d₂ _ _ => (fmls d₁) ∪ (fmls d₂) ∪ Δ ∪ Γ
 
   /-- Obtain a finset that contains only the formula containing a T from a finset -/
+  @[simp]
   def get_T_fmls (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
     {f ∈ S | contains_T f}
 
   /-- Obtains all disquotation sentences in a finset -/
+  @[simp]
   def get_disq_sents (S : Finset (Formula ℒₜ ℕ)) : Finset (Formula ℒₜ ℕ) :=
     {f ∈ S | is_disq_sent f}
 
   /-- Transforms a disquotation axiom to the corresponding tau disjunct -/
+  @[simp]
   def disq_to_tau : BoundedFormula ℒₜ ℕ 0 → BoundedFormula ℒₜ ℕ 0
   | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) =>
     #0 =' ⌜f₁⌝ ⇔ f₁
@@ -227,11 +231,34 @@ namespace Conservativity
   -- #eval disq_to_tau
 
   /-- transforms all disquotation axioms in a given Finset to their corresponding tau disjunct -/
+  @[simp]
   def transform_to_tau_disjuncts (S : Finset (Formula ℒₜ ℕ)): (Finset (Formula ℒₜ ℕ)) :=
     S.image disq_to_tau
 
   /-- mapping necessary for glueing together all disjuncts into one big disjunction -/
+  @[simp]
   def mapping (s : Finset (BoundedFormula ℒₜ ℕ 0)) : { x : (BoundedFormula ℒₜ ℕ 0) // x ∈ s} → (BoundedFormula ℒₜ ℕ 0) := fun i => i.val
+
+  /-- takes a set of disjuncts to their disjunction -/
+  @[simp]
+  noncomputable def disjuncts_to_disjunction (S : Finset (Formula ℒₜ ℕ)) : Formula ℒₜ ℕ :=
+    BoundedFormula.iSup (mapping S)
+
+  variable {th : Set (Formula ℒₜ ℕ)}
+  /-- takes a derivation and builds the corresponding tau formula -/
+  @[simp]
+  noncomputable def build_tau {Γ Δ} (d : Derivation th Γ Δ) : Formula ℒₜ ℕ :=
+    disjuncts_to_disjunction (transform_to_tau_disjuncts (get_disq_sents (fmls d)))
+
+  notation "τ(" d ")" => build_tau d
+
+  open BoundedFormula
+  def tau_disj_phi_func (d : Derivation th Γ Δ) (f : ℒₜ.Formula ℕ) (h : f ∈ (fmls d)) : Derivation th ∅ {((τ(d))/[⌜f⌝] ⇔ f)} := by
+    simp[BoundedFormula.iSup,]
+  lemma tau_disj_phi {Γ Δ th} : ∀d : Derivation th Γ Δ, ∀f ∈ (fmls d), Nonempty (Derivation th ∅ {((τ(d))/[⌜f⌝] ⇔ f)}) := by
+    intro d f mem
+
+    sorry
 
   def f₂ : Formula ℒₜ ℕ := ⊥
   -- #eval BoundedFormula.Realize f₂ id id
@@ -328,6 +355,10 @@ namespace Conservativity
 
   def f₁ : Formula ℒₜ ℕ := ⊥
   #check Encodable.encodeList (BoundedFormula.listEncode f₁)
+  #check Max.max f₁ f₁
+  def f₅ : Formula ℒₜ ℕ := #0 =' #0
+  #eval Max.max f₁ f₅
+  example : Max.max f₁ f₅ = f₁ ∨' f₅ := by rfl
 
   -- #check Formula.realize_top.mp ⊤.Realize
 
@@ -392,17 +423,17 @@ protected def encoding : Encoding (Σ n, L.BoundedFormula α n) where
   -- #check Encodable.encodeList (BoundedFormula.encoding.encode (Σn, f₁))
 
 
-  -- def big_disjunction : (s : Multiset (ℒₜ.Formula ℕ)) → ℒₜ.Formula ℕ := by
-  --   intro S
-  --   induction S using Multiset.rec with
-  --   | C_0 => apply BoundedFormula.falsum
-  --   | C_cons a M b =>
-  --     apply big_disjunction at M
-  --     apply BoundedFormula.lor M
-  --     exact a
-  --   | C_cons_heq a b M c =>
-  --     simp
-  --     sorry
+  def big_disjunction : (s : Multiset (ℒₜ.Formula ℕ)) → ℒₜ.Formula ℕ :=
+    fun S => by
+    induction S using Multiset.recOn with
+    | C_0 => apply BoundedFormula.falsum
+    | C_cons a M b =>
+      apply big_disjunction at M
+      apply BoundedFormula.lor M
+      exact a
+    | C_cons_heq a b M c =>
+      simp
+      sorry
 
 
   open BoundedFormula
@@ -503,25 +534,48 @@ instance instMax : Max (BoundedFormula ℒₜ ℕ 0) where
 noncomputable def iSupp (s : Finset (β)) (f : β → ℒₜ.BoundedFormula ℕ 0) : ℒₜ.BoundedFormula ℕ 0 :=
   (s.toList.map f).foldr (· ⊔ ·) ⊥
 
+def tau
+
 def iSup (f : Finset (ℒₜ.Formula ℕ)) : ℒₜ.BoundedFormula ℕ 0 :=
-  f.1.foldr (· ⊔ ·) ⊥
+  f.1.fold (· ⊔ ·) ⊥
 
 def iInf (f : Finset (ℒₜ.Formula ℕ)) : ℒₜ.BoundedFormula ℕ 0 :=
-  f.1.foldr (· ⊓ ·) ⊥
+  f.1.fold (· ⊓ ·) ⊥
 
 def f₃ : ℒₜ.Formula ℕ := #0 =' #0
 def s₃ : Finset (ℒₜ.Formula ℕ) := {f₃,f₃}
+#eval number f₃ -- output : 11
+#eval number ⊥ -- output : 73
 #eval iSup s₃ -- output: ⊥
 #eval iInf s₃ -- output: #0 = #0
 
-  /-- takes a set of disjuncts to their disjunction -/
-  noncomputable def disjuncts_to_disjunction (S : Finset (Formula ℒₜ ℕ)) : Formula ℒₜ ℕ :=
-    BoundedFormula.iSup (mapping S)
+def l₁ : List (ℒₜ.Formula ℕ) := [f₃,f₃]
+def s₄ : Finset (ℒₜ.Formula ℕ) := Multiset.toFinset l₁
+#eval s₄
+#check s₄
+def m₁ : Multiset (ℒₜ.Formula ℕ) := l₁
+#eval m₁
+-- def f₆ : ℒₜ.Formula ℕ := m₁.fold ∨' _ _
 
-  variable {th : Set (Formula ℒₜ ℕ)}
-  /-- takes a derivation and builds the corresponding tau formula -/
-  noncomputable def build_tau {Γ Δ} (d : Derivation th Γ Δ) : Formula ℒₜ ℕ :=
-    disjuncts_to_disjunction (transform_to_tau_disjuncts (get_disq_sents (der_to_finset_fml d)))
+lemma id_all : ∀ (a b : List (ℒₜ.Formula ℕ)), a ≈ b → id a = id b := by
+  intro a b h₁
+  simp
+  sorry
+#check ⊔
+variable (a b : List (ℒₜ.Formula ℕ))
+#check id a
+
+def l₅ : List Nat := [1,2,3,4]
+def m₂ : Multiset Nat := l₅
+
+-- #check Quotient.lift + _ m₂
+-- #eval Quotient.lift id _ s₃.1
+
+def func : Finset (ℒₜ.Formula ℕ) → List (ℒₜ.Formula ℕ) :=
+  fun s => match s.1 with
+  | a => by
+
+    sorry
 
   def s₁ : Finset (BoundedFormula ℒₜ ℕ 0) := {f₁, f₁}
   #check s₁.image

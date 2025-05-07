@@ -502,7 +502,7 @@ namespace TermEncoding
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
   scoped notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
-  scoped notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
+  -- scoped notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
   scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
   scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
 

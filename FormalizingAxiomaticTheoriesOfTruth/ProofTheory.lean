@@ -89,6 +89,7 @@ namespace Calculus
           | isFalse hq => isFalse (by simp[hp, hq])
         | isFalse hp => isFalse (by simp[hp])
 
+  instance : DecidableEq (L.BoundedFormula α n) := hasDecEq
   instance : DecidableEq (L.Formula ℕ) := hasDecEq
 
   def shift_finset_up (Δ : Finset (L.Formula ℕ)) : Finset (L.Formula ℕ) :=
