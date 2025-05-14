@@ -141,7 +141,6 @@ namespace Languages
     scoped notation "SentenceL(" t ")" => BoundedFormula.rel Rel.sentencel ![t]
     scoped notation "FormLT(" t ")" => BoundedFormula.rel Rel.formlt ![t]
     scoped notation "SentenceLT(" t ")" => BoundedFormula.rel Rel.sentencelt ![t]
-    abbrev ℒ := signature
     scoped[Languages] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
     /-
@@ -349,7 +348,7 @@ namespace Languages
     scoped notation "SentenceL(" t ")" => BoundedFormula.rel L_T.Rel.sentencel ![t]
     scoped notation "FormLT(" t ")" => BoundedFormula.rel L_T.Rel.formlt ![t]
     scoped notation "SentenceLT(" t ")" => BoundedFormula.rel L_T.Rel.sentencelt ![t]
-    abbrev ℒₜ := signature
+    abbrev Sₗₜ := L_T.signature
 
     variable {α : Type}
     def null : Term signature α :=
@@ -515,7 +514,7 @@ end TermEncoding
   A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
   also lt formulas
   -/
-  def to_lt_func ⦃arity : ℕ⦄ : (ℒ.Functions arity) → (ℒₜ.Functions arity)
+  def to_lt_func ⦃arity : ℕ⦄ : (LPA.signature.Functions arity) → (Sₗₜ.Functions arity)
     | .zero => .zero
     | .succ => .succ
     | .add => .add
@@ -529,7 +528,7 @@ end TermEncoding
     | .denote => .denote
     | .subs => .subs
 
-  def to_lt_rel ⦃n : ℕ⦄ : (ℒ.Relations n) → (ℒₜ.Relations n)
+  def to_lt_rel ⦃n : ℕ⦄ : (LPA.signature.Relations n) → (Sₗₜ.Relations n)
       | .var => .var
       | .const => .const
       | .term => .term
@@ -539,18 +538,56 @@ end TermEncoding
       | .formlt => .formlt
       | .sentencelt => .sentencelt
 
-  def ϕ : LHom ℒ ℒₜ where
+  def ϕ : LHom LPA.signature Sₗₜ where
       onFunction := to_lt_func
       onRelation := to_lt_rel
 
-  instance : Coe (Formula ℒ ℕ) (Formula ℒₜ ℕ) where
+  instance : Coe (Formula LPA.signature ℕ) (Formula Sₗₜ ℕ) where
     coe := LHom.onFormula ϕ
-  instance : Coe (Sentence ℒ) (Sentence ℒₜ) where
+  instance : Coe (Sentence LPA.signature) (Sentence Sₗₜ) where
     coe := LHom.onSentence ϕ
-  instance : Coe (Term ℒ (Empty ⊕ Fin 0)) (Term ℒₜ (Empty ⊕ Fin 0)) where
+  instance : Coe (Term LPA.signature (Empty ⊕ Fin 0)) (Term Sₗₜ (Empty ⊕ Fin 0)) where
     coe := LHom.onTerm ϕ
-  instance : Coe (Theory ℒ) (Theory ℒₜ) where
+  instance : Coe (Theory LPA.signature) (Theory Sₗₜ) where
     coe := LHom.onTheory ϕ
+
+  /-- Gives whether a BoundedFormula contains a T predicate-/
+  @[simp] def contains_T {n} : Sₗₜ.BoundedFormula ℕ n → Prop
+  | .rel L_T.Rel.t _ => true
+  | .imp f₁ f₂ => contains_T f₁ ∨ contains_T f₂
+  | .all f => contains_T f
+  | _ => false
+
+  /-- Proves that contains_T is a decidable predicate-/
+  def decPred_contains_T : {n : ℕ} → (a : Sₗₜ.BoundedFormula ℕ n) → Decidable (contains_T a)
+  | _, .falsum => by
+    apply Decidable.isFalse
+    simp
+  | _, .equal t₁ t₂ => by
+    apply Decidable.isFalse
+    simp
+  | _, .rel R ts => by cases R with
+    | t =>
+      apply Decidable.isTrue
+      simp
+    | _ =>
+      apply Decidable.isFalse
+      simp
+  | _, .imp f₁ f₂ => by
+    simp[contains_T]
+    apply decPred_contains_T at f₁
+    apply decPred_contains_T at f₂
+    apply instDecidableOr
+  | _, .all f => by
+    apply decPred_contains_T at f
+    simp
+    exact f
+
+  instance : DecidablePred (@contains_T 0) := decPred_contains_T
+
+  variable {n : ℕ}
+  def ℒₜ : Set (Sₗₜ.BoundedFormula ℕ n) := Set.univ
+  def ℒ : Set (Sₗₜ.BoundedFormula ℕ n) := {f | f ∈ ℒₜ ∧ ¬contains_T f}
 
 end Languages
 
@@ -575,37 +612,37 @@ open LPA
 open BoundedFormula
 open TermEncoding
 
-def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def neg_repres (φ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
-def conj_repres (φ ψ : Formula ℒ ℕ): Sentence ℒₜ :=
+def conj_repres (φ ψ : Formula LPA.signature ℕ): Sentence Sₗₜ :=
   (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
-def disj_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def disj_repres (φ ψ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   (⌜φ⌝ ⬝∨ ⌜ψ⌝) =' (⌜φ ∨' ψ⌝)
-def cond_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def cond_repres (φ ψ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   (⌜φ⌝ ⬝⟹ ⌜ψ⌝) =' (⌜φ ⟹ ψ⌝)
-def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
+def forall_repres (φ : BoundedFormula LPA.signature ℕ 1) : Sentence Sₗₜ :=
   (⬝∀ ⌜φ⌝) =' (⌜∀'φ⌝)
-def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
+def exists_repres (φ : BoundedFormula LPA.signature ℕ 1) : Sentence Sₗₜ :=
   (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
-def subs_repres (φ : BoundedFormula ℒ ℕ 1) (x : Term ℒ ℕ) (t : Term ℒ ℕ ) : Sentence ℒₜ :=
+def subs_repres (φ : BoundedFormula LPA.signature ℕ 1) (x : Term LPA.signature ℕ) (t : Term LPA.signature ℕ ) : Sentence Sₗₜ :=
   Subs(⌜φ⌝, ⌜x⌝, ⌜t⌝) =' ⌜φ /[ t ]⌝
-def term_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def term_repres (φ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   Trm( ⌜φ⌝ )
-def formulaL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def formulaL_repres (φ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   FormL( ⌜φ⌝ )
-def formulaL_T_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def formulaL_T_repres (φ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   FormLT( ⌜φ⌝ )
-def sentenceL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def sentenceL_repres (φ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   SentenceL( ⌜φ⌝ )
-def sentenceL_T_respres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def sentenceL_T_respres (φ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
+def closed_term_repres (t : Term LPA.signature (Empty ⊕ Fin 0)) : Sentence Sₗₜ :=
   ClosedTerm( ⌜t⌝ )
-def var_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def var_repres (φ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   Var( ⌜φ⌝ )
-def const_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def const_repres (φ : Formula LPA.signature ℕ) : Sentence Sₗₜ :=
   Const( ⌜φ⌝ )
-def denote_repres (t : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
+def denote_repres (t : Term LPA.signature (Empty ⊕ Fin 0)) : Sentence Sₗₜ :=
   ClosedTerm(⌜t⌝) ⟹ ((⬝°(⌜t⌝)) =' t)
 
 end SyntaxAxioms
@@ -614,7 +651,7 @@ namespace SyntaxTheory
 open Languages
 open L_T
 open SyntaxAxioms
-inductive syntax_theory : Theory ℒₜ where
+inductive syntax_theory : Theory Sₗₜ where
   | negation_representation {φ} : syntax_theory (neg_repres φ)
   | conjunction_representation {φ ψ} : syntax_theory (conj_repres φ ψ)
   | disjunction_representation {φ ψ} : syntax_theory (disj_repres φ ψ)

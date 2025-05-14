@@ -26,7 +26,7 @@ namespace PA
     ∼ (f//[LPA.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
-  inductive peano_arithmetic : Theory ℒ where
+  inductive peano_arithmetic : Set (BoundedFormula ℒ ℕ n) where
     | first : peano_arithmetic (∀' ∼(LPA.null =' S(&0)))
     | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_arithmetic (∀' ((&0 add LPA.null) =' &0))
@@ -92,40 +92,6 @@ namespace Conservativity
   open TB
   open PA
   open TermEncoding
-
-  /-- Gives whether a BoundedFormula contains a T predicate-/
-  @[simp] def contains_T {n} : BoundedFormula ℒₜ ℕ n → Prop
-  | .rel L_T.Rel.t _ => true
-  | .imp f₁ f₂ => contains_T f₁ ∨ contains_T f₂
-  | .all f => contains_T f
-  | _ => false
-
-  /-- Proves that contains_T is a decidable predicate-/
-  def decPred_contains_T : {n : ℕ} → (a : BoundedFormula ℒₜ ℕ n) → Decidable (contains_T a)
-  | _, .falsum => by
-    apply Decidable.isFalse
-    simp
-  | _, .equal t₁ t₂ => by
-    apply Decidable.isFalse
-    simp
-  | _, .rel R ts => by cases R with
-    | t =>
-      apply Decidable.isTrue
-      simp
-    | _ =>
-      apply Decidable.isFalse
-      simp
-  | _, .imp f₁ f₂ => by
-    simp[contains_T]
-    apply decPred_contains_T at f₁
-    apply decPred_contains_T at f₂
-    apply instDecidableOr
-  | _, .all f => by
-    apply decPred_contains_T at f
-    simp
-    exact f
-
-  instance : DecidablePred (@contains_T 0) := decPred_contains_T
 
   open Matrix
   /-- Gives whether a formula is a disquotation axiom -/
@@ -256,6 +222,10 @@ namespace Conservativity
     disjuncts_to_disjunction (transform_to_tau_disjuncts (get_disq_sents (fmls d)))
 
   notation "τ(" d ")" => build_tau d
+
+  /-- Main theorem -/
+  theorem conservativity_tb : ∀φ ∈ ℒ, 𝐓𝐁 ⊢ φ → 𝐏𝐀 ⊢ φ := by
+    sorry
 
   open BoundedFormula
   def tau_disj_phi_func (d : Derivation th Γ Δ) (f : ℒₜ.Formula ℕ) (h : f ∈ (fmls d)) : Derivation th ∅ {((τ(d))/[⌜f⌝] ⇔ f)} := by
