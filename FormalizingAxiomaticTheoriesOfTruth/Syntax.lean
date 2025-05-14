@@ -35,3 +35,12 @@ namespace Languages
     ⟨Func, Rel⟩
 
   def ℒₜ {n} : Set (L_T.signature.BoundedFormula ℕ n) := Set.univ
+
+    /-- Gives whether a BoundedFormula contains a T predicate-/
+  @[simp] def contains_T {n} : L_T.signature.BoundedFormula ℕ n → Prop
+  | .rel L_T.Rel.t _ => true
+  | .imp f₁ f₂ => contains_T f₁ ∨ contains_T f₂
+  | .all f => contains_T f
+  | _ => false
+
+  def ℒ {n} : Set (L_T.signature.BoundedFormula ℕ n) := { φ | ¬contains_T φ}
