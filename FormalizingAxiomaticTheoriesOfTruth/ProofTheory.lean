@@ -125,3 +125,131 @@ namespace Calculus
   notation Th " ⊢ " f => formula_provable Th f
 
 end Calculus
+
+namespace Derivations
+open Calculus
+open BoundedFormula
+
+variable {L : Language}
+[∀ n, DecidableEq (L.Functions n)]
+[∀ n, DecidableEq (L.Relations n)]
+[DecidableEq (Formula L ℕ)]
+
+def mp_derivation
+  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
+  Derivation Th {A, A ⟹ B} {B} := by
+  have d₁ : Derivation Th {A} {B, A} := by
+    apply Derivation.lax
+    exact ⟨A, by simp⟩
+  have d₂ : Derivation Th {B, A} {B} := by
+    apply Derivation.lax
+    exact ⟨B, by simp⟩
+  apply Derivation.left_implication A B {A} {B, A} {B, A}
+  exact d₁
+  apply Finset.insert_eq
+  exact d₂
+  apply Finset.insert_eq
+  apply Finset.insert_eq
+
+-- def DΓ_derivation
+--   (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
+--   Derivation
+
+def conj_intro_derivation
+  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
+  Derivation Th {A, B} {A ∧' B} := by
+  apply Derivation.right_conjunction A B {A} {B} ∅
+  apply Derivation.lax ⟨A, by simp⟩
+  simp
+  apply Derivation.lax ⟨B, by simp⟩
+  simp
+  simp
+
+def disj_intro_left_derivation
+  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
+  Derivation Th {A} {A ∨' B} := by
+  apply Derivation.right_disjunction A B {A}
+  exact Derivation.lax ⟨A, by simp⟩
+  simp
+
+def disj_intro_right_derivation
+  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
+  Derivation Th {B} {A ∨' B} := by
+  apply Derivation.right_disjunction A B {B}
+  exact Derivation.lax ⟨B, by simp⟩
+  simp
+
+def conj_elim_left_derivation
+  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) (h: A ≠ B) :
+  Derivation Th {A ∧' B} {A} := by
+  apply Derivation.left_conjunction A B {A, B}
+  apply Derivation.lax
+  simp
+  simp
+  simp
+  simp only [Finset.sdiff_singleton_eq_erase, Finset.erase_insert, Finset.erase_singleton, Finset.empty_union]
+  rw [Finset.erase_insert, Finset.erase_singleton, Finset.empty_union]
+  simp
+  intro h₁
+  exact h h₁
+
+def conj_elim_right_derivation
+  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) (h: A ≠ B) :
+  Derivation Th {A ∧' B} {B} := by
+  apply Derivation.left_conjunction A B {A, B}
+  apply Derivation.lax
+  simp
+  simp
+  simp
+  simp only [Finset.sdiff_singleton_eq_erase, Finset.erase_insert, Finset.erase_singleton, Finset.empty_union]
+  rw [Finset.erase_insert, Finset.erase_singleton, Finset.empty_union]
+  simp
+  intro h₁
+  exact h h₁
+
+def conj_elim_derivation
+  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) (h : A ≠ B) (left : Bool) :
+  Derivation Th {A ∧' B} {A, B} := by
+  apply Derivation.left_conjunction A B {A, B}
+  apply Derivation.lax
+  simp
+  simp
+  simp
+  simp only [Finset.sdiff_singleton_eq_erase, Finset.erase_insert, Finset.erase_singleton, Finset.empty_union]
+  rw [Finset.erase_insert, Finset.erase_singleton, Finset.empty_union]
+  simp
+  intro h₁
+  exact h h₁
+
+-- def double_neg_left_derivation
+--   (Th: Set (Formula L ℕ)) (A : Formula L ℕ) :
+--   Derivation Th {∼∼A} {A} := by
+--   apply Derivation.left_implication
+
+-- def double_neg_right_derivation
+--   (Th: Set (Formula L ℕ)) (A B : Formula L ℕ) :
+--   Derivation Th {A} {(A ⟹ ⊥) ⟹ ⊥} := by
+--   apply Derivation.lax
+--   simp
+
+-- def demorganslaw_first_derivation
+
+-- def demorganslaw_second_derivation
+
+lemma mp : ∀th : Set (Formula L ℕ), ∀(A B : L.Formula ℕ), ∃_ : Derivation th {A, A ⟹ B} {B}, ⊤ := by
+  intro th A B
+  apply mp_derivation at th
+  apply th at A
+  apply A at B
+  simp
+  apply Nonempty.intro B
+
+lemma conj_intro : ∀th : Set (Formula L ℕ), ∀(A B : L.Formula ℕ), ∃_ : Derivation th {A, B} {A ∧' B}, ⊤ := by
+  intro th A B
+  apply conj_intro_derivation at th
+  apply th at A
+  apply A at B
+  simp
+  apply Nonempty.intro B
+
+end Derivations

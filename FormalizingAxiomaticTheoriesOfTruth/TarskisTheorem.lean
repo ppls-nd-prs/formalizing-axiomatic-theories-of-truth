@@ -27,37 +27,6 @@ def unrestricted_TB : Theory ℒₜ :=
 def syntax_and_PA_unres_TB : Theory ℒₜ :=
   syntax_and_PA ∪ unrestricted_TB
 
--- - lemma limp {L : Language} (Th : Set (Formula L ℕ ) ) (A B : Formula L ℕ ) : Derivation Th {A, A ⟹ B} {B} := by
--- sorry
-
-variable {L : Language}
-[∀ n, DecidableEq (L.Functions n)]
-[∀ n, DecidableEq (L.Relations n)]
-[DecidableEq (Formula L ℕ)]
-
-def mp_derivation
-  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
-  Derivation Th {A, A ⟹ B} {B} := by
-  have d₁ : Derivation Th {A} {B, A} := by
-    apply Derivation.lax
-    exact ⟨A, by simp⟩
-  have d₂ : Derivation Th {B, A} {B} := by
-    apply Derivation.lax
-    exact ⟨B, by simp⟩
-  apply Derivation.left_implication A B {A} {B, A} {B, A}
-  exact d₁
-  apply Finset.insert_eq
-  exact d₂
-  apply Finset.insert_eq
-  apply Finset.insert_eq
-
-  lemma mp : ∀th : Set (Formula L ℕ), ∀(A B : L.Formula ℕ), ∃_ : Derivation th {A, A ⟹ B} {B}, ⊤ := by
-    intro th A B
-    apply mp_derivation at th
-    apply th at A
-    apply A at B
-    simp
-    apply Nonempty.intro B
 
 def bicond_elim (Th: unrestricted_TB) (A B : Formula L ℕ ) :
   unrestricted_TB ⊢ A ⇔ B := by
@@ -70,7 +39,6 @@ def bicond_elim (Th: unrestricted_TB) (A B : Formula L ℕ ) :
   apply cut
     exact h.elim
     apply lemma A, B
-
 
 def false_formula : Formula ℒₜ ℕ := ⊥
 -- theorem liar_paradox : syntax_and_PA_unres_TB ⊢ false_formula := by
