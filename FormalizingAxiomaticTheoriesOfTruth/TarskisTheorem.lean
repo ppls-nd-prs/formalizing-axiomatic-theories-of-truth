@@ -28,17 +28,17 @@ def syntax_and_PA_unres_TB : Theory ℒₜ :=
   syntax_and_PA ∪ unrestricted_TB
 
 
-def bicond_elim (Th: unrestricted_TB) (A B : Formula L ℕ ) :
-  unrestricted_TB ⊢ A ⇔ B := by
-  let h: unrestricted_TB ⊢ A ⇔ b
-  h.elim Derivation unrestricted_TB ∅ (A → B) ∧ (B → A) :=
-  have lemma : Derivable unrestricted_TB φ ∧ ψ by
-    apply Nonempty
-    apply Derivation.right_conjunction
-    exact lax {φ, ψ}, {φ}
-  apply cut
-    exact h.elim
-    apply lemma A, B
+-- def bicond_elim (Th: unrestricted_TB) (A B : Formula L ℕ ) :
+--   unrestricted_TB ⊢ A ⇔ B := by
+--   let h: unrestricted_TB ⊢ A ⇔ b
+--   h.elim Derivation unrestricted_TB ∅ (A → B) ∧ (B → A) :=
+--   have lemma : Derivable unrestricted_TB φ ∧ ψ by
+--     apply Nonempty
+--     apply Derivation.right_conjunction
+--     exact lax {φ, ψ}, {φ}
+--   apply cut
+--     exact h.elim
+--     apply lemma A, B
 
 def false_formula : Formula ℒₜ ℕ := ⊥
 -- theorem liar_paradox : syntax_and_PA_unres_TB ⊢ false_formula := by

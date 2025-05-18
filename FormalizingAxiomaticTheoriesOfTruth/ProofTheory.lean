@@ -151,9 +151,16 @@ def mp_derivation
   apply Finset.insert_eq
   apply Finset.insert_eq
 
--- def DΓ_derivation
---   (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
---   Derivation
+def right_implication_derivation
+  (Th : Set (Formula L ℕ)) (A B Γ : Formula L ℕ)
+  (d₁: Derivation Th {Γ, A} {B}) :
+  Derivation Th {Γ} {A ⟹ B} := by
+  apply Derivation.right_implication A B {Γ, A} {B} ∅
+  exact d₁
+  rw [Finset.insert_eq]
+  rw [Finset.union_comm]
+  rw [Finset.empty_union]
+  rw [Finset.empty_union]
 
 def conj_intro_derivation
   (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
@@ -208,7 +215,7 @@ def conj_elim_right_derivation
   exact h h₁
 
 def conj_elim_derivation
-  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) (h : A ≠ B) (left : Bool) :
+  (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) (h : A ≠ B) :
   Derivation Th {A ∧' B} {A, B} := by
   apply Derivation.left_conjunction A B {A, B}
   apply Derivation.lax
@@ -221,6 +228,27 @@ def conj_elim_derivation
   intro h₁
   exact h h₁
 
+def disj_elim_derivation
+  (Th : Set (Formula L ℕ)) (A B C: Formula L ℕ)
+  (d₁ : Derivation Th {A} {C}) (d₂ : Derivation Th {B} {C}) :
+  Derivation Th {A ∨' B} {C} := by
+  apply Derivation.left_disjunction A B {A} {B} ∅
+  exact d₁
+  simp
+  exact d₂
+  simp
+  simp
+
+-- axiom excluded_middle_axiom : ∀ (Th : Set (Formula L ℕ)) (A : Formula L ℕ),
+--   Derivation Th ∅ {A ∨' ∼A}
+
+-- def excl_mid_derivation
+--  (Th : Set (Formula L ℕ)) (Γ A : Formula L ℕ) :
+--  Derivation Th {Γ} {A ∨'∼A} := by
+--  apply Derivation.lax
+--  apply excluded_middle_axiom at Th
+
+
 -- def double_neg_left_derivation
 --   (Th: Set (Formula L ℕ)) (A : Formula L ℕ) :
 --   Derivation Th {∼∼A} {A} := by
@@ -229,12 +257,30 @@ def conj_elim_derivation
 -- def double_neg_right_derivation
 --   (Th: Set (Formula L ℕ)) (A B : Formula L ℕ) :
 --   Derivation Th {A} {(A ⟹ ⊥) ⟹ ⊥} := by
---   apply Derivation.lax
---   simp
+--   have d₁ : Derivation Th {A} {A, ⊥} := by
+--     apply Derivation.lax
+--     exact ⟨A, by simp⟩
+
+--   have d₂ : Derivation Th {A, ⊥} {A} := by
+--     apply Derivation.lax
+--     exact ⟨A, by simp⟩
+
+--   apply Derivation.left_implication (A ⟹ ⊥) ⊥ {(A ⟹ ⊥) ⟹ ⊥} {A, ⊥} {A}
+--   sorry
+--   sorry
+--   sorry
+--   sorry
+--   sorry
 
 -- def demorganslaw_first_derivation
+--   (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
+--   Derivation Th {∼(A ∧' B)} {∼A ∨' ∼B} := by
+--   apply Derivation.right_conjunction
 
 -- def demorganslaw_second_derivation
+--   (Th : Set (Formula L ℕ)) (A B : Formula L ℕ) :
+--   Derivation Th {∼(A ∨' B)} {∼A ∧' ∼B} := by
+--   sorry
 
 lemma mp : ∀th : Set (Formula L ℕ), ∀(A B : L.Formula ℕ), ∃_ : Derivation th {A, A ⟹ B} {B}, ⊤ := by
   intro th A B
