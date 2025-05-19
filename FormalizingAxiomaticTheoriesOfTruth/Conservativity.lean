@@ -94,6 +94,8 @@ namespace Conservativity
   notation Γ"/ₛ["R","φ"]" => subs_r_for_fml_in_set Γ R φ
   notation Γ"/["R","φ"]" => subs_r_for_fml_in_finset Γ R φ
 
+  lemma subs_empty_is_empty {R : ℒₜ.Relations k} {φ : ℒ.Fml} : ∅/ₛ[R,φ] = ∅ := sorry
+
   def subs_der {Th : Set (ℒₜ.Fml)} {Γ Δ : Finset (ℒₜ.Fml)} {k : ℕ} (R : ℒₜ.Relations k) (φ : ℒ.Fml) (d : Derivation Th Γ Δ) : Derivation (Th/ₛ[R,φ]) (Γ/[R,φ]) (Δ/[R,φ]) :=
     sorry
 
@@ -112,13 +114,11 @@ namespace Conservativity
   def build_tau (Γ : Finset (ℒ.Fml)) : ℒ.Fml := sorry
   abbrev τ := build_tau
 
-  def translate_to_l_set (Γ : Finset (ℒ.Fml)) : Set (ℒ.Fml) := (𝐓𝐁 Γ)/ₛ[.t, (τ Γ)]
-
-  lemma pa_proves_finite_proof {Γ} : ∀φ ∈ (𝐓𝐁 Γ)/ₛ[L_T.Rel.t, (build_tau Γ)], 𝐏𝐀 ⊢ φ := sorry
-
   def tb_to_finite_tb {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (𝐓𝐁 (relevant_disquotation_phis d)) {} {ϕ.onFormula φ} := sorry
 
-  def finite_tb_to_pa {φ} {Γ : Finset (ℒ.Fml)} : Derivation ((𝐓𝐁 Γ)/ₛ[.t, (build_tau Γ)]) ({}/[.t, (build_tau Γ)]) ({ϕ.onFormula φ}/[.t, (build_tau Γ)]) → Derivation 𝐏𝐀 {} {φ} := by
+  def finite_tb_to_pa {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((𝐓𝐁 (relevant_disquotation_phis d))/ₛ[.t, (build_tau (relevant_disquotation_phis d))]) ({}/[.t, (build_tau (relevant_disquotation_phis d))]) ({ϕ.onFormula φ}/[.t, (build_tau (relevant_disquotation_phis d))]) → Derivation 𝐏𝐀 {} {φ} := by
+    intro d₂
+
     sorry
 
   def translation {φ: ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) → (Derivation 𝐏𝐀 {} {φ}) := by
@@ -129,6 +129,7 @@ namespace Conservativity
     simp[tau] at d
     apply finite_tb_to_pa at d
     exact d
+
 
   theorem conservativity_of_tb : ∀φ : ℒ.Fml, (𝐓𝐁 ⊢ φ) → (𝐏𝐀 ⊢ φ) := by
     simp
