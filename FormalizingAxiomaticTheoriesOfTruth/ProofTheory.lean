@@ -97,7 +97,7 @@ namespace Calculus
   notation Δ"↑"  => shift_finset_up Δ
   notation A"↓" => relabel shift_one_down A
 
-  variable [BEq (Formula L ℕ)][DecidableEq (Formula L ℕ)]
+  variable [BEq (Formula L ℕ)]
 
   /-- G3c sequent calculus -/
   inductive Derivation : (Set (Formula L ℕ)) → (Finset (Formula L ℕ)) → (Finset (Formula L ℕ)) → Type _ where
@@ -118,12 +118,17 @@ namespace Calculus
     | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
     | cut {Th Γ Δ} (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ
 
+  @[simp]
   def emptyFormList : Finset (Formula L ℕ) := ∅
-  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Finset (Formula L ℕ)) : Prop :=
+  @[simp]
+  def proves_sequent (Th : Set (Formula L ℕ)) (Γ Δ : Finset (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
-  notation Th " ⊢ " Γ Δ => sequent_provable Th Γ Δ
+  notation Th " ⊢ " Γ " ⟶ " Δ  => proves_sequent Th Γ Δ
+  @[simp]
   def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
-    sequent_provable Th emptyFormList {f}
+    proves_sequent Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
+
+  lemma derivability_trans {Th' Th : Set (L.Formula ℕ)} {Γ Δ : Finset (L.Formula ℕ)} : (Th' ⊢ Γ ⟶ Δ) → (∀φ ∈ Th', Th ⊢ φ) → (Th ⊢ Γ ⟶ Δ) := sorry
 
 end Calculus
