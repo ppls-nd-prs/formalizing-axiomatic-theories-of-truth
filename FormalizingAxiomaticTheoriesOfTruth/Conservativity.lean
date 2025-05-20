@@ -119,9 +119,18 @@ namespace Conservativity
 
   def finite_tb {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (𝐓𝐁 (relevant_disquotation_phis d)) {} {ϕ.onFormula φ} := sorry
 
-  def finite_tb_to_pa {φ : ℒ.Fml} {d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((𝐓𝐁 (relevant_disquotation_phis d₁))/ₛ[.t, (build_tau (relevant_disquotation_phis d₁))]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := by
-    sorry
+  def finite_tb_to_pa {φ : ℒ.Fml} {d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((𝐓𝐁 (relevant_disquotation_phis d₁))/ₛ[.t, (build_tau (relevant_disquotation_phis d₁))]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := sorry
 
+  /-- "Let a proof of a formula in L in utb be given and let n be the number of uniform disquotation sentences occurring as axioms in the proof."-/
+  def disq_axs {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Finset (ℒₜ.Fml) := sorry
+
+  /-- "Hence every axiom in the proof" -/
+  def axs {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Finset (ℒₜ.Fml) := sorry
+
+  /-- "Hence every axiom in the proof is either an axiom of pa, or an instance of the induction schema, or, for some i ≤ n, a sentence of the form [disquotation scheme]" -/
+  lemma lem1 {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : ∀ψ ∈ (axs d), ψ ∈ (lt_set 𝐏𝐀) ∨ ∃π : ℒₜ.BoundedFormula ℕ 1, ψ = (induction π) ∨ ψ ∈ (fml_set syntax_theory) ∨ ψ ∈ (disq_axs d) := sorry
+
+  /-- "I show how to transform any given utb-proof of an arithmetical formula into a pa-proof of the same formula." -/
   def translation {φ: ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) → (Derivation 𝐏𝐀 {} {φ}) := by
     intro d
     let tau : ℒ.Fml := build_tau (relevant_disquotation_phis d)

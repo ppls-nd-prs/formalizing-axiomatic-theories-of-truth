@@ -535,12 +535,35 @@ end TermEncoding
 
   instance : Coe (Formula ℒ ℕ) (Formula ℒₜ ℕ) where
     coe := LHom.onFormula ϕ
+  def lt_set : Set (ℒ.Formula ℕ) → Set (ℒₜ.Formula ℕ) :=
+    fun s => s.image (ϕ.onFormula)
+  instance : Coe (Set (ℒ.Formula ℕ)) (Set (ℒₜ.Formula ℕ)) where
+    coe := lt_set
   instance : Coe (Sentence ℒ) (Sentence ℒₜ) where
     coe := LHom.onSentence ϕ
   instance : Coe (Term ℒ (Empty ⊕ Fin 0)) (Term ℒₜ (Empty ⊕ Fin 0)) where
     coe := LHom.onTerm ϕ
   instance : Coe (Theory ℒ) (Theory ℒₜ) where
     coe := LHom.onTheory ϕ
+
+  variable {L : Language}{α : Type}
+  def fml_term {n : ℕ} : L.Term (Empty ⊕ Fin n) → L.Term (ℕ ⊕ Fin n)
+    | .var (.inl _) => Term.var (.inl 1)
+    | .var (.inr _) => Term.var (.inl 1)
+    | .func f ts => .func f (fun i => fml_term (ts i))
+  instance {n : ℕ} : Coe (L.Term (Empty ⊕ Fin n)) (L.Term (ℕ ⊕ Fin n)) where
+    coe := fml_term
+  def fml : {n : ℕ} → L.BoundedFormula Empty n → L.BoundedFormula ℕ n
+    | _, .falsum => .falsum
+    | _, .equal t₁ t₂ => .equal t₁ t₂
+    | _, .rel R ts => .rel R (fun i => ts i)
+    | _, .imp φ ψ => .imp (fml φ) (fml ψ)
+    | _, .all φ => .all (fml φ)
+  instance : Coe (L.Sentence) (L.Formula ℕ) where
+    coe := fml
+  def fml_set : L.Theory → Set (L.Formula ℕ) := fun t => t.image fml
+  instance : Coe (L.Theory) (Set (L.Formula ℕ)) where
+    coe := fml_set
 
 end Languages
 
