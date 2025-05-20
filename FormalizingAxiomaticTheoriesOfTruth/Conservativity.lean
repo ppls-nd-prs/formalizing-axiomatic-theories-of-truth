@@ -82,7 +82,7 @@ namespace Conservativity
   abbrev ℒ.Fml := ℒ.Formula ℕ
   abbrev ℒₜ.Fml := ℒₜ.Formula ℕ
 
-  def subs_r_for_fml {k : ℕ} {L₁ L₂ : Language} : ℒₜ.Fml → ℒₜ.Relations k → ℒ.Fml → ℒ.Fml :=
+  def subs_r_for_fml {α n} {k : ℕ} {L₁ L₂ : Language} : ℒₜ.BoundedFormula α n → ℒₜ.Relations k → ℒ.Fml → ℒ.Fml :=
     sorry
 
   def subs_r_for_fml_in_set {k : ℕ} : Set (ℒₜ.Fml) → ℒₜ.Relations k → ℒ.Fml → Set (ℒ.Fml) :=
@@ -94,7 +94,10 @@ namespace Conservativity
   notation Γ"/ₛ["R","φ"]" => subs_r_for_fml_in_set Γ R φ
   notation Γ"/["R","φ"]" => subs_r_for_fml_in_finset Γ R φ
 
-  lemma subs_empty_is_empty {R : ℒₜ.Relations k} {φ : ℒ.Fml} : ∅/ₛ[R,φ] = ∅ := sorry
+  @[simp]
+  lemma subs_empty_is_empty {R : ℒₜ.Relations k} {φ : ℒ.Fml} : ∅/[R,φ] = ∅ :=   sorry
+  @[simp]
+  lemma subs_t_single_hom_is_l_set {φ ψ : ℒ.Fml} : {ϕ.onFormula φ}/[.t, ψ] = {φ} := sorry
 
   def subs_der {Th : Set (ℒₜ.Fml)} {Γ Δ : Finset (ℒₜ.Fml)} {k : ℕ} (R : ℒₜ.Relations k) (φ : ℒ.Fml) (d : Derivation Th Γ Δ) : Derivation (Th/ₛ[R,φ]) (Γ/[R,φ]) (Δ/[R,φ]) :=
     sorry
@@ -103,7 +106,7 @@ namespace Conservativity
   open SyntaxTheory
   open TermEncoding
   inductive restricted_tb (Γ : Finset (ℒ.Fml)) : Set (ℒₜ.Formula ℕ) where
-  | pat_axioms {φ} : peano_arithmetic_t φ → restricted_tb Γ φ
+  | pat_axioms (φ) : peano_arithmetic_t φ → restricted_tb Γ φ
   | syntax_axioms {φ} : syntax_theory φ → restricted_tb Γ φ
   | disquotation {φ} {h : φ ∈ Γ} : restricted_tb Γ (T(⌜φ⌝) ⇔ φ)
 
@@ -114,22 +117,19 @@ namespace Conservativity
   def build_tau (Γ : Finset (ℒ.Fml)) : ℒ.Fml := sorry
   abbrev τ := build_tau
 
-  def tb_to_finite_tb {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (𝐓𝐁 (relevant_disquotation_phis d)) {} {ϕ.onFormula φ} := sorry
+  def finite_tb {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (𝐓𝐁 (relevant_disquotation_phis d)) {} {ϕ.onFormula φ} := sorry
 
-  def finite_tb_to_pa {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((𝐓𝐁 (relevant_disquotation_phis d))/ₛ[.t, (build_tau (relevant_disquotation_phis d))]) ({}/[.t, (build_tau (relevant_disquotation_phis d))]) ({ϕ.onFormula φ}/[.t, (build_tau (relevant_disquotation_phis d))]) → Derivation 𝐏𝐀 {} {φ} := by
-    intro d₂
-
+  def finite_tb_to_pa {φ : ℒ.Fml} {d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((𝐓𝐁 (relevant_disquotation_phis d₁))/ₛ[.t, (build_tau (relevant_disquotation_phis d₁))]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := by
     sorry
 
   def translation {φ: ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) → (Derivation 𝐏𝐀 {} {φ}) := by
     intro d
     let tau : ℒ.Fml := build_tau (relevant_disquotation_phis d)
-    apply tb_to_finite_tb at d
+    apply finite_tb at d
     apply subs_der L_T.Rel.t tau at d
     simp[tau] at d
     apply finite_tb_to_pa at d
     exact d
-
 
   theorem conservativity_of_tb : ∀φ : ℒ.Fml, (𝐓𝐁 ⊢ φ) → (𝐏𝐀 ⊢ φ) := by
     simp
@@ -137,5 +137,6 @@ namespace Conservativity
     intro h
     apply translation at h
     apply Nonempty.intro h
+
 
 end Conservativity
