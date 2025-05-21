@@ -129,9 +129,7 @@ namespace Calculus
     proves_sequent Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
 
-  def derivation_trans {Th' Th : Set (L.Formula ℕ)} {Γ Δ : Finset (L.Formula ℕ)} : Derivation Th' Γ Δ → (φ : L.Formula ℕ) → φ ∈ Th' → Derivation Th {} {φ} → Derivation Th Γ Δ := sorry
   lemma derivability_trans {Th' Th : Set (L.Formula ℕ)} {Γ Δ : Finset (L.Formula ℕ)} : (Th' ⊢ Γ ⟶ Δ) → (∀φ ∈ Th', Th ⊢ φ) → (Th ⊢ Γ ⟶ Δ) := by
-    simp
     sorry
 
 end Calculus
