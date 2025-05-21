@@ -91,6 +91,7 @@ namespace Conservativity
   def subs_r_for_fml_in_finset {k : ℕ} : Finset (ℒₜ.Fml) → ℒₜ.Relations k → ℒ.Fml → Finset (ℒ.Fml) :=
     sorry
 
+  notation φ"/["R","ψ"]" => subs_r_for_fml φ R ψ
   notation Γ"/ₛ["R","φ"]" => subs_r_for_fml_in_set Γ R φ
   notation Γ"/["R","φ"]" => subs_r_for_fml_in_finset Γ R φ
 
