@@ -115,26 +115,27 @@ namespace Conservativity
 
   def relevant_disquotation_phis {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Finset (ℒ.Fml) := sorry
 
-  def build_tau (Γ : Finset (ℒ.Fml)) : ℒ.Fml := sorry
-  abbrev τ := build_tau
+  def build_tau {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : ℒ.Fml := sorry
+  notation "τ" => build_tau
 
   def finite_tb {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (𝐓𝐁 (relevant_disquotation_phis d)) {} {ϕ.onFormula φ} := sorry
 
-  def finite_tb_to_pa {φ : ℒ.Fml} {d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((𝐓𝐁 (relevant_disquotation_phis d₁))/ₛ[.t, (build_tau (relevant_disquotation_phis d₁))]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := sorry
+  def all_restr_tb_provable {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : ∀φ ∈ ((𝐓𝐁 (relevant_disquotation_phis d))/ₛ[.t, (τ d)]), 𝐏𝐀 ⊢ φ := sorry
 
-  /-- "Let a proof of a formula in L in utb be given and let n be the number of uniform disquotation sentences occurring as axioms in the proof."-/
-  def disq_axs {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Finset (ℒₜ.Fml) := sorry
-
-  /-- "Hence every axiom in the proof" -/
-  def axs {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Finset (ℒₜ.Fml) := sorry
-
-  /-- "Hence every axiom in the proof is either an axiom of pa, or an instance of the induction schema, or, for some i ≤ n, a sentence of the form [disquotation scheme]" -/
-  lemma lem1 {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : ∀ψ ∈ (axs d), ψ ∈ (lt_set 𝐏𝐀) ∨ ∃π : ℒₜ.BoundedFormula ℕ 1, ψ = (induction π) ∨ ψ ∈ (fml_set syntax_theory) ∨ ψ ∈ (disq_axs d) := sorry
-
-  /-- "I show how to transform any given utb-proof of an arithmetical formula into a pa-proof of the same formula." -/
-  def translation {φ: ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) → (Derivation 𝐏𝐀 {} {φ}) := by
+  noncomputable def finite_tb_to_pa {φ : ℒ.Fml} {d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((𝐓𝐁 (relevant_disquotation_phis d₁))/ₛ[.t, (build_tau d₁)]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := by
     intro d
-    let tau : ℒ.Fml := build_tau (relevant_disquotation_phis d)
+    apply Nonempty.intro at d
+    apply derivability_trans at d
+    have step1 : ∀φ ∈ ((𝐓𝐁 (relevant_disquotation_phis d₁))/ₛ[.t, (τ d₁)]), 𝐏𝐀 ⊢ φ := by
+      apply all_restr_tb_provable
+    apply d at step1
+    simp at step1
+    apply Classical.choice at step1
+    exact step1
+
+  noncomputable def translation {φ: ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) → (Derivation 𝐏𝐀 {} {φ}) := by
+    intro d
+    let tau : ℒ.Fml := build_tau d
     apply finite_tb at d
     apply subs_der L_T.Rel.t tau at d
     simp[tau] at d
