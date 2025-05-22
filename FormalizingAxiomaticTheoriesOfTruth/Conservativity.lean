@@ -113,21 +113,47 @@ namespace Conservativity
 
   notation "𝐓𝐁 " Γ => restricted_tb Γ
 
+  lemma all_finite_tb_either {Γ : Finset (ℒ.Fml)} : ∀φ ∈ (𝐓𝐁 Γ), φ ∈ peano_arithmetic_t ∨ φ ∈ (fml_set syntax_theory) ∨ (∃ψ, ψ ∈ Γ ∧ φ = T(⌜ψ⌝) ⇔ ψ) := sorry
+
+  lemma all_finite_replaced_either {k} {R : ℒₜ.Relations k} {Γ : Finset (ℒ.Fml)} {φ : ℒ.Fml} : ∀ψ ∈ ((𝐓𝐁 Γ)/ₛ[R, φ]), ψ ∈ (peano_arithmetic_t/ₛ[R, φ]) ∨ ψ ∈ ((fml_set syntax_theory)/ₛ[R,φ]) ∨ (∃π, π ∈ Γ ∧ ψ = (@subs_r_for_fml _ _ _ ℒₜ ℒ (T(⌜π⌝) ⇔ (ϕ.onFormula π)) R φ)) := sorry
+
   def relevant_disquotation_phis {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Finset (ℒ.Fml) := sorry
+
+  def finite_disq_th {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Set (ℒₜ.Fml) := 𝐓𝐁 (relevant_disquotation_phis d)
+
+  lemma all_rel_finite_tb_either {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : ∀ψ ∈ (finite_disq_th d), ψ ∈ peano_arithmetic_t ∨ ψ ∈ (fml_set syntax_theory) ∨ (∃π, π ∈ (relevant_disquotation_phis d) ∧ ψ = T(⌜π⌝) ⇔ π) := by
+    intro ψ h₁
+    apply all_finite_tb_either at ψ
+    simp[finite_disq_th] at h₁
+    apply ψ at h₁
+    exact h₁
+
+  def finite_tb_der {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (finite_disq_th d) {} {ϕ.onFormula φ} := sorry
 
   def build_tau {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : ℒ.Fml := sorry
   notation "τ" => build_tau
 
-  def finite_tb {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (𝐓𝐁 (relevant_disquotation_phis d)) {} {ϕ.onFormula φ} := sorry
+  lemma all_finite_tb_provable {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : ∀ψ ∈ ((finite_disq_th d)/ₛ[.t, (τ d)]), 𝐏𝐀 ⊢ ψ := by
+    intro ψ h₁
+    apply all_finite_replaced_either ψ at h₁
+    cases h₁ with
+    | inl h₂ =>
+      sorry
+    | inr h₂ =>
+      cases h₂ with
+      | inl h₃ =>
 
-  def all_restr_tb_provable {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : ∀φ ∈ ((𝐓𝐁 (relevant_disquotation_phis d))/ₛ[.t, (τ d)]), 𝐏𝐀 ⊢ φ := sorry
+        sorry
+      | inr h₃ =>
 
-  noncomputable def finite_tb_to_pa {φ : ℒ.Fml} {d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((𝐓𝐁 (relevant_disquotation_phis d₁))/ₛ[.t, (build_tau d₁)]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := by
+        sorry
+
+  noncomputable def finite_tb_to_pa {φ : ℒ.Fml} {d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : Derivation ((finite_disq_th d₁)/ₛ[.t, (build_tau d₁)]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := by
     intro d
     apply Nonempty.intro at d
     apply derivability_trans at d
     have step1 : ∀φ ∈ ((𝐓𝐁 (relevant_disquotation_phis d₁))/ₛ[.t, (τ d₁)]), 𝐏𝐀 ⊢ φ := by
-      apply all_restr_tb_provable
+      apply all_finite_tb_provable
     apply d at step1
     simp at step1
     apply Classical.choice at step1
@@ -136,7 +162,7 @@ namespace Conservativity
   noncomputable def translation {φ: ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) → (Derivation 𝐏𝐀 {} {φ}) := by
     intro d
     let tau : ℒ.Fml := build_tau d
-    apply finite_tb at d
+    apply finite_tb_der at d
     apply subs_der L_T.Rel.t tau at d
     simp[tau] at d
     apply finite_tb_to_pa at d
