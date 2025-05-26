@@ -129,7 +129,24 @@ namespace Calculus
     proves_sequent Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
 
-  lemma derivability_trans {Th' Th : Set (L.Formula ℕ)} {Γ Δ : Finset (L.Formula ℕ)} : (Th' ⊢ Γ ⟶ Δ) → (∀φ ∈ Th', Th ⊢ φ) → (Th ⊢ Γ ⟶ Δ) := by
+  /- Meta-results -/
+  variable {Th Th': Set (L.Formula ℕ)}{Γ Δ : Finset (L.Formula ℕ)}
+
+  def right_weakening (A : L.Formula ℕ) : Derivation Th Γ Δ → (Derivation Th Γ (Δ ∪ {A})) := by sorry
+  lemma derivability_trans : (Th' ⊢ Γ ⟶ Δ) → (∀φ ∈ Th', Th ⊢ φ) → (Th ⊢ Γ ⟶ Δ) := by
     sorry
+
+  def to_iff {A B : L.Formula ℕ} (h₁ : Derivation Th {} {A ⟹ B})(h₂ : Derivation Th {} {B ⟹ A}) : Derivation Th {} {A ⇔ B} := by
+    apply Derivation.right_implication ((A ⟹ B) ⟹ (B ⟹ A) ⟹ ⊥) ⊥ {((A ⟹ B) ⟹ (B ⟹ A) ⟹ ⊥)} {⊥} {} _ (by simp) (by simp) (by simp[BoundedFormula.iff,min,BoundedFormula.not])
+    apply @right_weakening L _ _ Th {(A ⟹ B) ⟹ ((B ⟹ A) ⟹ ⊥)} {} ⊥ _
+    apply Derivation.left_implication (A ⟹ B) ((B ⟹ A) ⟹ ⊥) {} {A ⟹ B} {(B ⟹ A) ⟹ ⊥} _ (by simp) _ (by simp) (by simp)
+    exact h₁
+    apply Derivation.left_implication (B ⟹ A) ⊥ {} {B ⟹ A} {⊥} h₂ (by simp) _ (by simp) (by simp)
+    apply Derivation.left_bot (by simp)
+
+  omit [BEq (L.Formula ℕ)] in lemma iff_derivation : ∀A B, (Th ⊢ A ⟹ B) → (Th ⊢ B ⟹ A) → Th ⊢ A ⇔ B := by
+    simp
+    intro _ _ h₁ h₂
+    apply Nonempty.intro (to_iff h₁ h₂)
 
 end Calculus

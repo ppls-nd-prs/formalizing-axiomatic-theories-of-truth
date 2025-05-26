@@ -138,14 +138,14 @@ namespace Conservativity
   lemma PAT_replaced_is_PA : 𝐏𝐀𝐓/ₛ[.t, (τ d)] = 𝐏𝐀 := sorry
 
   open BoundedFormula
-  def fml_to_tau_der (π : ℒ.Fml) : Derivation 𝐏𝐀 {} {(τ d)/[⌜π⌝] ⇔ π} := sorry
+  def fml_to_tau_der (π : ℒ.Fml) : Derivation 𝐏𝐀 {} {(τ d)/[⌜π⌝] ⇔ π} := by
+
+    sorry
 
   lemma all_fml_tau_prov : ∀π ∈ (relevant_disquotation_phis d), 𝐏𝐀 ⊢ ((τ d)/[⌜π⌝] ⇔ π) := by
-    intro π h₁
-    apply @fml_to_tau_der at d
-    apply d at π
+    intro π _
     simp
-    apply Nonempty.intro π
+    apply Nonempty.intro (fml_to_tau_der π)
 
   lemma replace_disq_is_tau {π : ℒ.Fml} : (@subs_r_for_fml ℕ 0 1 ℒₜ ℒ (T(⌜π⌝) ⇔ ϕ.onFormula π) Rel.t (τ d)) = ((τ d)/[⌜π⌝] ⇔ π) := sorry
 
