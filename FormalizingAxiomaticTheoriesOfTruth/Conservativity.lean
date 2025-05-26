@@ -170,8 +170,12 @@ namespace Conservativity
         ∀π, Nonempty (Derivation 𝐏𝐀 {} {(tau d)/[⌜π⌝] ⇔ π})
         -/
         simp[replace_disq_is_tau] at h₃
-
-        sorry
+        have step1 : h₃.choose ∈ relevant_disquotation_phis d ∧ ψ = τ d/[⌜h₃.choose⌝] ⇔ h₃.choose := h₃.choose_spec
+        have step2 : h₃.choose ∈ relevant_disquotation_phis d := And.left step1
+        have step3 : ψ = (τ d)/[⌜h₃.choose⌝] ⇔ h₃.choose := And.right step1
+        rw[step3]
+        apply all_fml_tau_prov
+        exact step2
 
   noncomputable def finite_tb_to_pa : Derivation ((finite_disq_th d)/ₛ[.t, (build_tau d)]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := by
     intro d₂
