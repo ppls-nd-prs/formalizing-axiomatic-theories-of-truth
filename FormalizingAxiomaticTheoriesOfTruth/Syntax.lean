@@ -151,6 +151,10 @@ namespace Languages
     def null : Term signature α :=
       zero
 
+    def numeral : ℕ → Term signature α
+      | .zero => zero
+      | .succ n => S(numeral n)
+
     section Coding
       variable {k : ℕ}
       def Func_enc : signature.Functions k → ℕ
@@ -493,6 +497,7 @@ namespace TermEncoding
 
   scoped notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
   scoped notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
+  scoped notation "⌜" φ "⌝" => LPA.numeral (formula_N_tonat φ)
   scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
   scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
 
