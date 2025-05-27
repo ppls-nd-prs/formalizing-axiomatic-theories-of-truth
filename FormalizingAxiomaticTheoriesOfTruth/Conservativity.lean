@@ -69,6 +69,9 @@ inductive tarski_biconditionals : Set (ℒₜ.Formula ℕ) where
   | disquotation {φ : Sentence ℒ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
 
 notation "𝐓𝐁" => tarski_biconditionals
+
+-- lemma all_tb_either : ∀φ ∈ 𝐓𝐁, φ ∈ 𝐏𝐀𝐓 ∨ φ ∈ syntax_theory ∨ ∃ψ :
+
 end TB
 
 namespace Conservativity
@@ -119,7 +122,40 @@ namespace Conservativity
 
   lemma all_finite_replaced_either {k} {R : ℒₜ.Relations k} {Γ : Finset (ℒ.Fml)} {φ : ℒ.Fml} : ∀ψ ∈ ((𝐓𝐁 Γ)/ₛ[R, φ]), ψ ∈ (peano_arithmetic_t/ₛ[R, φ]) ∨ ψ ∈ ((fml_set syntax_theory)/ₛ[R,φ]) ∨ (∃π, π ∈ Γ ∧ ψ = (@subs_r_for_fml _ _ _ ℒₜ ℒ (T(⌜π⌝) ⇔ (ϕ.onFormula π)) R φ)) := sorry
 
-  def relevant_disquotation_phis (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Finset (ℒ.Fml) := sorry
+  variable {L : Language} {Th : Set (Formula L ℕ)}[∀n, DecidableEq (L.Functions n)][∀p, DecidableEq (L.Relations p)]
+
+  variable {ψ : ℒₜ.Fml}
+
+  -- def disquotation_to_phi : ℒₜ.Fml → ℒ.Fml
+  --   | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) => if Nonempty ϕ.onFormula f = f₁ then f else ⊥
+  --   | _ => ⊥
+
+  -- def test : ℒₜ.Fml := (((.rel L_T.Rel.t ![S(zero)] ⟹ (#0 =' #0)) ⟹ ((⊤ ⟹ .rel L_T.Rel.t ![S(zero)]) ⟹ ⊥)) ⟹ ⊥)
+
+  -- #check disquotation_to_phi test
+  -- #eval @disquotation_to_phi _ test
+
+  def disquotation_phis (s : Finset (ℒₜ.Fml)) : Finset (ℒ.Fml) := sorry
+
+  -- def fmls : Derivation 𝐓𝐁 Δ Γ → Finset (ℒ.Fml)
+  --   | .tax h => (disquotation_phis Δ) ∪ (disquotation_phis Γ)
+  --   | .lax h => (disquotation_phis Δ) ∪ (disquotation_phis Γ)
+  --   | .left_conjunction _ _ _ d _ _ _ => (fmls d)
+  --   | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (fmls d₁) ∪ (fmls d₂)
+  --   | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (fmls d₁) ∪ (fmls d₂)
+  --   | .left_negation _ _ _ d₁ _ _ => (fmls d₁)
+  --   | .left_bot _ => Δ ∪ Γ
+  --   | .right_conjunction _ _ _ _ _ d₁ _ d₂ _ _ => (fmls d₁) ∪ (fmls d₂)
+  --   | .right_disjunction _ _ _ d _ => (fmls d)
+  --   | .right_implication _ _ _ _ _ d _ _ _ => (fmls d)
+  --   | .right_negation _ _ _ d₁ _ _ => (fmls d₁)
+  --   | .left_forall _ _ _ _ _ d _ _ => (fmls d)
+  --   | .left_exists _ _ _ _ d _ => (fmls d)
+  --   | .right_forall _ _ _ _ d _ => (fmls d)
+  --   | .right_exists _ _ _ _ _ d _ => (fmls d)
+  --   | .cut _ _ _ _ _ d₁ d₂ _ _ => (fmls d₁) ∪ (fmls d₂)
+
+  def relevant_disquotation_phis : Derivation 𝐓𝐁 {} {ϕ.onFormula φ} → (Finset (ℒ.Fml)) := sorry
 
   def finite_disq_th (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Set (ℒₜ.Fml) := 𝐓𝐁 (relevant_disquotation_phis d)
 
@@ -144,7 +180,9 @@ namespace Conservativity
   noncomputable def phi_to_tau {π : ℒ.Fml} {h₁ : π ∈ relevant_disquotation_phis d} : Derivation 𝐏𝐀 ∅ {π ⟹ (τ d)/[⌜π⌝]} := by
     apply Derivation.right_implication π (τ d/[⌜π⌝]) {π} {(τ d)/[⌜π⌝]} {} _ (by simp) (by simp) (by simp)
     simp[build_tau]
-    -- apply Derivation.right_iSup: here is where it goes wrong
+    -- apply Derivation.right_iSup
+
+
     sorry
 
   noncomputable def fml_to_tau_der (π : ℒ.Fml) (h₁ : π ∈ relevant_disquotation_phis d) : Derivation 𝐏𝐀 {} {(τ d)/[⌜π⌝] ⇔ π} := by
@@ -210,13 +248,13 @@ namespace Conservativity
 
   lemma all_phi_var_in_pa (h₁ : (ϕ.onFormula φ ∈ 𝐓𝐁)) : φ ∈ 𝐏𝐀 := sorry
 
-  def translation_alternative {φ₁ : ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ₁}) → Derivation 𝐏𝐀 {} {φ₁}
-    | @Derivation.tax ℒₜ _ _ _ _ _ φ₂ h₁ h₂ => by
-      have step1 : φ₂ = ϕ.onFormula φ₁ := by
-        sorry
-      simp[step1] at h₁
-      have step2 : φ₁ ∈ 𝐏𝐀 := by
-        apply all_phi_var_in_pa h₁
+  -- def translation_alternative {φ₁ : ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ₁}) → Derivation 𝐏𝐀 {} {φ₁}
+  --   | @Derivation.tax ℒₜ _ _ _ _ _ φ₂ h₁ h₂ => by
+  --     have step1 : φ₂ = ϕ.onFormula φ₁ := by
+  --       sorry
+  --     simp[step1] at h₁
+  --     have step2 : φ₁ ∈ 𝐏𝐀 := by
+  --       apply all_phi_var_in_pa h₁
 
 
 
@@ -230,8 +268,8 @@ namespace Conservativity
 
 
 
-      sorry
-    | _ => sorry
+    --   sorry
+    -- | _ => sorry
 
   theorem conservativity_of_tb : ∀φ : ℒ.Fml, (𝐓𝐁 ⊢ φ) → (𝐏𝐀 ⊢ φ) := by
     simp
