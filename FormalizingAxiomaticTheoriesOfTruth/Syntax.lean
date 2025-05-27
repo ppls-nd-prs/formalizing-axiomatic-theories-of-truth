@@ -583,6 +583,8 @@ namespace FirstOrder.Language.BoundedFormula
   def lor (f₁ f₂ : BoundedFormula L α n) :=
     ((∼f₁) ⟹ f₂)
   scoped notation f₁ "∨'" f₂ => lor f₁ f₂
+  noncomputable def finset_iSup (s : Finset (L.Formula ℕ)) : L.Formula ℕ :=
+    (s.1.toList).foldr (· ⊔ ·) ⊥
 end FirstOrder.Language.BoundedFormula
 
 

@@ -132,20 +132,31 @@ namespace Conservativity
 
   def finite_tb_der (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (finite_disq_th d) {} {ϕ.onFormula φ} := sorry
 
-  def build_tau (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : ℒ.Fml := sorry
+  noncomputable def build_tau (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : ℒ.Fml := BoundedFormula.finset_iSup (relevant_disquotation_phis d)
+
   notation "τ" => build_tau
 
   lemma PAT_replaced_is_PA : 𝐏𝐀𝐓/ₛ[.t, (τ d)] = 𝐏𝐀 := sorry
 
   open BoundedFormula
-  def fml_to_tau_der (π : ℒ.Fml) : Derivation 𝐏𝐀 {} {(τ d)/[⌜π⌝] ⇔ π} := by
+  def tau_to_phi {π : ℒ.Fml} {h₁ : π ∈ relevant_disquotation_phis d} : Derivation 𝐏𝐀 ∅ {(τ d)/[⌜π⌝] ⟹ π} := sorry
 
+  noncomputable def phi_to_tau {π : ℒ.Fml} {h₁ : π ∈ relevant_disquotation_phis d} : Derivation 𝐏𝐀 ∅ {π ⟹ (τ d)/[⌜π⌝]} := by
+    apply Derivation.right_implication π (τ d/[⌜π⌝]) {π} {(τ d)/[⌜π⌝]} {} _ (by simp) (by simp) (by simp)
+    simp[build_tau]
+    -- apply Derivation.right_iSup: here is where it goes wrong
     sorry
 
+  noncomputable def fml_to_tau_der (π : ℒ.Fml) (h₁ : π ∈ relevant_disquotation_phis d) : Derivation 𝐏𝐀 {} {(τ d)/[⌜π⌝] ⇔ π} := by
+    apply Derivation.to_iff tau_to_phi phi_to_tau
+    exact h₁
+    exact h₁
+
   lemma all_fml_tau_prov : ∀π ∈ (relevant_disquotation_phis d), 𝐏𝐀 ⊢ ((τ d)/[⌜π⌝] ⇔ π) := by
-    intro π _
+    intro π h
     simp
-    apply Nonempty.intro (fml_to_tau_der π)
+    apply Nonempty.intro (fml_to_tau_der π h)
+
 
   lemma replace_disq_is_tau {π : ℒ.Fml} : (@subs_r_for_fml ℕ 0 1 ℒₜ ℒ (T(⌜π⌝) ⇔ ϕ.onFormula π) Rel.t (τ d)) = ((τ d)/[⌜π⌝] ⇔ π) := sorry
 
@@ -180,7 +191,7 @@ namespace Conservativity
   noncomputable def finite_tb_to_pa : Derivation ((finite_disq_th d)/ₛ[.t, (build_tau d)]) {} {φ} → Derivation 𝐏𝐀 {} {φ} := by
     intro d₂
     apply Nonempty.intro at d₂
-    apply derivability_trans at d₂
+    apply Derivation.derivability_trans at d₂
     have step1 : ∀φ ∈ ((𝐓𝐁 (relevant_disquotation_phis d))/ₛ[.t, (τ d)]), 𝐏𝐀 ⊢ φ := by
       apply all_finite_tb_provable
     apply d₂ at step1
@@ -196,6 +207,31 @@ namespace Conservativity
     simp[tau] at d
     apply finite_tb_to_pa at d
     exact d
+
+  lemma all_phi_var_in_pa (h₁ : (ϕ.onFormula φ ∈ 𝐓𝐁)) : φ ∈ 𝐏𝐀 := sorry
+
+  def translation_alternative {φ₁ : ℒ.Fml} : (Derivation 𝐓𝐁 {} {ϕ.onFormula φ₁}) → Derivation 𝐏𝐀 {} {φ₁}
+    | @Derivation.tax ℒₜ _ _ _ _ _ φ₂ h₁ h₂ => by
+      have step1 : φ₂ = ϕ.onFormula φ₁ := by
+        sorry
+      simp[step1] at h₁
+      have step2 : φ₁ ∈ 𝐏𝐀 := by
+        apply all_phi_var_in_pa h₁
+
+
+
+
+
+
+
+
+
+
+
+
+
+      sorry
+    | _ => sorry
 
   theorem conservativity_of_tb : ∀φ : ℒ.Fml, (𝐓𝐁 ⊢ φ) → (𝐏𝐀 ⊢ φ) := by
     simp

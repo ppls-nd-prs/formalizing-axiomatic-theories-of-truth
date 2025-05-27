@@ -130,6 +130,7 @@ namespace Calculus
   notation Th " ⊢ " f => formula_provable Th f
 
   /- Meta-results -/
+  namespace Derivation
   variable {Th Th': Set (L.Formula ℕ)}{Γ Δ : Finset (L.Formula ℕ)}
 
   def right_weakening (A : L.Formula ℕ) : Derivation Th Γ Δ → (Derivation Th Γ (Δ ∪ {A})) := by sorry
@@ -148,5 +149,9 @@ namespace Calculus
     simp
     intro _ _ h₁ h₂
     apply Nonempty.intro (to_iff h₁ h₂)
+
+  def right_iSup (d : Derivation Th Γ Δ) : Derivation Th Γ {finset_iSup Δ} := sorry
+
+  end Derivation
 
 end Calculus
