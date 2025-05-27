@@ -151,7 +151,8 @@ namespace Calculus
     apply Nonempty.intro (to_iff h₁ h₂)
 
   def right_iSup (d : Derivation Th Γ Δ) : Derivation Th Γ {finset_iSup Δ} := sorry
-
+  -- the problem was that there seems to be no nice recursor for finsets or at least
+  -- I don't know how to apply it
   end Derivation
 
 end Calculus

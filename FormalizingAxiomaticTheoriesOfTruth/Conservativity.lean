@@ -177,6 +177,8 @@ namespace Conservativity
   open BoundedFormula
   def tau_to_phi {π : ℒ.Fml} {h₁ : π ∈ relevant_disquotation_phis d} : Derivation 𝐏𝐀 ∅ {(τ d)/[⌜π⌝] ⟹ π} := sorry
 
+  -- def forall_iSup_subs_is_subs : {(finset_iSup (relevant_disquotation_phis d))/[⌜π⌝]} → {(finset_iSup (relevant_disquotation_phis d).image subst etc.)}
+
   noncomputable def phi_to_tau {π : ℒ.Fml} {h₁ : π ∈ relevant_disquotation_phis d} : Derivation 𝐏𝐀 ∅ {π ⟹ (τ d)/[⌜π⌝]} := by
     apply Derivation.right_implication π (τ d/[⌜π⌝]) {π} {(τ d)/[⌜π⌝]} {} _ (by simp) (by simp) (by simp)
     simp[build_tau]
