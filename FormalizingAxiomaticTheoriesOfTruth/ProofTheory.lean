@@ -125,75 +125,8 @@ namespace Calculus
     Nonempty (Derivation Th Γ Δ)
   notation Th " ⊢ " Γ " ⟶ " Δ  => proves_sequent Th Γ Δ
   @[simp]
-  def proves_set (Th : Set (Formula L ℕ)) (Δ : Finset (Formula L ℕ)) : Prop :=
-    Nonempty (Derivation Th emptyFormList Δ)
-  notation Th " ⊢ " Δ => proves_set Th Δ
-  @[simp]
   def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
     proves_sequent Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
-
-  /- Meta-results -/
-  namespace Derivation
-  variable {Th Th': Set (L.Formula ℕ)}{Γ Δ : Finset (L.Formula ℕ)}
-
-  def right_weakening (A : L.Formula ℕ) : Derivation Th Γ Δ → (Derivation Th Γ (Δ ∪ {A})) := by sorry
-  lemma derivability_trans : (Th' ⊢ Γ ⟶ Δ) → (∀φ ∈ Th', Th ⊢ φ) → (Th ⊢ Γ ⟶ Δ) := by
-    sorry
-
-  def to_iff {A B : L.Formula ℕ} (h₁ : Derivation Th {} {A ⟹ B})(h₂ : Derivation Th {} {B ⟹ A}) : Derivation Th {} {A ⇔ B} := by
-    apply Derivation.right_implication ((A ⟹ B) ⟹ (B ⟹ A) ⟹ ⊥) ⊥ {((A ⟹ B) ⟹ (B ⟹ A) ⟹ ⊥)} {⊥} {} _ (by simp) (by simp) (by simp[BoundedFormula.iff,min,BoundedFormula.not])
-    apply @right_weakening L _ _ Th {(A ⟹ B) ⟹ ((B ⟹ A) ⟹ ⊥)} {} ⊥ _
-    apply Derivation.left_implication (A ⟹ B) ((B ⟹ A) ⟹ ⊥) {} {A ⟹ B} {(B ⟹ A) ⟹ ⊥} _ (by simp) _ (by simp) (by simp)
-    exact h₁
-    apply Derivation.left_implication (B ⟹ A) ⊥ {} {B ⟹ A} {⊥} h₂ (by simp) _ (by simp) (by simp)
-    apply Derivation.left_bot (by simp)
-
-  omit [BEq (L.Formula ℕ)] in lemma iff_derivation : ∀A B, (Th ⊢ A ⟹ B) → (Th ⊢ B ⟹ A) → Th ⊢ A ⇔ B := by
-    simp
-    intro _ _ h₁ h₂
-    apply Nonempty.intro (to_iff h₁ h₂)
-
-  def right_iSup (d : Derivation Th Γ Δ) : Derivation Th Γ {finset_iSup Δ} := sorry
-  -- the problem was that there seems to be no nice recursor for finsets or at least
-  -- I don't know how to apply it
-
-  lemma iSup_derivable {φ : L.Formula ℕ} : (Th ⊢ Δ) → Th ⊢ {finset_iSup Δ} := by
-  simp
-  induction Δ using Finset.induction with
-  | empty =>
-    --
-    sorry
-  | @insert a S c ih =>
-    intro h
-    apply Nonempty.intro
-
-    sorry
-
--- def one_disj_to_whole_iSup
-
-
-
-  lemma iSup_derrivable {φ : L.Formula ℕ} : (Th ⊢ Δ ∪ {φ}) → Th ⊢ {finset_iSup Δ} ∪ {φ} := by
-    simp
-    intro h
-    induction Δ using Finset.induction with
-    | empty =>
-      --
-      sorry
-      -- simp[finset_iSup]
-      -- simp at h
-      -- apply Derivation.right_weakening ⊥ at h
-      -- let step1 : Derivation Th ∅ {φ ∨' ⊥} := by
-      --   apply Derivation.right_disjunction φ ⊥ {φ, ⊥} h (by simp)
-      -- apply Nonempty.intro step1
-    | @insert a S c ih =>
-      apply Nonempty.intro
-
-      sorry
-
-  -- def one_disj_to_whole_iSup
-
-  end Derivation
 
 end Calculus
