@@ -125,6 +125,10 @@ namespace Calculus
     Nonempty (Derivation Th Γ Δ)
   notation Th " ⊢ " Γ " ⟶ " Δ  => proves_sequent Th Γ Δ
   @[simp]
+  def proves_set (Th : Set (Formula L ℕ)) (Δ : Finset (Formula L ℕ)) : Prop :=
+    Nonempty (Derivation Th emptyFormList Δ)
+  notation Th " ⊢ " Δ => proves_set Th Δ
+  @[simp]
   def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
     proves_sequent Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
@@ -153,6 +157,43 @@ namespace Calculus
   def right_iSup (d : Derivation Th Γ Δ) : Derivation Th Γ {finset_iSup Δ} := sorry
   -- the problem was that there seems to be no nice recursor for finsets or at least
   -- I don't know how to apply it
+
+  lemma iSup_derivable {φ : L.Formula ℕ} : (Th ⊢ Δ) → Th ⊢ {finset_iSup Δ} := by
+  simp
+  induction Δ using Finset.induction with
+  | empty =>
+    --
+    sorry
+  | @insert a S c ih =>
+    intro h
+    apply Nonempty.intro
+
+    sorry
+
+-- def one_disj_to_whole_iSup
+
+
+
+  lemma iSup_derrivable {φ : L.Formula ℕ} : (Th ⊢ Δ ∪ {φ}) → Th ⊢ {finset_iSup Δ} ∪ {φ} := by
+    simp
+    intro h
+    induction Δ using Finset.induction with
+    | empty =>
+      --
+      sorry
+      -- simp[finset_iSup]
+      -- simp at h
+      -- apply Derivation.right_weakening ⊥ at h
+      -- let step1 : Derivation Th ∅ {φ ∨' ⊥} := by
+      --   apply Derivation.right_disjunction φ ⊥ {φ, ⊥} h (by simp)
+      -- apply Nonempty.intro step1
+    | @insert a S c ih =>
+      apply Nonempty.intro
+
+      sorry
+
+  -- def one_disj_to_whole_iSup
+
   end Derivation
 
 end Calculus

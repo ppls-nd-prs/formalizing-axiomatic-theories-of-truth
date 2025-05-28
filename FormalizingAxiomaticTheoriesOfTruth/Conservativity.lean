@@ -168,7 +168,9 @@ namespace Conservativity
 
   def finite_tb_der (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Derivation (finite_disq_th d) {} {ϕ.onFormula φ} := sorry
 
-  noncomputable def build_tau (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : ℒ.Fml := BoundedFormula.finset_iSup (relevant_disquotation_phis d)
+  def tau_disjunct (φ : ℒ.Fml) : ℒ.Fml := ((#0 =' ⌜φ⌝) ⊓ φ)
+
+  noncomputable def build_tau (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : ℒ.Fml := BoundedFormula.finset_iSup ((relevant_disquotation_phis d).image tau_disjunct)
 
   notation "τ" => build_tau
 
@@ -178,11 +180,21 @@ namespace Conservativity
   def tau_to_phi {π : ℒ.Fml} {h₁ : π ∈ relevant_disquotation_phis d} : Derivation 𝐏𝐀 ∅ {(τ d)/[⌜π⌝] ⟹ π} := sorry
 
   -- def forall_iSup_subs_is_subs : {(finset_iSup (relevant_disquotation_phis d))/[⌜π⌝]} → {(finset_iSup (relevant_disquotation_phis d).image subst etc.)}
+  def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
+    fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
+  variable {t : ℒ.Term ℕ} {φ : ℒ.Fml}
+  #check subst _ (g₁ t)
+  def subst_for_mapping (t : ℒ.Term ℕ) (φ : ℒ.Fml) : ℒ.Fml := subst φ (g₁ t)
+
+  def iSup_replace (t : ℒ.Term ℕ) (Γ : Finset (ℒ.Fml)) : (finset_iSup Γ)/[t] = (finset_iSup (Γ.image (subst_for_mapping t))) := sorry
 
   noncomputable def phi_to_tau {π : ℒ.Fml} {h₁ : π ∈ relevant_disquotation_phis d} : Derivation 𝐏𝐀 ∅ {π ⟹ (τ d)/[⌜π⌝]} := by
     apply Derivation.right_implication π (τ d/[⌜π⌝]) {π} {(τ d)/[⌜π⌝]} {} _ (by simp) (by simp) (by simp)
-    simp[build_tau]
+    simp[build_tau, iSup_replace,subst_for_mapping]
+
+
     -- apply Derivation.right_iSup
+
 
 
     sorry
@@ -195,7 +207,8 @@ namespace Conservativity
   lemma all_fml_tau_prov : ∀π ∈ (relevant_disquotation_phis d), 𝐏𝐀 ⊢ ((τ d)/[⌜π⌝] ⇔ π) := by
     intro π h
     simp
-    apply Nonempty.intro (fml_to_tau_der π h)
+    sorry
+
 
 
   lemma replace_disq_is_tau {π : ℒ.Fml} : (@subs_r_for_fml ℕ 0 1 ℒₜ ℒ (T(⌜π⌝) ⇔ ϕ.onFormula π) Rel.t (τ d)) = ((τ d)/[⌜π⌝] ⇔ π) := sorry
