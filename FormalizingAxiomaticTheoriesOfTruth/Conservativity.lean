@@ -78,7 +78,7 @@ namespace Conservativity
   abbrev ℒ.Fml := ℒ.Formula ℕ
   abbrev ℒₜ.Fml := ℒₜ.Formula ℕ
 
-  def build_relevant_phis {φ : ℒ.Fml} (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : Finset (ℒ.Fml) := sorry
+  def build_relevant_phis {Γ Δ : Finset ℒₜ.Fml} (d : Derivation 𝐓𝐁 Γ Δ) : Finset (ℒ.Fml) := sorry
 
   noncomputable def build_tau (Γ : Finset (ℒ.Fml)) : ℒ.Fml := finset_iSup Γ
 
@@ -86,16 +86,16 @@ namespace Conservativity
 
   lemma pa_proves_all_tau_disq_sents : ∀Γ : Finset (ℒ.Fml), ∀φ ∈ Γ, 𝐏𝐀 ⊢ ((build_tau Γ)/[⌜φ⌝] ⇔ φ) := sorry
 
-  def pa_der {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) {} {φ}) → (Derivation 𝐏𝐀 {} {φ})
+  def pa_der_general {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} {Γ₁ Δ₁ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ₁ Δ₁) → (Derivation 𝐏𝐀 Γ₁ Δ₁)
     | .tax h => sorry
-    | .lax h => sorry
-    | .left_bot h => sorry
-    | .left_conjunction A B S d₁ h₁ h₂ h₃ => sorry
-    | .left_disjunction A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ => sorry
+    | .lax h => .lax h
+    | .left_bot h => .left_bot h
+    | .left_conjunction A B S d₁ h₁ h₂ h₃ => pa_der_general d₁
+    | .left_disjunction A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ => .left_disjunction A B S₁ S₂ S₃ (pa_der_general d₁) h₁ (pa_der_general d₂) h₂ h₃
     | .left_implication A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ => sorry
     | .left_negation A S₁ S₂ d₁ h₁ h₂ => sorry
     | .right_conjunction A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ => sorry
-    | .right_disjunction A B S d₁ h₁ => sorry
+    | .right_disjunction A B S d₁ h₁ => sorry -- pa_der_general d₁
     | .right_implication A B S₁ S₂ S₃ d₁ h₁ h₂ h₃ => sorry
     | .right_negation A S₁ S₂ d₁ h₁ h₂ => sorry
     | .left_forall A B h₁ t S d₁ h₂ h₃ => sorry
@@ -103,6 +103,8 @@ namespace Conservativity
     | .right_forall A B S h₁ d₁ h₂ => sorry
     | .right_exists A B t S h₁ d₁ h₂ => sorry
     | .cut A S₁ S₂ S₃ S₄ d₁ d₂ h₁ h₂ => sorry
+
+  def pa_der {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) {} {φ}) → (Derivation 𝐏𝐀 {} {φ}) := pa_der_general
 
   def translation (φ : ℒ.Fml) (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : (Derivation 𝐏𝐀 {} {φ}) := pa_der (pa_plus_der d)
 
