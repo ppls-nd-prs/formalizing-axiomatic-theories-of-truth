@@ -83,15 +83,30 @@ namespace Conservativity
   noncomputable def build_tau (Γ : Finset (ℒ.Fml)) : ℒ.Fml := finset_iSup Γ
 
   def pa_plus_der {φ : ℒ.Fml} : (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) → Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) {} {φ} := sorry
+ 
 
-  lemma pa_proves_all_tau_disq_sents : ∀Γ : Finset (ℒ.Fml), ∀φ ∈ Γ, 𝐏𝐀 ⊢ ((build_tau Γ)/[⌜φ⌝] ⇔ φ) := sorry
+  lemma pa_proves_all_tau_disq_sents : ∀Γ : Finset (ℒ.Fml), ∀φ ∈ Γ, (Δ Γ₂ : Finset ℒ.Fml) → (((build_tau Γ)/[⌜φ⌝] ⇔ φ) ∈ Δ) → Nonempty (Derivation 𝐏𝐀 Γ₂ Δ) := sorry
+
 
   noncomputable def pa_der_general {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} {Γ Δ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ Δ) → (Derivation 𝐏𝐀 Γ Δ)
     | @Derivation.tax _ _ _ _ _ _ ψ h₁ h₂ => by
       by_cases h₃ : ψ ∈ 𝐏𝐀
       apply Derivation.tax h₃ h₂
       simp[h₃] at h₁
-      sorry
+      have step1 : h₁.choose ∈ build_relevant_phis d ∧ build_tau (build_relevant_phis d)/[⌜h₁.choose⌝] ⇔ h₁.choose = ψ := by
+        apply Exists.choose_spec at h₁
+        exact h₁
+     
+      have step2 : (build_tau (build_relevant_phis d)/[⌜h₁.choose⌝] ⇔ h₁.choose) ∈ Δ := by
+        simp[(And.right step1)]
+        exact h₂
+
+      #check pa_proves_all_tau_disq_sents (build_relevant_phis d) h₁.choose (And.left step1) Δ Γ step2 
+      
+      have step3 : Derivation 𝐏𝐀 Γ Δ := by
+        apply Classical.choice (pa_proves_all_tau_disq_sents (build_relevant_phis d) h₁.choose (And.left step1) Δ Γ step2)
+     
+      exact step3 
     | .lax h => .lax h
     | .left_bot h => .left_bot h
     | .left_conjunction A B S d₁ h₁ h₂ h₃ => .left_conjunction A B S (pa_der_general d₁) h₁ h₂ h₃
