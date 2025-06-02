@@ -82,9 +82,21 @@ namespace Conservativity
 
   noncomputable def build_tau (Γ : Finset (ℒ.Fml)) : ℒ.Fml := finset_iSup Γ
 
-  def pa_plus_der {φ : ℒ.Fml} : (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) → Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) {} {φ} := sorry
- 
+  def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} {Δ₂ Γ₂ : Finset (ℒ.Fml)} : (d : Derivation 𝐓𝐁 Δ₁ Γ₁) → Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Δ₂ Γ₂ 
+  | @Derivation.tax  _ _ _ _ _ _ ψ h₁ h₂ => 
+    sorry
+    /- match h₁ with
+    | .pat_axioms h => 
+      sorry
+    | @TB.tarski_biconditionals.syntax_axioms _ => sorry
+    | _ => sorry -/
+    
+    -- use that applying the substitution to (i) 𝐓𝐁 yields 𝐏𝐀 ∪ {x | ∃ ψ_1 ∈ build_relevant_phis (Derivation.tax h₁ h₂), build_tau (build_relevant_phis (Derivation.tax h₁ h₂))/[⌜ψ_1⌝] ⇔ ψ_1 = x}) and (ii) Finset.image ϕ.onFormula Γ for an arbitrary Γ yields Γ.    
+  | _ => sorry
 
+  def pa_plus_der {φ : ℒ.Fml} : (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) {} {φ} := @pa_plus_der_general {} {ϕ.onFormula φ} {} {φ} 
+  
+ 
   lemma pa_proves_all_tau_disq_sents : ∀Γ : Finset (ℒ.Fml), ∀φ ∈ Γ, (Δ Γ₂ : Finset ℒ.Fml) → (((build_tau Γ)/[⌜φ⌝] ⇔ φ) ∈ Δ) → Nonempty (Derivation 𝐏𝐀 Γ₂ Δ) := sorry
 
 
