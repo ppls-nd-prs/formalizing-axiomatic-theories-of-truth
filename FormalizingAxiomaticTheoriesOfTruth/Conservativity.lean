@@ -65,8 +65,8 @@ open TermEncoding
 
 inductive tarski_biconditionals : Set (ℒₜ.Formula ℕ) where
   | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
-  | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
-  | disquotation {φ : Sentence ℒ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
+  | syntax_axioms {φ : ℒₜ.Formula Empty} {ψ : ℒₜ.Formula ℕ} {h : ψ = (Calculus.bf_empty_to_bf_N φ)} : syntax_theory φ → tarski_biconditionals ψ
+  | disquotation {φ : Sentence ℒ} {ψ : ℒₜ.Formula ℕ} {h : ψ =  (T(⌜φ⌝) ⇔ φ)} : tarski_biconditionals ψ
 
 notation "𝐓𝐁" => tarski_biconditionals
 
@@ -78,24 +78,91 @@ namespace Conservativity
   abbrev ℒ.Fml := ℒ.Formula ℕ
   abbrev ℒₜ.Fml := ℒₜ.Formula ℕ
 
+  #check to_l_term 
+  def subs_r_for_fml {k : ℕ} (r : ℒₜ.Relations k) (φ: ℒ.BoundedFormula ℕ n) : {n : ℕ} → ℒₜ.BoundedFormula ℕ n → ℒ.BoundedFormula ℕ n
+  | _, .falsum => .falsum
+  | _, .equal t₁ t₂ => .equal (to_l_term t₁) (to_l_term t₂)
+  | _, .rel R ts =>
+    match R with
+    | .t => 
+      -- replace .t by φ 
+      φ/[(to_l_term (ts 0))]
+      /-match n with
+      | 0 => 
+        -- replace lowest free variable
+        sorry
+      | .succ n =>-/
+        -- replace highest bounded variable, i.e. shift all bounded variables down by n + 1, replace lowest free variable and shift everything back up by n + 1 -/
+        sorry
+    | .var => 
+      .rel LPA.Rel.var (fun i => to_l_term (ts i)) 
+    | .const =>
+      .rel LPA.Rel.const (fun i => to_l_term (ts i)) 
+    | .term =>
+      .rel LPA.Rel.term (fun i => to_l_term (ts i)) 
+    | .clterm =>
+      .rel LPA.Rel.clterm (fun i => to_l_term (ts i)) 
+    | .forml =>
+      .rel LPA.Rel.forml (fun i => to_l_term (ts i)) 
+    | .sentencel =>
+      .rel LPA.Rel.sentencel (fun i => to_l_term (ts i)) 
+    | .formlt =>
+      .rel LPA.Rel.formlt (fun i => to_l_term (ts i)) 
+    | .sentencelt =>
+      .rel LPA.Rel.sentencelt (fun i => to_l_term (ts i)) 
+  | _, .imp ψ π => .imp (subs_r_for_fml r φ ψ) (subs_r_for_fml r φ π)  
+  | _, .all ψ => .all (subs_r_for_fml r φ ψ)
+
+  def subs_r_for_fml_in_set {k : ℕ} : Set (ℒₜ.Fml) → ℒₜ.Relations k → ℒ.Fml → Set (ℒ.Fml) :=
+    sorry
+
+  def subs_r_for_fml_in_finset {k : ℕ} : Finset (ℒₜ.Fml) → ℒₜ.Relations k → ℒ.Fml → Finset (ℒ.Fml) :=
+    sorry
+
+  notation φ"/["R","ψ"]" => subs_r_for_fml φ R ψ
+  notation Γ"/ₛ["R","φ"]" => subs_r_for_fml_in_set Γ R φ
+  notation Γ"/["R","φ"]" => subs_r_for_fml_in_finset Γ R φ
+
+
   def build_relevant_phis {Γ Δ : Finset ℒₜ.Fml} (d : Derivation 𝐓𝐁 Γ Δ) : Finset (ℒ.Fml) := sorry
 
   noncomputable def build_tau (Γ : Finset (ℒ.Fml)) : ℒ.Fml := finset_iSup Γ
 
-  def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} {Δ₂ Γ₂ : Finset (ℒ.Fml)} : (d : Derivation 𝐓𝐁 Δ₁ Γ₁) → Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Δ₂ Γ₂ 
-  | @Derivation.tax  _ _ _ _ _ _ ψ h₁ h₂ => 
+open BoundedFormula
+open PAT 
+#check ℒₜ.Sentence 
+#check SyntaxTheory.syntax_theory
+  lemma tb_either {φ : ℒₜ.Fml} : (φ ∈ 𝐓𝐁) → (φ ∈ 𝐏𝐀𝐓 ∨ (∃ψ : ℒₜ.Sentence, ψ ∈  SyntaxTheory.syntax_theory ∧ (φ = Calculus.bf_empty_to_bf_N ψ)) ∨ (∃ψ : ℒ.Sentence, φ = (T(⌜ψ⌝) ⇔ ψ)))
+  | .pat_axioms h => by
+        
     sorry
-    /- match h₁ with
-    | .pat_axioms h => 
-      sorry
-    | @TB.tarski_biconditionals.syntax_axioms _ => sorry
-    | _ => sorry -/
+  | .syntax_axioms h => sorry
+  | .disquotation => sorry
+
+#check 𝐏𝐀𝐓  
+  noncomputable def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} {Δ₂ Γ₂ : Finset (ℒ.Fml)} : (d : Derivation 𝐓𝐁 Δ₁ Γ₁) → Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Δ₂ Γ₂ 
+  | @Derivation.tax  _ _ _ _ _ _ ψ h₁ h₂ => by
+    
+    apply tb_either at h₁
+    
+    #check ψ 
+    by_cases h₃ : (ψ ∈ 𝐏𝐀𝐓) 
+    
+    sorry
+    
+    sorry
+    
+    
+/-    match h₁ with
+    | .pat_axioms h => sorry
+    | .syntax_axioms h =>  sorry
+    | .disquotation => sorry
+-/
     
     -- use that applying the substitution to (i) 𝐓𝐁 yields 𝐏𝐀 ∪ {x | ∃ ψ_1 ∈ build_relevant_phis (Derivation.tax h₁ h₂), build_tau (build_relevant_phis (Derivation.tax h₁ h₂))/[⌜ψ_1⌝] ⇔ ψ_1 = x}) and (ii) Finset.image ϕ.onFormula Γ for an arbitrary Γ yields Γ.    
   | _ => sorry
 
-  def pa_plus_der {φ : ℒ.Fml} : (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) {} {φ} := @pa_plus_der_general {} {ϕ.onFormula φ} {} {φ} 
-  
+  noncomputable def pa_plus_der {φ : ℒ.Fml} : (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) {} {φ} := @pa_plus_der_general {} {ϕ.onFormula φ} {} {φ} 
  
   lemma pa_proves_all_tau_disq_sents : ∀Γ : Finset (ℒ.Fml), ∀φ ∈ Γ, (Δ Γ₂ : Finset ℒ.Fml) → (((build_tau Γ)/[⌜φ⌝] ⇔ φ) ∈ Δ) → Nonempty (Derivation 𝐏𝐀 Γ₂ Δ) := sorry
 

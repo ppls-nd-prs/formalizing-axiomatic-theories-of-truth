@@ -524,6 +524,24 @@ end TermEncoding
     | .denote => .denote
     | .subs => .subs
 
+  def to_l_func ⦃arity : ℕ⦄ : (ℒₜ.Functions arity) → (ℒ.Functions arity)
+    | .zero => .zero
+    | .succ => .succ
+    | .add => .add
+    | .mult => .mult
+    | .neg => .neg
+    | .conj => .conj
+    | .disj => .disj
+    | .cond => .cond
+    | .forall => .forall
+    | .exists => .exists
+    | .denote => .denote
+    | .subs => .subs
+  
+  def to_l_term {α : Type} : (ℒₜ.Term α) → (ℒ.Term α)
+    | .var f => .var f
+    | .func f ts => .func (to_l_func f) (fun i => to_l_term (ts i))
+
   def to_lt_rel ⦃n : ℕ⦄ : (ℒ.Relations n) → (ℒₜ.Relations n)
       | .var => .var
       | .const => .const
@@ -537,7 +555,7 @@ end TermEncoding
   def ϕ : LHom ℒ ℒₜ where
       onFunction := to_lt_func
       onRelation := to_lt_rel
-
+  
   instance : Coe (Formula ℒ ℕ) (Formula ℒₜ ℕ) where
     coe := LHom.onFormula ϕ
   def lt_set : Set (ℒ.Formula ℕ) → Set (ℒₜ.Formula ℕ) :=
@@ -577,6 +595,14 @@ namespace FirstOrder.Language.BoundedFormula
   def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
     fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
   scoped notation A "/[" t "]" => subst A (g₁ t)
+  def g₂ {n : ℕ} : (Term L (ℕ ⊕ Fin n)) → (ℕ ⊕ Fin n) → (Term L (ℕ ⊕ Fin n)) := fun t : Term L (ℕ ⊕ Fin n) => fun k : (ℕ ⊕ Fin n) => match k with
+  | .inl n =>
+    match n with
+    | 0 => t
+    | .succ n => .var (Sum.inl n)
+  | .inr n => .var (.inr n)
+  scoped notation A "/[" t "]" => subst A (g₂ t)
+  
   def land (f₁ f₂: BoundedFormula L α n) :=
     ∼(f₁ ⟹ ∼f₂)
   scoped notation f₁ "∧'" f₂ => land f₁ f₂
