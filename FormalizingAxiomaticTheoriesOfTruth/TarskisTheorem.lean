@@ -13,6 +13,13 @@ open TermEncoding
 open Calculus
 open PA
 open BoundedFormula
+open Derivations
+open TB
+
+variable {L : Language}
+[∀ n, DecidableEq (L.Functions n)]
+[∀ n, DecidableEq (L.Relations n)]
+[DecidableEq (Formula L ℕ)]
 
 def syntax_and_PA : Theory ℒₜ :=
   syntax_theory ∪ peano_arithmetic
@@ -27,7 +34,6 @@ def unrestricted_TB : Theory ℒₜ :=
 def syntax_and_PA_unres_TB : Theory ℒₜ :=
   syntax_and_PA ∪ unrestricted_TB
 
-
 -- def bicond_elim (Th: unrestricted_TB) (A B : Formula L ℕ ) :
 --   unrestricted_TB ⊢ A ⇔ B := by
 --   let h: unrestricted_TB ⊢ A ⇔ b
@@ -40,16 +46,47 @@ def syntax_and_PA_unres_TB : Theory ℒₜ :=
 --     exact h.elim
 --     apply lemma A, B
 
-def false_formula : Formula ℒₜ ℕ := ⊥
--- theorem liar_paradox : syntax_and_PA_unres_TB ⊢ false_formula := by
---   let φ : BoundedFormula ℒₜ Empty 1 := ∼(T(&0))
---   obtain ⟨ψ, hψ⟩ := diagonal_lemma φ
---   apply Exists.elim
---   have h1 : syntax_and_PA_unres_TB ⊢ (ψ ⟹ ∼T(⌜ψ⌝)) := by
---     sorry
+lemma eqv_trans : ∀Th : Set (Formula L ℕ), ∀(A B C : L.Formula ℕ), Nonempty (Derivation Th {A ⇔ B, C ⇔ B} {A ⇔ C}) := by
+  sorry
 
---   have h2 : syntax_and_PA_unres_TB ⊢ (∼T(⌜ψ⌝) ⟹ ψ) := by
---     sorry
+lemma inconsistency : ∀Th : Set (Formula L ℕ), ∀(A : L.Formula ℕ), Nonempty (Derivation Th {A ⇔ ∼A} {⊥}) := by
+  sorry
+
+def false_formula : Formula ℒₜ ℕ := ⊥
+theorem tarskis_theorem : syntax_and_PA_unres_TB ⊢ false_formula := by
+  -- Step 1: Get the liar formula using the diagonal lemma
+  have liar_formula_exists :
+    ∃ (ψ : Formula ℒₜ Empty),
+      syntax_and_PA_unres_TB ⊢ (∼T(⌜ψ⌝) ⇔ ψ) := by
+      apply Exists.elim
+      apply diagonal_lemma (∼T(&0))
+      sorry
+      sorry
+  obtain ⟨ψ, liar_formula_der⟩ := liar_formula_exists
+
+  have liar_t_instance : syntax_and_PA_unres_TB ⊢ (T(⌜ψ⌝) ⇔ ψ) := by
+    sorry
+  -- Step 3: Derive T(⌜ψ⌝) ⇔ ∼T(⌜ψ⌝)
+  have intermediate_lemma :
+    syntax_and_PA_unres_TB ⊢ (T(⌜ψ⌝) ⇔ ∼T(⌜ψ⌝)) := by
+      obtain ⟨derivation⟩ := eqv_trans syntax_and_PA_unres_TB (T(⌜ψ⌝)) (∼T(⌜ψ⌝)) ψ
+      sorry
+  obtain ⟨d⟩ := inconsistency (th_to_set_form syntax_and_PA_unres_TB) (T(⌜ψ⌝))
+  sorry
+
+
+
+
+
+  -- let φ : BoundedFormula ℒₜ Empty 1 := ∼(T(&0))
+  -- obtain ⟨ψ, hψ⟩ := diagonal_lemma φ
+  -- apply Exists.elim
+  -- have h1 : syntax_and_PA_unres_TB ⊢ (ψ ⟹ ∼T(⌜ψ⌝)) := by
+  --   sorry
+
+  -- have h2 : syntax_and_PA_unres_TB ⊢ (∼T(⌜ψ⌝) ⟹ ψ) := by
+  --   sorry
+
 end LiarParadox
 
 namespace SandBox
