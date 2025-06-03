@@ -95,7 +95,7 @@ namespace Calculus
     Finset.image (relabel shift_free_up) Δ
 
   notation Δ"↑"  => shift_finset_up Δ
-  notation A"↓" => relabel shift_one_down A
+  notation A"↓" => relabel shift_one_down A 
 
   variable [BEq (Formula L ℕ)]
 
