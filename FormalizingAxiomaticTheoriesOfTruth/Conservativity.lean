@@ -100,10 +100,11 @@ namespace Conservativity
   def my_subst (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin n)):= relabel id (subst φ.toFormula (g₁ t))   
   notation φ "////[" t "]" => my_subst φ t
 
-  def subs_t_for_fml : {n : ℕ} →  ℒₜ.BoundedFormula ℕ n → ℒ.BoundedFormula ℕ n → ℒ.BoundedFormula ℕ n
-  | _, .falsum, _  => .falsum
-  |  _, .equal t₁ t₂, _ => .equal (to_l_term t₁) (to_l_term t₂)
-  |  _, .rel R ts, φ =>
+  @[simp]
+  def subs_t_for_fml : {n : ℕ} →  ℒ.BoundedFormula ℕ n → ℒₜ.BoundedFormula ℕ n → ℒ.BoundedFormula ℕ n
+  | _, _, .falsum  => .falsum
+  |  _, _, .equal t₁ t₂ => .equal (to_l_term t₁) (to_l_term t₂)
+  |  _, φ, .rel R ts =>
       match R with
       | .t => (φ////[(to_l_term (ts 0))]) 
       -- replace .t by φ 
@@ -130,21 +131,94 @@ namespace Conservativity
               .rel LPA.Rel.formlt (fun i => to_l_term (ts i)) 
        | .sentencelt =>
               .rel LPA.Rel.sentencelt (fun i => to_l_term (ts i)) 
-  | _, .imp ψ π, φ => .imp (subs_t_for_fml ψ φ) (subs_t_for_fml π φ)  
-  | _, .all ψ, φ => .all (subs_t_for_fml ψ (φ↓))
-
-  def subs_t_for_fml_0 : ℒₜ.Fml → ℒ.Fml → ℒ.Fml :=
+  | _, φ, .imp ψ π => .imp (subs_t_for_fml φ ψ) (subs_t_for_fml φ π)  
+  | _, φ, .all ψ => .all (subs_t_for_fml (φ↓) ψ)
+  
+  @[simp]
+  def subs_t_for_fml_0 : ℒ.Fml → ℒₜ.Fml → ℒ.Fml :=
   @subs_t_for_fml 0 
+  
+  lemma all_falsum_neq_eq : ∀L : Language, ∀α : Type _, BoundedFormula.equal t₁ t₂ ≠ BoundedFormula.falsum := by
+    intro L α 
+    simp
 
-  def subs_r_for_fml_in_set : Set (ℒₜ.Fml) → ℒ.Fml → Set (ℒ.Fml) :=
-    sorry
+  lemma subs_t_for_fml_inj : Function.Injective subs_t_for_fml_0 := by
+    simp[Function.Injective]
+    intro a₁ a₂ h₁
+    cases a₁
+    cases a₂
+    simp
+    case falsum t₁ t₂ => 
+      have step1 : subs_t_for_fml (.equal t₁ t₂) = .equal (to_l_term t₁) (to_l_term t₂) := by 
+      sorry
+      simp[all_falsum_neq_eq] at h₁
+    
+    
+    
 
-  def subs_r_for_fml_in_finset : Finset (ℒₜ.Fml) → ℒ.Fml → Finset (ℒ.Fml) :=
-    sorry
+  @[simp]
+  def subs_r_for_fml_in_set (s : Set ℒₜ.Fml) (φ : ℒ.Fml) : Set (ℒ.Fml) := s.image (subs_t_for_fml_0 φ)     
 
-  notation φ"/ₜ["ψ"]" => subs_t_for_fml_0 φ ψ
+  @[simp]
+  def subs_r_for_fml_in_finset (s : Finset ℒₜ.Fml) (φ: ℒ.Fml)  : Finset (ℒ.Fml) := s.image (subs_t_for_fml_0 φ)
+
+  @[simp]
+    lemma reversible : ∀α : Type, ∀t : ℒ.Term α, to_l_term (ϕ.onTerm t) = t := by
+  intro α t
+  unfold to_l_term LHom.onTerm LHom.onFunction
+  sorry
+    
+
+  notation φ"/ₜ["ψ"]" => subs_t_for_fml_0 ψ φ
   notation Γ"/ₜₛ["φ"]" => subs_r_for_fml_in_set Γ φ
   notation Γ"/ₜ["φ"]" => subs_r_for_fml_in_finset Γ φ
+
+  lemma empty_replacement : ∀φ, ∅/ₜ[φ] = ∅ := by 
+    intro φ 
+    simp
+  
+  lemma in_replacement_finset : ∀s : Finset ℒₜ.Fml, ∀φ : ℒₜ.Fml, ∀ψ : ℒ.Fml, (φ ∈ s) → ((φ/ₜ[ψ]) ∈ (s/ₜ[ψ])) := by
+    intro s φ ψ h
+    simp
+    apply Exists.intro φ (And.intro h (by rfl))
+
+  lemma in_replacement_set : ∀s : Set ℒₜ.Fml, ∀φ : ℒₜ.Fml, ∀ψ : ℒ.Fml, (φ ∈ s) → ((φ/ₜ[ψ]) ∈ (s/ₜₛ[ψ])) := by
+    intro s φ ψ h
+    simp
+    apply Exists.intro φ (And.intro h (by rfl))
+
+  lemma homomorph_replacement : ∀φ, ∀ψ, {ϕ.onFormula φ}/ₜ[ψ] = {φ} := by
+    intro φ ψ
+    simp[LHom.onFormula]
+    cases φ with
+    | falsum => 
+      rfl
+    | equal t₁ t₂ =>   
+      cases t₁ with
+      | var n₁ => 
+        cases t₂ with
+        | var n₂ =>
+          rfl
+        | func f ts => 
+          cases f with
+          | succ =>
+            simp
+            sorry
+            -- problems with term equality in recursion case
+            /-match (ts i) with
+            | .var v => sorry
+            | .func f₂ ts₂ => sorry-/
+          | _ => sorry
+      | func f ts => 
+        cases t₂ with
+        | var n₂ => 
+          simp[LHom.onFormula]  
+          sorry
+        | func f₂ ts₂ =>
+          simp[LHom.onFormula]
+          sorry
+        
+    | _ => sorry
 
 
   def build_relevant_phis {Γ Δ : Finset ℒₜ.Fml} (d : Derivation 𝐓𝐁 Γ Δ) : Finset (ℒ.Fml) := sorry
@@ -161,20 +235,17 @@ open PAT
     sorry
   | .syntax_axioms h => sorry
   | .disquotation => sorry
-
-  lemma in_replacement : ∀s : Finset ℒₜ.Fml, ∀φ : ℒₜ.Fml, ∀ψ : ℒ.Fml, (φ ∈ s) → ((φ/ₜ[ψ]) ∈ (s/ₜ[ψ])) := sorry
-
   
   noncomputable def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} : (d : Derivation 𝐓𝐁 Δ₁ Γ₁) → (Derivation (𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d)]) (Δ₁/ₜ[build_tau (build_relevant_phis d)]) (Γ₁/ₜ[build_tau (build_relevant_phis d)]))
   | @Derivation.tax _ _ _ _ _ _ ψ h₁ h₂ => by
-    
-    apply tb_either at h₁
-    
+   
     #check ψ 
     by_cases h₃ : (ψ ∈ 𝐏𝐀𝐓) 
+    #check 𝐏𝐀𝐓 
+--    #check in_replacement 𝐏𝐀𝐓 ψ (build_tau (build_relevant_phis (Derivation.tax h₁ h₂)))
+    apply (in_replacement_set 𝐏𝐀𝐓 ψ (build_tau (build_relevant_phis (Derivation.tax h₁ h₂)))) at h₃
     
     sorry
-    
     sorry
     
     
@@ -188,23 +259,29 @@ open PAT
   | .left_conjunction A B S d₁ h₁ h₂ h₃ => by
 
    apply Derivation.left_conjunction (A/ₜ[build_tau (build_relevant_phis d₁)]) (B/ₜ[build_tau (build_relevant_phis d₁)]) (S/ₜ[build_tau (build_relevant_phis d₁)]) (pa_plus_der_general d₁) _ _ _  
-   apply in_replacement 
+   apply (in_replacement_finset S A (build_tau (build_relevant_phis d₁)))
    exact h₁
-   apply in_replacement
+   
+   apply (in_replacement_finset S B (build_tau (build_relevant_phis d₁))) 
    exact h₂
+   
+   simp[h₃, Finset.image_union, Finset.image_sdiff]
+   
+   
+   
+   
+   
+   
+   -- 
    sorry
   | _ => sorry
-
-  lemma empty_replacement : ∀φ, ∅/ₜ[φ] = ∅ := by sorry
-  
-  lemma homomorph_replacement : ∀φ, ∀ψ, {ϕ.onFormula φ}/ₜ[ψ] = {φ} := by sorry
   
   lemma tb_replacement {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : 𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d)] = (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) := sorry
 
   noncomputable def pa_plus_der {φ : ℒ.Fml} : (d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d₁))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d₁)}) {} {φ} := by
   intro d₂
   apply @pa_plus_der_general {} {ϕ.onFormula φ} at d₂
-  simp[empty_replacement, homomorph_replacement, tb_replacement] at d₂
+  simp only [empty_replacement, homomorph_replacement, tb_replacement] at d₂ 
   exact d₂  
  
   lemma pa_proves_all_tau_disq_sents : ∀Γ : Finset (ℒ.Fml), ∀φ ∈ Γ, (Δ Γ₂ : Finset ℒ.Fml) → (((build_tau Γ)/[⌜φ⌝] ⇔ φ) ∈ Δ) → Nonempty (Derivation 𝐏𝐀 Γ₂ Δ) := sorry
