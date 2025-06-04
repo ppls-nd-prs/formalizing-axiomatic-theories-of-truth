@@ -145,13 +145,14 @@ namespace Conservativity
   lemma subs_t_for_fml_inj : Function.Injective subs_t_for_fml_0 := by
     simp[Function.Injective]
     intro a₁ a₂ h₁
-    cases a₁
+    /-cases a₁
     cases a₂
     simp
     case falsum t₁ t₂ => 
       have step1 : subs_t_for_fml (.equal t₁ t₂) = .equal (to_l_term t₁) (to_l_term t₂) := by 
       sorry
-      simp[all_falsum_neq_eq] at h₁
+      simp[all_falsum_neq_eq] at h₁-/
+    sorry
     
     
     
@@ -284,7 +285,32 @@ open PAT
   simp only [empty_replacement, homomorph_replacement, tb_replacement] at d₂ 
   exact d₂  
  
-  lemma pa_proves_all_tau_disq_sents : ∀Γ : Finset (ℒ.Fml), ∀φ ∈ Γ, (Δ Γ₂ : Finset ℒ.Fml) → (((build_tau Γ)/[⌜φ⌝] ⇔ φ) ∈ Δ) → Nonempty (Derivation 𝐏𝐀 Γ₂ Δ) := sorry
+  def pa_proves_all_tau_disq_sents : ∀Γ : Finset (ℒ.Fml), ∀φ ∈ Γ, (Δ Γ₂ : Finset ℒ.Fml) → (((build_tau Γ)/[⌜φ⌝] ⇔ φ) ∈ Δ) → Nonempty (Derivation 𝐏𝐀 Γ₂ Δ) := by
+    intro Γ φ Δ Γ₂ h₁ h₂
+    induction Γ using Finset.induction_on with
+    | empty => sorry
+    | insert b => 
+      
+      sorry
+
+  example : ∀Γ : Finset ℒ.Fml, ∀φ ∈ Γ, 𝐏𝐀 ⊢ (build_tau Γ)/[⌜φ⌝] ⇔ φ := by
+    intro Γ φ h
+    induction Γ using Finset.induction_on with
+    | empty => sorry
+    | insert b c => 
+      simp
+      let sing (a) : Finset ℒ.Fml := {a} 
+      have step1 {a : ℒ.Fml} {s} : insert a s = (sing a) ∪ s := by
+        rfl
+      simp[step1,sing] at h
+      cases h with
+      | inl => 
+        simp[build_tau,finset_iSup]
+
+        sorry
+      | inr => 
+        
+        sorry
 
   noncomputable def pa_der_general {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} {Γ Δ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ Δ) → (Derivation 𝐏𝐀 Γ Δ)
     | @Derivation.tax _ _ _ _ _ _ ψ h₁ h₂ => by
