@@ -24,15 +24,23 @@ variable {L : Language}
 def syntax_and_PA : Theory ℒₜ :=
   syntax_theory ∪ peano_arithmetic
 
-axiom diagonal_lemma {syntax_and_PA_unres_TB} (φ : BoundedFormula ℒₜ Empty 1) :
-  let φ := φ.toFormula.relabel (fun x => match x with | Sum.inr i => i)
-  ∃ (ψ : Formula ℒₜ ℕ), syntax_and_PA_unres_TB ⊢ (ψ ⇔ φ /[⌜ψ⌝])
-
 def unrestricted_TB : Theory ℒₜ :=
   { φ | ∃ ψ : Formula ℒₜ ℕ, φ = (T(⌜ψ⌝) ⇔ ψ) }
 
 def syntax_and_PA_unres_TB : Theory ℒₜ :=
   syntax_and_PA ∪ unrestricted_TB
+
+-- axiom diagonal_lemma (φ : BoundedFormula ℒₜ Empty 1) :
+--     ∃ (ψ : Formula ℒₜ ℕ),
+--     syntax_and_PA_unres_TB ⊢ (ψ ⇔ (φ.toFormula.relabel (fun x => match x with
+--   | Sum.inr i => i
+--   | Sum.inl e => nomatch e)) /[⌜ψ⌝])
+
+axiom diagonal_lemma
+  (φ : BoundedFormula ℒₜ Empty 1) :
+  ∃ (ψ : Formula ℒₜ ℕ),
+    syntax_and_PA_unres_TB ⊢
+      (ψ ⇔ (φ /[L_T.numeral (formula_N_tonat ψ)]))
 
 -- def bicond_elim (Th: unrestricted_TB) (A B : Formula L ℕ ) :
 --   unrestricted_TB ⊢ A ⇔ B := by
@@ -56,12 +64,21 @@ def false_formula : Formula ℒₜ ℕ := ⊥
 theorem tarskis_theorem : syntax_and_PA_unres_TB ⊢ false_formula := by
   -- Step 1: Get the liar formula using the diagonal lemma
   have liar_formula_exists :
-    ∃ (ψ : Formula ℒₜ Empty),
-      syntax_and_PA_unres_TB ⊢ (∼T(⌜ψ⌝) ⇔ ψ) := by
-      apply Exists.elim
-      apply diagonal_lemma (∼T(&0))
-      sorry
-      sorry
+    ∃ (ψ : Formula ℒₜ ℕ),
+      syntax_and_PA_unres_TB ⊢ (ψ ⇔ ∼T(⌜ψ⌝)) := by
+      -- apply Exists.elim
+      -- let φ : (BoundedFormula.not BoundedFormula.rel Rel.t ![(&0)])
+      -- apply diagonal_lemma φ
+      -- sorry
+      let φ : BoundedFormula ℒₜ Empty 1 := ∼(T(&0))
+      apply diagonal_lemma φ
+      -- obtain ⟨ψ,hψ⟩ := diagonal_lemma φ
+      -- use ψ
+      -- rw [th_to_set_form]
+
+  -- rw [this] at hψ
+  -- use ψ
+  -- exact hψ
   obtain ⟨ψ, liar_formula_der⟩ := liar_formula_exists
 
   have liar_t_instance : syntax_and_PA_unres_TB ⊢ (T(⌜ψ⌝) ⇔ ψ) := by
