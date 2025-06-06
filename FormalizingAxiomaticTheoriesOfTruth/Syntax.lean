@@ -136,7 +136,7 @@ namespace Languages
     scoped notation "Var(" x ")" => BoundedFormula.rel Rel.var ![x]
     scoped notation "Const(" c ")" => BoundedFormula.rel Rel.const ![c]
     scoped notation "Trm(" t ")" => BoundedFormula.rel Rel.term ![t]
-    scoped notation "ClosedTerm(" t")" => BoundedFormula.rel Rel.clterm ![t]
+   scoped notation "ClosedTerm(" t")" => BoundedFormula.rel Rel.clterm ![t]
     scoped notation "FormL(" t ")" => BoundedFormula.rel Rel.forml ![t]
     scoped notation "SentenceL(" t ")" => BoundedFormula.rel Rel.sentencel ![t]
     scoped notation "FormLT(" t ")" => BoundedFormula.rel Rel.formlt ![t]
@@ -340,7 +340,7 @@ namespace Languages
     scoped notation "⬝∀" n => Term.func Func.forall ![n]
     scoped notation "⬝∃" n => Term.func Func.exists ![n]
     scoped notation "⬝°" n  => Term.func Func.denote ![n]
-    scoped notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n, x, t]
+    scoped notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n,x,t]
     scoped notation "Var(" x ")" => BoundedFormula.rel L_T.Rel.var ![x]
     scoped notation "Const(" c ")" => BoundedFormula.rel L_T.Rel.const ![c]
     scoped notation "Trm(" t ")" => BoundedFormula.rel Rel.term ![t]
@@ -480,21 +480,15 @@ namespace Languages
 namespace TermEncoding
   variable {L : Language}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)]
   /-- Encodes terms as natural numbers -/
-  def term_tonat_N : Term L ℕ → ℕ :=
+  def term_tonat : Term L (ℕ ⊕ Fin 0) → ℕ :=
     fun t => Encodable.encodeList (Term.listEncode t)
-  def term_tonat_Empty : Term L (Empty ⊕ Fin 0) → ℕ :=
-    fun t => Encodable.encodeList (Term.listEncode t)
-  /-- Encodes BoundedFormulas as natural numbers -/
-  def formula_N_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
-    fun f => Encodable.encodeList (BoundedFormula.listEncode f)
-  /-- Encodes BoundedFormulas as natural numbers -/
-  def formula_Empty_tonat : BoundedFormula L Empty 0 → ℕ :=
+
+ /-- Encodes BoundedFormulas as natural numbers -/
+  def formula_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
-  scoped notation "⌜" φ "⌝" => L_T.numeral (formula_N_tonat φ)
-  scoped notation "⌜" φ "⌝" => L_T.numeral (formula_Empty_tonat φ)
-  scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_N t₁)
-  scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat_Empty t₁)
+  scoped notation "⌜" φ "⌝" => L_T.numeral (formula_tonat φ)
+  scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat t₁)
 
 end TermEncoding
 
@@ -549,6 +543,27 @@ namespace FirstOrder.Language.BoundedFormula
   def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
     fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
   scoped notation A "/[" t "]" => subst A (g₁ t)
+
+  def g₂ {n : ℕ} (t :  L.Term (ℕ ⊕ Fin n)) (α :  (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin n) :=
+  match n with   
+  | 0 => 
+    match α with
+    | .inl v =>
+      match v with
+      | 0 => t
+      | .succ n => Term.var (.inl n)
+    | .inr v => by
+      cases v with
+      | mk val isLt => simp at isLt
+  | .succ k => 
+    match α with
+    | .inl v => Term.var (.inl v)
+    | .inr v => 
+      ite (v = n) t (Term.var (.inr v))
+
+  def my_subst (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin n)):= relabel id (subst φ.toFormula (g₂ t))   
+  notation φ "////[" t "]" => my_subst φ t
+
   def land (f₁ f₂: BoundedFormula L α n) :=
     ∼(f₁ ⟹ ∼f₂)
   scoped notation f₁ "∧'" f₂ => land f₁ f₂
@@ -565,38 +580,38 @@ open LPA
 open BoundedFormula
 open TermEncoding
 
-def neg_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def neg_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
-def conj_repres (φ ψ : Formula ℒ ℕ): Sentence ℒₜ :=
+def conj_repres (φ ψ : Formula ℒ ℕ): Formula ℒₜ ℕ :=
   (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
-def disj_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def disj_repres (φ ψ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   (⌜φ⌝ ⬝∨ ⌜ψ⌝) =' (⌜φ ∨' ψ⌝)
-def cond_repres (φ ψ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def cond_repres (φ ψ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   (⌜φ⌝ ⬝⟹ ⌜ψ⌝) =' (⌜φ ⟹ ψ⌝)
-def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
+def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒₜ ℕ :=
   (⬝∀ ⌜φ⌝) =' (⌜∀'φ⌝)
-def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Sentence ℒₜ :=
+def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒₜ ℕ :=
   (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
-def subs_repres (φ : BoundedFormula ℒ ℕ 1) (x : Term ℒ ℕ) (t : Term ℒ ℕ ) : Sentence ℒₜ :=
-  Subs(⌜φ⌝, ⌜x⌝, ⌜t⌝) =' ⌜φ /[ t ]⌝
-def term_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def subs_repres (φ : BoundedFormula ℒ ℕ 0) (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
+  Subs(⌜φ⌝, ⌜(@Term.var ℒ (ℕ ⊕ Fin 0) (.inl 0))⌝, ⌜t⌝) =' ⌜φ////[t]⌝
+def term_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   Trm( ⌜φ⌝ )
-def formulaL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def formulaL_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   FormL( ⌜φ⌝ )
-def formulaL_T_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def formulaL_T_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   FormLT( ⌜φ⌝ )
-def sentenceL_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def sentenceL_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   SentenceL( ⌜φ⌝ )
-def sentenceL_T_respres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def sentenceL_T_respres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
-  ClosedTerm( ⌜t⌝ )
-def var_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def closed_term_repres (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
+  ClosedTerm(⌜t⌝)
+def var_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   Var( ⌜φ⌝ )
-def const_repres (φ : Formula ℒ ℕ) : Sentence ℒₜ :=
+def const_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
   Const( ⌜φ⌝ )
-def denote_repres (t : Term ℒ (Empty ⊕ Fin 0)) : Sentence ℒₜ :=
-  ClosedTerm(⌜t⌝) ⟹ ((⬝°(⌜t⌝)) =' t)
+def denote_repres (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
+  ClosedTerm(⌜t⌝) ⟹ ((⬝°(⌜t⌝)) =' (ϕ.onTerm t))
 
 end SyntaxAxioms
 
@@ -604,7 +619,7 @@ namespace SyntaxTheory
 open Languages
 open L_T
 open SyntaxAxioms
-inductive syntax_theory : Theory ℒₜ where
+inductive syntax_theory : Set (ℒₜ.Formula ℕ) where
   | negation_representation {φ} : syntax_theory (neg_repres φ)
   | conjunction_representation {φ ψ} : syntax_theory (conj_repres φ ψ)
   | disjunction_representation {φ ψ} : syntax_theory (disj_repres φ ψ)

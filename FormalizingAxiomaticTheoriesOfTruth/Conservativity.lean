@@ -10,19 +10,19 @@ namespace PA
   open BoundedFormula
 
   variable{L : Language}
-  def replace_bv_with_non_var_term (f : BoundedFormula L Empty 1) (t : Term L Empty) : Sentence L :=
-    subst f.toFormula (fun _ : Empty ⊕ Fin 1 => t)
+  def replace_bv_with_non_var_term (f : BoundedFormula L ℕ 1) (t : Term L ℕ) : L.Formula ℕ :=
+    subst f.toFormula (fun i : ℕ ⊕ Fin 1 => 
+      match i with
+      | .inl v => Term.var v
+      | .inr _ => t)
   notation A "//[" t "]" => replace_bv_with_non_var_term A t
-  def replace_bv_with_bv_term  (f : BoundedFormula L Empty 1) (t : Term L (Empty ⊕ Fin 1)) : BoundedFormula L Empty 1 :=
-    (relabel id (subst (f.toFormula) (fun _ : (Empty ⊕ Fin 1) => t)))
-  notation A "///[" t "]" => replace_bv_with_bv_term A t
 
   /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒ Empty 1) : Sentence ℒ :=
-    ∼ (f//[LPA.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
+  def induction (f : BoundedFormula ℒ ℕ 1) : ℒ.Formula ℕ :=
+    ∼ (f//[LPA.null] ⟹ (∼(∀'(f ⟹ f////[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
-  inductive peano_arithmetic : Theory ℒ where
+  inductive peano_arithmetic : Set (ℒ.Formula ℕ) where
     | first : peano_arithmetic (∀' ∼(LPA.null =' S(&0)))
     | second :peano_arithmetic (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_arithmetic (∀' ((&0 add LPA.null) =' &0))
@@ -39,11 +39,11 @@ namespace PAT
 open Languages
   open L_T
  /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒₜ Empty 1) : Sentence ℒₜ :=
-    ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f///[S(&0)])))) ⟹ ∀'f
+  def induction (f : BoundedFormula ℒₜ ℕ 1) : ℒₜ.Formula ℕ :=
+    ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f////[S(&0)])))) ⟹ ∀'f
 
   /-- Peano arithemtic -/
-  inductive peano_arithmetic_t : Theory ℒₜ where
+  inductive peano_arithmetic_t : Set (ℒₜ.Formula ℕ) where
     | first : peano_arithmetic_t (∀' ∼(L_T.null =' S(&0)))
     | second :peano_arithmetic_t (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_arithmetic_t (∀' ((&0 add L_T.null) =' &0))
@@ -63,10 +63,10 @@ open PAT
 open SyntaxTheory
 open TermEncoding
 
-inductive tarski_biconditionals : Theory ℒₜ where
+inductive tarski_biconditionals : Set (ℒₜ.Formula ℕ) where
   | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
   | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
-  | disquotation {φ : Sentence ℒ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
+  | disquotation {φ : ℒ.Formula ℕ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
 
 notation "𝐓𝐁" => tarski_biconditionals
 end TB
