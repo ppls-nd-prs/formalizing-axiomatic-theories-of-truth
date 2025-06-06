@@ -9,17 +9,9 @@ namespace PA
   open L_T
   open BoundedFormula
 
-  variable{L : Language}
-  def replace_bv_with_non_var_term (f : BoundedFormula L ℕ 1) (t : Term L ℕ) : L.Formula ℕ :=
-    subst f.toFormula (fun i : ℕ ⊕ Fin 1 => 
-      match i with
-      | .inl v => Term.var v
-      | .inr _ => t)
-  notation A "//[" t "]" => replace_bv_with_non_var_term A t
-
   /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒ ℕ 1) : ℒ.Formula ℕ :=
-    ∼ (f//[LPA.null] ⟹ (∼(∀'(f ⟹ f////[S(&0)])))) ⟹ ∀'f
+  def induction (f : BoundedFormula ℒ ℕ 0) : ℒ.Formula ℕ :=
+    ∼ (f////[LPA.null] ⟹ (∼(∀'(f////[&0] ⟹ f////[S(&0)])))) ⟹ ∀'f////[&0]
 
   /-- Peano arithemtic -/
   inductive peano_arithmetic : Set (ℒ.Formula ℕ) where
@@ -39,8 +31,8 @@ namespace PAT
 open Languages
   open L_T
  /-- The induction function for ℒₚₐ -/
-  def induction (f : BoundedFormula ℒₜ ℕ 1) : ℒₜ.Formula ℕ :=
-    ∼ (f//[L_T.null] ⟹ (∼(∀'(f ⟹ f////[S(&0)])))) ⟹ ∀'f
+  def induction (f : BoundedFormula ℒₜ ℕ 0) : ℒₜ.Formula ℕ :=
+    ∼ (f////[L_T.null] ⟹ (∼(∀'(f////[&0] ⟹ f////[S(&0)])))) ⟹ ∀'f////[&0]
 
   /-- Peano arithemtic -/
   inductive peano_arithmetic_t : Set (ℒₜ.Formula ℕ) where
