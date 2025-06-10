@@ -124,11 +124,17 @@ namespace Calculus
   def emptyFormList : Finset (Formula L ℕ) := ∅
   def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Finset (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
-  notation Th " ⊢ " Γ Δ => sequent_provable Th Γ Δ
+  notation Th " ⊢ " Γ " ⟶ " Δ => sequent_provable Th Γ Δ
   def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
     sequent_provable Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
 
+  section MetaRules
+    variable {L : Language}[∀n, DecidableEq (L.Functions n)][∀n, DecidableEq (L.Relations n)]
+    axiom left_weakening : ∀Th : Set (L.Formula ℕ), ∀Γ Δ : Finset (L.Formula ℕ), ∀φ : L.Formula ℕ, (Th ⊢ Γ ⟶ Δ) → (Th ⊢ {φ} ∪ Γ ⟶ Δ)
+
+
+  end MetaRules
 end Calculus
 
 namespace Derivations
