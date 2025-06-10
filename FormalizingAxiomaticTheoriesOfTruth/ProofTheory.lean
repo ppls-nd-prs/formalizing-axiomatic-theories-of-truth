@@ -122,9 +122,13 @@ namespace Calculus
     | cut {Th Γ Δ} (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ
 
   def emptyFormList : Finset (Formula L ℕ) := ∅
+
+  @[simp]
   def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Finset (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
   notation Th " ⊢ " Γ " ⟶ " Δ => sequent_provable Th Γ Δ
+
+  @[simp]
   def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
     sequent_provable Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
