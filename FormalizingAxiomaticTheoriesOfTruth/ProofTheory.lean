@@ -14,8 +14,8 @@ namespace Calculus
   /-- Shifts all variable references one down so one is pushed into
   the to-be-bound category -/
   def shift_one_down : ℕ → ℕ ⊕ Fin 1
-    | .zero => .inr Nat.zero
-    | .succ n => .inl n
+    | .zero => .inr 0
+    | .succ n   => .inl n
 
   /-- Shifts all free variables (that are not to be bound) up by one-/
   def shift_free_up : ℕ → ℕ ⊕ Fin 0
@@ -103,6 +103,9 @@ namespace Calculus
   inductive Derivation : (Set (Formula L ℕ)) → (Finset (Formula L ℕ)) → (Finset (Formula L ℕ)) → Type _ where
     | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : ∃f, f ∈ Γ ∧ f ∈ Δ) : Derivation Th Γ Δ
+    | iax {Th Γ Δ} (t : L.Term (ℕ ⊕ Fin 0)) (h : t =' t ∈ Δ) : Derivation Th Γ Δ
+    | i_two_for_one {Th Γ Δ} (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A////[t₁] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A////[t₁] ∉ Δ) (h₂ : A////[t₂] ∈ Δ) : Derivation Th Γ Δ
+    | i_one_for_two {Th Γ Δ} (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A////[t₂] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A////[t₁] ∉ Δ) (h₂ : A////[t₂] ∈ Δ) : Derivation Th Γ Δ
     | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
     | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
     | left_implication (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation Th S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}): Derivation Th Γ Δ
