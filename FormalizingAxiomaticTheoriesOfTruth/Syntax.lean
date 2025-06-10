@@ -151,6 +151,11 @@ namespace Languages
     def null : Term signature α :=
       zero
 
+
+    def numeral : ℕ → Term signature α
+      | .zero => zero
+      | .succ n => S(numeral n)
+
     section Coding
       variable {k : ℕ}
       def Func_enc : signature.Functions k → ℕ
@@ -649,74 +654,64 @@ open LPA
 open BoundedFormula
 open TermEncoding
 
+scoped notation "⌜"φ"⌝" => LPA.numeral (formula_tonat φ)
+scoped notation "⌜"t"⌝" => LPA.numeral (term_tonat t)
 def neg_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
-def conj_repres (φ ψ : Formula ℒ ℕ): Formula ℒₜ ℕ :=
+def conj_repres (φ ψ : Formula ℒ ℕ): Formula ℒ ℕ :=
   (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
-def disj_repres (φ ψ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def disj_repres (φ ψ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   (⌜φ⌝ ⬝∨ ⌜ψ⌝) =' (⌜φ ∨' ψ⌝)
-def cond_repres (φ ψ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def cond_repres (φ ψ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   (⌜φ⌝ ⬝⟹ ⌜ψ⌝) =' (⌜φ ⟹ ψ⌝)
-def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒₜ ℕ :=
+def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
   (⬝∀ ⌜φ⌝) =' (⌜∀'φ⌝)
-def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒₜ ℕ :=
+def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
   (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
-def subs_repres (φ : BoundedFormula ℒ ℕ 0) (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
+def subs_repres (φ : BoundedFormula ℒ ℕ 0) (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒ ℕ :=
   Subs(⌜φ⌝, ⌜(@Term.var ℒ (ℕ ⊕ Fin 0) (.inl 0))⌝, ⌜t⌝) =' ⌜φ////[t]⌝
-def term_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def term_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   Trm( ⌜φ⌝ )
-def formulaL_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def formulaL_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   FormL( ⌜φ⌝ )
-def formulaL_T_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def formulaL_T_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   FormLT( ⌜φ⌝ )
-def sentenceL_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def sentenceL_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   SentenceL( ⌜φ⌝ )
-def sentenceL_T_respres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def sentenceL_T_respres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
+def closed_term_repres (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒ ℕ :=
   ClosedTerm(⌜t⌝)
-def var_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def var_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   Var( ⌜φ⌝ )
-def const_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def const_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   Const( ⌜φ⌝ )
-def denote_repres (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒₜ ℕ :=
-  ClosedTerm(⌜t⌝) ⟹ ((⬝°(⌜t⌝)) =' (ϕ.onTerm t))
+def denote_repres (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒ ℕ :=
+  ClosedTerm(⌜t⌝) ⟹ ((⬝°(⌜t⌝)) =' t)
 
 end SyntaxAxioms
 
 namespace SyntaxTheory
 open Languages
-open L_T
+open LPA
 open SyntaxAxioms
-inductive syntax_theory : Set (ℒₜ.Formula ℕ) where
-  | negation_representation {φ} : syntax_theory (neg_repres φ)
-  | conjunction_representation {φ ψ} : syntax_theory (conj_repres φ ψ)
-  | disjunction_representation {φ ψ} : syntax_theory (disj_repres φ ψ)
-  | conditional_representation {φ ψ} : syntax_theory (cond_repres φ ψ)
-  | forall_representation {φ} : syntax_theory (forall_repres φ)
-  | exists_representation {φ} : syntax_theory (exists_repres φ)
-  | term_representation {φ} : syntax_theory (term_repres φ)
-  | formula_L_representation {φ} : syntax_theory (formulaL_repres φ)
-  | formula_L_T_representation {φ} : syntax_theory (formulaL_T_repres φ)
-  | sentence_L_representation {φ} : syntax_theory (sentenceL_repres φ)
-  | sentence_L_T_representation {φ} : syntax_theory (sentenceL_T_respres φ)
-  | closed_term_representation {φ} : syntax_theory (closed_term_repres φ)
-  | variable_representation {φ} : syntax_theory (var_repres φ)
-  | constant_representation {φ} : syntax_theory (const_repres φ)
-  | denote_representation {t} : syntax_theory (denote_repres t)
+inductive syntax_theory_l : Set (ℒ.Formula ℕ) where
+  | negation_representation {φ} : syntax_theory_l (neg_repres φ)
+  | conjunction_representation {φ ψ} : syntax_theory_l (conj_repres φ ψ)
+  | disjunction_representation {φ ψ} : syntax_theory_l (disj_repres φ ψ)
+  | conditional_representation {φ ψ} : syntax_theory_l (cond_repres φ ψ)
+  | forall_representation {φ} : syntax_theory_l (forall_repres φ)
+  | exists_representation {φ} : syntax_theory_l (exists_repres φ)
+  | term_representation {φ} : syntax_theory_l (term_repres φ)
+  | formula_L_representation {φ} : syntax_theory_l (formulaL_repres φ)
+  | formula_L_T_representation {φ} : syntax_theory_l (formulaL_T_repres φ)
+  | sentence_L_representation {φ} : syntax_theory_l (sentenceL_repres φ)
+  | sentence_L_T_representation {φ} : syntax_theory_l (sentenceL_T_respres φ)
+  | closed_term_representation {φ} : syntax_theory_l (closed_term_repres φ)
+  | variable_representation {φ} : syntax_theory_l (var_repres φ)
+  | constant_representation {φ} : syntax_theory_l (const_repres φ)
+  | denote_representation {t} : syntax_theory_l (denote_repres t)
 
-section LSyntaxTheory
-  open LPA
-  def neg_repres_no_t : {n : ℕ} → (φ : ℒ.BoundedFormula ℕ n) → ¬contains_T (neg_repres φ)
-  def syntax_no_t : φ ∈ syntax_theory → ¬contains_T φ
-    | @syntax_theory.negation_representation ψ => by
-      have step1 : ¬contains_T (neg_repres ψ) := by
-        simp[neg_repres]
-        intro h
-        simp[contains_T] at h
-      
-      sorry
-    | _ => sorry
-  lemma all_syntax_no_t : ∀φ ∈ syntax_theory, ¬contains_T φ := by sorry
-end LSyntaxTheory
+open L_T
+def syntax_theory : Set (ℒₜ.Formula ℕ) := syntax_theory_l.image ϕ.onFormula
 end SyntaxTheory

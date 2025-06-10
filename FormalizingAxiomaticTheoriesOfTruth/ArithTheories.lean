@@ -19,7 +19,7 @@ namespace PA
     | fifth : peano_axioms (∀' ((&0 times LPA.null) =' LPA.null))
     | sixth : peano_axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
 
-  def peano_arithmetic : Set (ℒ.Formula ℕ) := peano_axioms ∪ {φ : ℒ.Formula ℕ | ∃ψ : ℒ.Formula ℕ, φ = ∼(ψ////[LPA.null] ⟹ (∼(∀'(ψ////bv[&0] ⟹ ψ////bv[S(&0)])))) ⟹ ∀'ψ////bv[&0]} ∪ syntax_theory 
+  def peano_arithmetic : Set (ℒ.Formula ℕ) := peano_axioms ∪ {φ : ℒ.Formula ℕ | ∃ψ : ℒ.Formula ℕ, φ = ∼(ψ////[LPA.null] ⟹ (∼(∀'(ψ////bv[&0] ⟹ ψ////bv[S(&0)])))) ⟹ ∀'ψ////bv[&0]} ∪ syntax_theory_l
   
   notation "𝐏𝐀" => peano_arithmetic
 
@@ -29,8 +29,9 @@ namespace PAT
 open Languages
   open PA
   open L_T
+  open SyntaxTheory
   
-  def pat : Set (ℒₜ.Formula ℕ) := (peano_axioms.image ϕ.onFormula) ∪ {φ : ℒₜ.Formula ℕ | ∃ψ : ℒₜ.Formula ℕ, φ = ∼(ψ////[L_T.null] ⟹ (∼(∀'(ψ////bv[&0] ⟹ ψ////bv[S(&0)])))) ⟹ ∀'ψ////bv[&0]}
+  def pat : Set (ℒₜ.Formula ℕ) := (peano_axioms.image ϕ.onFormula) ∪ {φ : ℒₜ.Formula ℕ | ∃ψ : ℒₜ.Formula ℕ, φ = ∼(ψ////[L_T.null] ⟹ (∼(∀'(ψ////bv[&0] ⟹ ψ////bv[S(&0)])))) ⟹ ∀'ψ////bv[&0]} ∪ syntax_theory
 
   notation "𝐏𝐀𝐓" => pat
 end PAT
@@ -45,11 +46,6 @@ open SyntaxTheory
 open TermEncoding
 
   def tarski_biconditionals : Set (ℒₜ.Formula ℕ) := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Formula ℕ, φ = T(⌜ψ⌝) ⇔ ψ} 
-
-inductive tarski_biconditionals : Set (ℒₜ.Formula ℕ) where
-  | pat_axioms {φ} : peano_arithmetic_t φ → tarski_biconditionals φ
-  | syntax_axioms {φ} : syntax_theory φ → tarski_biconditionals φ
-  | disquotation {φ : ℒ.Formula ℕ} : tarski_biconditionals (T(⌜φ⌝) ⇔ φ)
 
 notation "𝐓𝐁" => tarski_biconditionals
 end TB
