@@ -359,6 +359,40 @@ namespace Languages
       | .zero => zero
       | .succ n => S(numeral n)
 
+  /-- Gives whether a BoundedFormula contains a T predicate-/
+  @[simp] def contains_T {n} : ℒₜ.BoundedFormula ℕ n → Prop
+  | .rel L_T.Rel.t _ => true
+  | .imp f₁ f₂ => contains_T f₁ ∨ contains_T f₂
+  | .all f => contains_T f
+  | _ => false
+
+  /-- Proves that contains_T is a decidable predicate-/
+  def decPred_contains_T : {n : ℕ} → (a : ℒₜ.BoundedFormula ℕ n) → Decidable (contains_T a)
+  | _, .falsum => by
+    apply Decidable.isFalse
+    simp
+  | _, .equal t₁ t₂ => by
+    apply Decidable.isFalse
+    simp
+  | _, .rel R ts => by cases R with
+    | t =>
+      apply Decidable.isTrue
+      simp
+    | _ =>
+      apply Decidable.isFalse
+      simp
+  | _, .imp f₁ f₂ => by
+    simp[contains_T]
+    apply decPred_contains_T at f₁
+    apply decPred_contains_T at f₂
+    apply instDecidableOr
+  | _, .all f => by
+    apply decPred_contains_T at f
+    simp
+    exact f
+
+  instance : DecidablePred (@contains_T 0) := decPred_contains_T
+
     section Coding
       variable {k : ℕ}
       def Func_enc : signature.Functions k → ℕ
@@ -597,7 +631,7 @@ namespace FirstOrder.Language.BoundedFormula
 
   @[simp]
   def my_subst_2 (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin (n + 1))) := relabel id (subst φ.toFormula (g₃ t))   
-  notation φ "////[" t "]" => my_subst_2 φ t
+  notation φ "////bv[" t "]" => my_subst_2 φ t
 
   def land (f₁ f₂: BoundedFormula L α n) :=
     ∼(f₁ ⟹ ∼f₂)
@@ -615,7 +649,7 @@ open LPA
 open BoundedFormula
 open TermEncoding
 
-def neg_repres (φ : Formula ℒ ℕ) : Formula ℒₜ ℕ :=
+def neg_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
 def conj_repres (φ ψ : Formula ℒ ℕ): Formula ℒₜ ℕ :=
   (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
@@ -670,4 +704,19 @@ inductive syntax_theory : Set (ℒₜ.Formula ℕ) where
   | variable_representation {φ} : syntax_theory (var_repres φ)
   | constant_representation {φ} : syntax_theory (const_repres φ)
   | denote_representation {t} : syntax_theory (denote_repres t)
+
+section LSyntaxTheory
+  open LPA
+  def neg_repres_no_t : {n : ℕ} → (φ : ℒ.BoundedFormula ℕ n) → ¬contains_T (neg_repres φ)
+  def syntax_no_t : φ ∈ syntax_theory → ¬contains_T φ
+    | @syntax_theory.negation_representation ψ => by
+      have step1 : ¬contains_T (neg_repres ψ) := by
+        simp[neg_repres]
+        intro h
+        simp[contains_T] at h
+      
+      sorry
+    | _ => sorry
+  lemma all_syntax_no_t : ∀φ ∈ syntax_theory, ¬contains_T φ := by sorry
+end LSyntaxTheory
 end SyntaxTheory

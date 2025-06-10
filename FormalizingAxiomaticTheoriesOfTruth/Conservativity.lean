@@ -11,7 +11,7 @@ namespace PA
 
   /-- The induction function for ℒₚₐ -/
   def induction (f : BoundedFormula ℒ ℕ 0) : ℒ.Formula ℕ :=
-    ∼ (f////[LPA.null] ⟹ (∼(∀'(f////[&0] ⟹ f////[S(&0)])))) ⟹ ∀'f////[&0]
+    ∼ (f////[LPA.null] ⟹ (∼(∀'(f////bv[&0] ⟹ f////bv[S(&0)])))) ⟹ ∀'f////bv[&0]
 
   /-- Peano arithemtic -/
   inductive peano_arithmetic : Set (ℒ.Formula ℕ) where
@@ -32,7 +32,7 @@ open Languages
   open L_T
  /-- The induction function for ℒₚₐ -/
   def induction (f : BoundedFormula ℒₜ ℕ 0) : ℒₜ.Formula ℕ :=
-    ∼ (f////[L_T.null] ⟹ (∼(∀'(f////[&0] ⟹ f////[S(&0)])))) ⟹ ∀'f////[&0]
+    ∼ (f////[L_T.null] ⟹ (∼(∀'(f////bv[&0] ⟹ f////bv[S(&0)])))) ⟹ ∀'f////bv[&0]
 
   /-- Peano arithemtic -/
   inductive peano_arithmetic_t : Set (ℒₜ.Formula ℕ) where
