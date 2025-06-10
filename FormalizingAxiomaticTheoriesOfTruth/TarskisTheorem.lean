@@ -21,13 +21,13 @@ variable {L : Language}
 [∀ n, DecidableEq (L.Relations n)]
 [DecidableEq (Formula L ℕ)]
 
-def syntax_and_PA : Theory ℒₜ :=
+def syntax_and_PA : Set (Formula ℒₜ ℕ) :=
   syntax_theory ∪ peano_arithmetic
 
 def unrestricted_TB : Theory ℒₜ :=
   { φ | ∃ ψ : Formula ℒₜ ℕ, φ = (T(⌜ψ⌝) ⇔ ψ) }
 
-def syntax_and_PA_unres_TB : Theory ℒₜ :=
+def syntax_and_PA_unres_TB : Set (Formula ℒₜ ℕ) :=
   syntax_and_PA ∪ unrestricted_TB
 
 -- axiom diagonal_lemma (φ : BoundedFormula ℒₜ Empty 1) :
@@ -40,7 +40,7 @@ axiom diagonal_lemma
   (φ : BoundedFormula ℒₜ ℕ 0) :
   ∃ (ψ : Formula ℒₜ ℕ),
     syntax_and_PA_unres_TB ⊢
-      (ψ ⇔ (φ////[⌜ψ⌝]))
+      (ψ ⇔ (φ/[⌜ψ⌝]))
 
 -- def bicond_elim (Th: unrestricted_TB) (A B : Formula L ℕ ) :
 --   unrestricted_TB ⊢ A ⇔ B := by
@@ -71,6 +71,14 @@ theorem tarskis_theorem : syntax_and_PA_unres_TB ⊢ false_formula := by
   -- --     -- apply diagonal_lemma φ
   -- --     -- sorry
       let φ : BoundedFormula ℒₜ ℕ 0 := ∼T(var (Sum.inl 0))
+      have step1 : {t : ℒₜ.Term (ℕ ⊕ Fin 0)} → φ////[t] = ∼T(t)
+        | .var v => match v with
+
+        | _ => sorry
+
+      have step2 {ψ : Formula ℒₜ ℕ} : (φ/[⌜ψ⌝]) = ∼T(⌜ψ⌝) := by
+        simp[φ,my_subst]
+
       apply diagonal_lemma φ
   --     apply diagonal_lemma φ
 

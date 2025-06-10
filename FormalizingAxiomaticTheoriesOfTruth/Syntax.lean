@@ -545,8 +545,8 @@ namespace FirstOrder.Language.BoundedFormula
   scoped notation A "/[" t "]" => subst A (g₁ t)
 
   def g₂ {n : ℕ} (t :  L.Term (ℕ ⊕ Fin n)) (α :  (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin n) :=
-  match n with   
-  | 0 => 
+  match n with
+  | 0 =>
     match α with
     | .inl v =>
       match v with
@@ -555,13 +555,13 @@ namespace FirstOrder.Language.BoundedFormula
     | .inr v => by
       cases v with
       | mk val isLt => simp at isLt
-  | .succ k => 
+  | .succ k =>
     match α with
     | .inl v => Term.var (.inl v)
-    | .inr v => 
+    | .inr v =>
       ite (v = n) t (Term.var (.inr v))
-
-  def my_subst (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin n)):= relabel id (subst φ.toFormula (g₂ t))   
+  @[simp]
+  def my_subst (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin n)):= relabel id (subst φ.toFormula (g₂ t))
   notation φ "////[" t "]" => my_subst φ t
 
   def to_extra_fin {n : ℕ} (v : Fin n) : Fin (n + 1) :=
@@ -574,8 +574,8 @@ namespace FirstOrder.Language.BoundedFormula
       apply Fin.mk val step2
 
   def g₃ {n : ℕ} (t :  L.Term (ℕ ⊕ Fin (n + 1))) (α :  (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin (n + 1)) :=
-  match n with   
-  | 0 => 
+  match n with
+  | 0 =>
     match α with
     | .inl v =>
       match v with
@@ -584,13 +584,13 @@ namespace FirstOrder.Language.BoundedFormula
     | .inr v => by
       cases v with
       | mk val isLt => simp at isLt
-  | .succ k => 
+  | .succ k =>
     match α with
     | .inl v => Term.var (.inl v)
-    | .inr v => 
+    | .inr v =>
       ite (v = n) t (Term.var (.inr (to_extra_fin v)))
 
-  def my_subst_2 (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin (n + 1))) := relabel id (subst φ.toFormula (g₃ t))   
+  def my_subst_2 (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin (n + 1))) := relabel id (subst φ.toFormula (g₃ t))
   notation φ "////[" t "]" => my_subst_2 φ t
 
   def land (f₁ f₂: BoundedFormula L α n) :=
