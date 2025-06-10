@@ -564,6 +564,15 @@ namespace FirstOrder.Language.BoundedFormula
   def my_subst (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin n)):= relabel id (subst φ.toFormula (g₂ t))   
   notation φ "////[" t "]" => my_subst φ t
 
+  def to_extra_fin {n : ℕ} (v : Fin n) : Fin (n + 1) :=
+    match v with
+    | .mk val isLt => by
+      have step1 : n < n + 1 := by
+        simp
+      have step2 : val < n + 1 := by
+        apply Nat.lt_trans isLt step1
+      apply Fin.mk val step2
+
   def g₃ {n : ℕ} (t :  L.Term (ℕ ⊕ Fin (n + 1))) (α :  (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin (n + 1)) :=
   match n with   
   | 0 => 
@@ -579,7 +588,7 @@ namespace FirstOrder.Language.BoundedFormula
     match α with
     | .inl v => Term.var (.inl v)
     | .inr v => 
-      ite (v = n) t (Term.var (.inr v))
+      ite (v = n) t (Term.var (.inr (to_extra_fin v)))
 
   def my_subst_2 (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin (n + 1))) := relabel id (subst φ.toFormula (g₃ t))   
   notation φ "////[" t "]" => my_subst_2 φ t

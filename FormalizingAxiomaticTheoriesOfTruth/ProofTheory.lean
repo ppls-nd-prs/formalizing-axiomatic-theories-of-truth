@@ -14,7 +14,7 @@ namespace Calculus
   /-- Shifts all variable references one down so one is pushed into
   the to-be-bound category -/
   def shift_one_down : ℕ → ℕ ⊕ Fin 1
-    | .zero => .inr Nat.zero
+    | .zero => .inr 0
     | .succ n   => .inl n
 
   /-- Shifts all free variables (that are not to be bound) up by one-/
