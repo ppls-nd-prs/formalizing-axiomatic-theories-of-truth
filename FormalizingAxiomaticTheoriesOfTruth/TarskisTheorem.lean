@@ -37,10 +37,10 @@ def syntax_and_PA_unres_TB : Theory ℒₜ :=
 --   | Sum.inl e => nomatch e)) /[⌜ψ⌝])
 
 axiom diagonal_lemma
-  (φ : BoundedFormula ℒₜ Empty 1) :
+  (φ : BoundedFormula ℒₜ ℕ 0) :
   ∃ (ψ : Formula ℒₜ ℕ),
     syntax_and_PA_unres_TB ⊢
-      (ψ ⇔ (φ /[L_T.numeral (formula_N_tonat ψ)]))
+      (ψ ⇔ (φ////[⌜ψ⌝]))
 
 -- def bicond_elim (Th: unrestricted_TB) (A B : Formula L ℕ ) :
 --   unrestricted_TB ⊢ A ⇔ B := by
@@ -66,20 +66,24 @@ theorem tarskis_theorem : syntax_and_PA_unres_TB ⊢ false_formula := by
   have liar_formula_exists :
     ∃ (ψ : Formula ℒₜ ℕ),
       syntax_and_PA_unres_TB ⊢ (ψ ⇔ ∼T(⌜ψ⌝)) := by
-      -- apply Exists.elim
-      -- let φ : (BoundedFormula.not BoundedFormula.rel Rel.t ![(&0)])
-      -- apply diagonal_lemma φ
-      -- sorry
-      let φ : BoundedFormula ℒₜ Empty 1 := ∼(T(&0))
+  -- --     -- apply Exists.elim
+  -- --     -- let φ : (BoundedFormula.not BoundedFormula.rel Rel.t ![(&0)])
+  -- --     -- apply diagonal_lemma φ
+  -- --     -- sorry
+      let φ : BoundedFormula ℒₜ ℕ 0 := ∼T(var (Sum.inl 0))
       apply diagonal_lemma φ
-      -- obtain ⟨ψ,hψ⟩ := diagonal_lemma φ
-      -- use ψ
-      -- rw [th_to_set_form]
+  --     apply diagonal_lemma φ
 
-  -- rw [this] at hψ
-  -- use ψ
-  -- exact hψ
+  --     -- use ψ
+  --     -- rw [th_to_set_form]
+  -- -- rw [this] at hψ
+  -- -- use ψ
+  -- -- exact hψ
   obtain ⟨ψ, liar_formula_der⟩ := liar_formula_exists
+  -- have liar_formula_exists :
+  --   ∃ (ψ : Formula ℒₜ ℕ),
+  --     syntax_and_PA_unres_TB ⊢ (ψ ⇔ (∼T(var (Sum.inl 0)))////[⌜ψ⌝]) := by
+  --   apply diagonal_lemma ∼T(var (Sum.inl 0))
 
   have liar_t_instance : syntax_and_PA_unres_TB ⊢ (T(⌜ψ⌝) ⇔ ψ) := by
     sorry
