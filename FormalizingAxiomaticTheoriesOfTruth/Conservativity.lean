@@ -1,4 +1,3 @@
-
 import FormalizingAxiomaticTheoriesOfTruth.ProofTheory
 import FormalizingAxiomaticTheoriesOfTruth.ArithTheories
 
@@ -332,4 +331,3 @@ namespace Conservativity
     apply Nonempty.intro (translation φ h)
 
 end Conservativity
-

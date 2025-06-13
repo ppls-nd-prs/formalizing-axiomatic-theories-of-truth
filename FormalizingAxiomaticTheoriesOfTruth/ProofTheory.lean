@@ -18,9 +18,9 @@ namespace Calculus
     | .succ n   => .inl n
 
   /-- Shifts all free variables (that are not to be bound) up by one-/
-  def shift_free_up : ℕ → ℕ ⊕ Fin n
+  def shift_free_up : ℕ → ℕ ⊕ Fin 0
     | .zero => .inl (.succ .zero)
-    | .succ k => .inl (.succ (k + 1))
+    | .succ n => .inl (.succ (n + 1))
 
   /-- Proof that addition is also transitive in BoundedFormula types -/
   def m_add_eq_add_m {m} : BoundedFormula L ℕ (m + n) → BoundedFormula L ℕ (n + m) := by
@@ -89,40 +89,19 @@ namespace Calculus
           | isFalse hq => isFalse (by simp[hp, hq])
         | isFalse hp => isFalse (by simp[hp])
 
-  instance : DecidableEq (L.BoundedFormula α n) := hasDecEq
   instance : DecidableEq (L.Formula ℕ) := hasDecEq
 
-  def shift_finset_up (Δ : Finset (L.BoundedFormula ℕ n)) : Finset (L.BoundedFormula ℕ (0 + n)) :=
-    Finset.image (@relabel L ℕ ℕ 0 shift_free_up n) Δ
-  instance : Coe (Finset (L.BoundedFormula ℕ (0 + n))) (Finset (L.BoundedFormula ℕ (n))) where
-    coe := by
-      rw[Nat.zero_add]
-      intro h
-      exact h
-
+  def shift_finset_up (Δ : Finset (L.Formula ℕ)) : Finset (L.Formula ℕ) :=
+    Finset.image (relabel shift_free_up) Δ
 
   notation Δ"↑"  => shift_finset_up Δ
-  notation A"↓" => relabel shift_one_down A 
+  notation A"↓" => relabel shift_one_down A
 
-  variable [BEq (Formula L ℕ)]
-
-  example : ∀φ : L.BoundedFormula ℕ n, φ = φ := by
-    intro φ
-    induction φ with
-    | falsum =>
-      rfl
-    | equal _ _ =>
-      rfl
-    | rel _ _ =>
-      rfl
-    | imp _ _ ih₁ ih₂ =>
-      rfl
-    | all _ ih =>
-      rfl
+  variable [BEq (Formula L ℕ)][DecidableEq (Formula L ℕ)]
 
   /-- G3c sequent calculus -/
   inductive Derivation : (Set (Formula L ℕ)) → (Finset (Formula L ℕ)) → (Finset (Formula L ℕ)) → Type _ where
-    | tax {Th Γ Δ φ} (h₁ : φ ∈ Th) (h₂ : φ ∈ Δ) : Derivation Th Γ Δ
+    | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : ∃f, f ∈ Γ ∧ f ∈ Δ) : Derivation Th Γ Δ
     | iax {Th Γ Δ} (t : L.Term (ℕ ⊕ Fin 0)) (h : t =' t ∈ Δ) : Derivation Th Γ Δ
     | i_two_for_one {Th Γ Δ} (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A////[t₁] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A////[t₁] ∉ Δ) (h₂ : A////[t₂] ∈ Δ) : Derivation Th Γ Δ
@@ -133,16 +112,15 @@ namespace Calculus
     | left_bot {Th Γ Δ} (h : ⊥ ∈ Γ) : Derivation Th Γ Δ
     | left_negation {Th Γ Δ} (A S₁ S₂) (d₁ : Derivation Th S₁ S₂) (h₁ : Γ = S₁ ∪ {∼A}) (h₂ : Δ = S₂ \ {A}) : Derivation Th Γ Δ
     | right_conjunction {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) : Derivation Th Γ Δ
-    | right_disjunction {Th Γ Δ} (A B S) (h₁ : A ∈ S) (h₂ : B ∈ S) (d₁ : Derivation Th Γ S) (h₃ : Δ = (S \ {A, B}) ∪ {A ∨' B}): Derivation Th Γ Δ
+    | right_disjunction {Th Γ Δ} (A B S) (d₁ : Derivation Th Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}): Derivation Th Γ Δ
     | right_implication {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}): Derivation Th Γ Δ
     | right_negation {Th Γ Δ} (A S₁ S₂) (d₁ : Derivation Th S₁ S₂) (h₁ : Γ = S₁ \ {A}) (h₂ : Δ = S₂ ∪ {∼A}) : Derivation Th Γ Δ
     | left_forall {Th Γ Δ}  (A : Formula L ℕ) (B) (h₁ : B = A↓) (t S) (d : Derivation Th S Δ) (h₂ : (A/[t]) ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {(A/[t])}) : Derivation Th Γ Δ
     | left_exists {Th Γ Δ} (A B) (S₁ : Finset (Formula L ℕ)) (p : B = A↓) (d₁ : Derivation Th ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) : Derivation Th Γ Δ
     | right_forall {Th Γ Δ} (A B S) (p : B = A↓) (d₁ : Derivation Th (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) : Derivation Th Γ Δ
-    | right_exists {Th Γ Δ} (A : BoundedFormula L ℕ n) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
+    | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
     | cut {Th Γ Δ} (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ
 
-  @[simp]
   def emptyFormList : Finset (Formula L ℕ) := ∅
 
   @[simp]
@@ -152,7 +130,7 @@ namespace Calculus
 
   @[simp]
   def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
-    proves_sequent Th emptyFormList {f}
+    sequent_provable Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
 
   section MetaRules

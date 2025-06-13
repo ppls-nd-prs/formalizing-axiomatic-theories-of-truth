@@ -34,6 +34,16 @@ namespace L_T
   def signature : Language :=
     ⟨Func, Rel⟩
 
+open FirstOrder
+open Language
+
+namespace String
+  def vecToStr : ∀ {n}, (Fin n → String) → String
+  | 0,     _ => ""
+  | n + 1, s => if n = 0 then s 0 else s 0 ++ ", " ++ @vecToStr n (fun i => s (Fin.succ i))
+
+  #eval vecToStr !["a","b","c"]
+
 end String
 
 namespace Term
@@ -163,6 +173,7 @@ namespace Languages
     scoped notation "SentenceL(" t ")" => BoundedFormula.rel Rel.sentencel ![t]
     scoped notation "FormLT(" t ")" => BoundedFormula.rel Rel.formlt ![t]
     scoped notation "SentenceLT(" t ")" => BoundedFormula.rel Rel.sentencelt ![t]
+    abbrev ℒ := signature
     scoped[Languages] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
     /-
@@ -374,7 +385,7 @@ namespace Languages
     scoped notation "SentenceL(" t ")" => BoundedFormula.rel L_T.Rel.sentencel ![t]
     scoped notation "FormLT(" t ")" => BoundedFormula.rel L_T.Rel.formlt ![t]
     scoped notation "SentenceLT(" t ")" => BoundedFormula.rel L_T.Rel.sentencelt ![t]
-    abbrev Sₗₜ := L_T.signature
+    abbrev ℒₜ := signature
 
     variable {α : Type}
     def null : Term signature α :=
@@ -537,8 +548,7 @@ namespace Languages
   end L_T
 
 namespace TermEncoding
-  open Term
-  variable {L : Language}{α : Type}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)]
+  variable {L : Language}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)]
   /-- Encodes terms as natural numbers -/
   def term_tonat : Term L (ℕ ⊕ Fin 0) → ℕ :=
     fun t => Encodable.encodeList (Term.listEncode t)
@@ -559,12 +569,7 @@ end TermEncoding
   A coercion from PA.lpa formulas to L_T.lt formulas as all lpa formulas are
   also lt formulas
   -/
-  scoped notation "S(" n ")" => Term.func Func.succ ![n]
-  scoped notation "zero" => Term.func Func.zero ![]
-  scoped notation n "add" m => Term.func Func.add ![n,m]
-  scoped notation n "times" m => Term.func Func.mult ![n,m]
-
-  def to_l_func ⦃arity : ℕ⦄ : (ℒₜ.Functions arity) → (ℒ.Functions arity)
+  def to_lt_func ⦃arity : ℕ⦄ : (ℒ.Functions arity) → (ℒₜ.Functions arity)
     | .zero => .zero
     | .succ => .succ
     | .add => .add
@@ -578,11 +583,7 @@ end TermEncoding
     | .denote => .denote
     | .subs => .subs
   
-  def to_l_term {α : Type} : (ℒₜ.Term α) → (ℒ.Term α)
-    | .var f => .var f
-    | .func f ts => .func (to_l_func f) (fun i => to_l_term (ts i))
-
-  def to_lt_rel ⦃n : ℕ⦄ : (LPA.signature.Relations n) → (Sₗₜ.Relations n)
+  def to_lt_rel ⦃n : ℕ⦄ : (ℒ.Relations n) → (ℒₜ.Relations n)
       | .var => .var
       | .const => .const
       | .term => .term
@@ -592,41 +593,18 @@ end TermEncoding
       | .formlt => .formlt
       | .sentencelt => .sentencelt
 
-  def ϕ : LHom LPA.signature Sₗₜ where
+  def ϕ : LHom ℒ ℒₜ where
       onFunction := to_lt_func
       onRelation := to_lt_rel
-  
+
   instance : Coe (Formula ℒ ℕ) (Formula ℒₜ ℕ) where
     coe := LHom.onFormula ϕ
-  def lt_set : Set (ℒ.Formula ℕ) → Set (ℒₜ.Formula ℕ) :=
-    fun s => s.image (ϕ.onFormula)
-  instance : Coe (Set (ℒ.Formula ℕ)) (Set (ℒₜ.Formula ℕ)) where
-    coe := lt_set
   instance : Coe (Sentence ℒ) (Sentence ℒₜ) where
     coe := LHom.onSentence ϕ
-  instance : Coe (Term LPA.signature (Empty ⊕ Fin 0)) (Term Sₗₜ (Empty ⊕ Fin 0)) where
+  instance : Coe (Term ℒ (Empty ⊕ Fin 0)) (Term ℒₜ (Empty ⊕ Fin 0)) where
     coe := LHom.onTerm ϕ
-  instance : Coe (Theory LPA.signature) (Theory Sₗₜ) where
+  instance : Coe (Theory ℒ) (Theory ℒₜ) where
     coe := LHom.onTheory ϕ
-
-  variable {L : Language}{α : Type}
-  def fml_term {n : ℕ} : L.Term (Empty ⊕ Fin n) → L.Term (ℕ ⊕ Fin n)
-    | .var (.inl _) => Term.var (.inl 1)
-    | .var (.inr _) => Term.var (.inl 1)
-    | .func f ts => .func f (fun i => fml_term (ts i))
-  instance {n : ℕ} : Coe (L.Term (Empty ⊕ Fin n)) (L.Term (ℕ ⊕ Fin n)) where
-    coe := fml_term
-  def fml : {n : ℕ} → L.BoundedFormula Empty n → L.BoundedFormula ℕ n
-    | _, .falsum => .falsum
-    | _, .equal t₁ t₂ => .equal t₁ t₂
-    | _, .rel R ts => .rel R (fun i => ts i)
-    | _, .imp φ ψ => .imp (fml φ) (fml ψ)
-    | _, .all φ => .all (fml φ)
-  instance : Coe (L.Sentence) (L.Formula ℕ) where
-    coe := fml
-  def fml_set : L.Theory → Set (L.Formula ℕ) := fun t => t.image fml
-  instance : Coe (L.Theory) (Set (L.Formula ℕ)) where
-    coe := fml_set
 
 end Languages
 
@@ -656,7 +634,7 @@ namespace FirstOrder.Language.BoundedFormula
       ite (v = n) t (Term.var (.inr v))
 
   @[simp]
-  def my_subst (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin n)) := (relabel id (subst φ.toFormula (g₂ t)))   
+  def my_subst (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin n)):= relabel id (subst φ.toFormula (g₂ t))   
   notation φ "////[" t "]" => my_subst φ t
 
   @[simp]
@@ -680,7 +658,7 @@ namespace FirstOrder.Language.BoundedFormula
       | .succ n => Term.var (.inl n)
     | .inr v => by
       cases v with
-      | mk val isLt => simp at isLt 
+      | mk val isLt => simp at isLt
   | .succ k => 
     match α with
     | .inl v => Term.var (.inl v)
@@ -697,8 +675,6 @@ namespace FirstOrder.Language.BoundedFormula
   def lor (f₁ f₂ : BoundedFormula L α n) :=
     ((∼f₁) ⟹ f₂)
   scoped notation f₁ "∨'" f₂ => lor f₁ f₂
-  noncomputable def finset_iSup (s : Finset (L.Formula ℕ)) : L.Formula ℕ :=
-    (s.1.toList).foldr (· ⊔ ·) ⊥
 end FirstOrder.Language.BoundedFormula
 
 
