@@ -3,6 +3,42 @@ import FormalizingAxiomaticTheoriesOfTruth.ArithTheories
 
 open FirstOrder
 open Language
+open BoundedFormula
+
+variable {L : Language}
+
+def term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin n)
+| .var v => if v = (.inl 0) then t else (.var v)
+| .func f ts => .func f (fun i => term_substitution t (ts i))
+
+def up_bv {n : ℕ} : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + 1))
+| .var v => 
+  match v with
+  | .inl m => 
+    .var (.inl m)
+  | .inr m => .var (.inr (to_extra_fin m))
+| .func f ts => .func f (fun i => up_bv (ts i))
+
+def formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin n)) → L.BoundedFormula ℕ n → L.BoundedFormula ℕ n
+| _, _, .falsum => .falsum
+| _, t, .equal t₁ t₂ => .equal (term_substitution t t₁) (term_substitution t t₂)
+| _, t, .rel R ts => .rel R (fun i => term_substitution t (ts i))
+| _, t, .imp φ ψ => .imp (formula_substitution t φ) (formula_substitution t ψ)
+| _, t, .all φ => .all (formula_substitution (up_bv t) φ)
+
+open Languages
+open LPA
+lemma atomic_term_subst : ∀t₁ : ℒ.Term (ℕ ⊕ Fin n), (term_substitution t₁ null) = null := by
+  intro t₁
+  simp[null,term_substitution]
+  cases t₁ with
+  | var v => 
+    cases v with
+    | inl m => 
+      #check ![] 
+      sorry
+    | inr m => sorry
+  | func f ts => sorry
 
 namespace Conservativity
   open Languages LPA L_T Calculus FirstOrder.Language.BoundedFormula TermEncoding
@@ -177,25 +213,41 @@ namespace Conservativity
     variable {L : Language} [∀n, DecidableEq (L.Functions n)][∀n, DecidableEq (L.Relations n)]
     axiom right_weakening {Th Δ Γ} (A : ℒ.Fml) (S) : Derivation Th Γ S → Δ = S ∪ {A} → Derivation Th Γ Δ
 
-    def t₁ : ℒ.Term (ℕ ⊕ Fin 0) := null
-    def φ₁ := (#0 =' t₁)
+open Vector
+def t : ℒ.Term (ℕ ⊕ Fin 0) := LPA.null
+def φ : ℒ.Formula ℕ := t =' t
+def ψ : ℒ.Formula ℕ := BoundedFormula.equal t t
+#check ![]
+example : φ////[t] = ψ := by
+  simp[subst,φ,t,ψ,Term.bdEqual,Term.subst,relabel,id,Term.relabel]
+  unfold mapTermRel
+  simp[Term.relabel]
+  unfold Term.relabel
+  simp[LPA.null,Sum.elim,Sum.inr,relabelAux,finSumFinEquiv,Equiv.sumAssoc,Fin.castAdd]
+  rfl
+  sorry
+ 
+example : φ = ψ := by
+  simp[φ, ψ]
+  sorry
+
+
+    def t₁ : ℒ.Term (ℕ ⊕ Fin 0) := LPA.null
+    def φ₁ : ℒ.Fml := (#0 =' t₁)
+    def φ₂ : ℒ.Fml := (t₁ =' t₁)
     #eval φ₁ 
-    #eval φ₁////[t₁] 
-    #check  φ₁////[t₁] 
+    #eval (formula_substitution t₁ φ₁)  
+    #check (formula_substitution t₁ φ₁)  
     #check (t₁ =' t₁) 
     #eval (t₁ =' t₁) 
-    def this_subst : φ₁////[t₁] = (t₁ =' t₁) := by
-      #check φ₁////[t₁]  
-      #check (t₁ =' t₁) 
-      simp[relabel, id]
-      --rfl
+    lemma this_subst : φ₁////[t₁] = φ₂ := by
+      #check (formula_substitution t₁ φ₁)  
+      #check (t₁ =' t₁)  
+      sorry    
       
-      --unfold my_subst relabel id subst φ₁ t₁ mapTermRel g₂ Term.relabel  
---      simp
-      sorry
 
   lemma test {t : ℒ.Term (ℕ ⊕ Fin 0)} {t' : ℒ.Term ℕ}: ((var (Sum.inl 0) =' t)////[t]) = (t =' t):= by
-     unfold my_subst subst mapTermRel g₂ Term.subst relabel
+     
      simp
      sorry
 
@@ -223,31 +275,39 @@ namespace Conservativity
       simp at h₁
       
       let tau_phi := (build_tau (a :: lst)/[ℒ.enc φ])
-      have step1 (d₁ : Derivation 𝐏𝐀 Δ (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi ⟹ φ})) (d₂ : Derivation 𝐏𝐀 Δ (Γ \ {tau_phi ⇔ φ} ∪ {φ ⟹ tau_phi})) : Derivation 𝐏𝐀 Δ Γ := by
-        apply iff_der tau_phi φ (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi ⟹ φ}) (Γ \ {tau_phi ⇔ φ} ∪ {φ ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) d₁ rfl d₂ rfl (by simp; exact h₂)
-      
-      let A₁ := (build_tau (a :: lst)/[ℒ.enc φ])
-      let B₁ := φ
-      let S₁ := Γ \ {build_tau (a :: lst)/[ℒ.enc φ] ⇔ φ}
-      apply iff_der A₁ B₁ (S₁ ∪ {A₁ ⟹ B₁}) (S₁ ∪ {B₁ ⟹ A₁}) S₁ _ (rfl) _ rfl (by simp[A₁,B₁,S₁]; exact h₂)
+
+      apply iff_der tau_phi φ ((Γ \ {tau_phi ⇔ φ}) ∪ {tau_phi ⟹ φ}) ((Γ \ {tau_phi ⇔ φ}) ∪ {φ ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ (rfl) _ rfl (by simp; exact h₂)
       -- case left_to_right
       sorry
       -- case right_to_left
-      simp[A₁,B₁]
-      let A₂ := φ
-      let B₂ := build_tau (a :: lst)/[ℒ.enc φ]
-      let S₂₃ := S₁
-      let S₂₁ := {A₂} ∪ Δ
-      let S₂₂ := S₂₃ ∪ {B₂}
-      apply Derivation.right_implication A₂ B₂ S₂₁ S₂₂ S₂₃ _ rfl rfl rfl
-      
-      simp[S₂₁,S₂₂,S₂₃,A₂,B₂,B₁,A₁,build_tau]
-      by_cases h₂ : φ = a
+      apply Derivation.right_implication φ tau_phi ({φ} ∪ Δ) (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ rfl rfl rfl    
+      by_cases h₃ : φ = a
       -- pos
-      simp[h₂,subst_disj_distr]
+      simp[tau_phi,build_tau,h₃,subst_disj_distr,subst_conj_distr]
+--      #check (var (Sum.inl 0) =' ℒ.enc a 
+--      #check (ℒ.enc a =' ℒ.enc a) 
+      let ψ₁ : ℒ.Fml := (ℒ.enc a) =' (ℒ.enc a)
+      let ψ₂ : ℒ.Fml := (var (Sum.inl 0) =' ℒ.enc a)
+      let ψ₃ : ℒ.Fml := (ψ₂)/[ℒ.enc a]
+      #check (ℒ.enc a) =' (ℒ.enc a)
+      #check (subst ψ₃ (g₁ (ℒ.enc a))) 
+
+      have step1 : ψ₁ = ψ₃ := by
+        simp[ψ₁,ψ₂,ψ₃,subst]     
+        unfold mapTermRel Term.subst g₁ Term.subst 
+        
+        simp
+        
+        sorry
+        
+        
+      
+      
+      /-
       let A₃ := ((var (Sum.inl 0) =' ℒ.enc a)∧'a)/[ℒ.enc a]
       let B₃ := build_tau lst/[ℒ.enc a]
       let S₃ := S₁ ∪ {A₃, B₃}
+      -/
 
       sorry
       -- case neg
