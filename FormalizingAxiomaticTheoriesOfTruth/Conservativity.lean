@@ -135,6 +135,7 @@ namespace Conservativity
   | _, .imp ψ₁ ψ₂ => .imp (no_t_to_l_fml ψ₁ (by simp at h; exact h.left)) (no_t_to_l_fml ψ₂ (by simp at h; exact h.right))
   | _, .all ψ => .all (no_t_to_l_fml ψ (by assumption)) 
 
+/-
   noncomputable def build_relevant_phis {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Fml 
     | @Derivation.tax _ _ _ _ _ _ _ h =>
       match h.choose with
@@ -159,6 +160,7 @@ namespace Conservativity
     | .right_forall _ _ _ _ d₁ _ => build_relevant_phis d₁
     | .right_exists _ _ _ _ _ d₁ _ => build_relevant_phis d₁
     | .cut _ _ _ _ _ d₁ d₂ _ _ => (build_relevant_phis d₁) ∪ (build_relevant_phis d₂)
+-/
   
   notation "ℒ.enc" φ => LPA.numeral (formula_tonat φ)
   
@@ -219,6 +221,10 @@ namespace Conservativity
       simp at h₁
     | .cons a lst, h₁, h₂ => by
       simp at h₁
+      
+      let tau_phi := (build_tau (a :: lst)/[ℒ.enc φ])
+      have step1 (d₁ : Derivation 𝐏𝐀 Δ (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi ⟹ φ})) (d₂ : Derivation 𝐏𝐀 Δ (Γ \ {tau_phi ⇔ φ} ∪ {φ ⟹ tau_phi})) : Derivation 𝐏𝐀 Δ Γ := by
+        apply iff_der tau_phi φ (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi ⟹ φ}) (Γ \ {tau_phi ⇔ φ} ∪ {φ ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) d₁ rfl d₂ rfl (by simp; exact h₂)
       
       let A₁ := (build_tau (a :: lst)/[ℒ.enc φ])
       let B₁ := φ
