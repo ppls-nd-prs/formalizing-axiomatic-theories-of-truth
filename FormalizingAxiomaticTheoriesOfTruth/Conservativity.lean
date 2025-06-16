@@ -213,20 +213,14 @@ namespace Conservativity
     variable {L : Language} [∀n, DecidableEq (L.Functions n)][∀n, DecidableEq (L.Relations n)]
     axiom right_weakening {Th Δ Γ} (A : ℒ.Fml) (S) : Derivation Th Γ S → Δ = S ∪ {A} → Derivation Th Γ Δ
 
-open Vector
+open Matrix
 def t : ℒ.Term (ℕ ⊕ Fin 0) := LPA.null
-def φ : ℒ.Formula ℕ := t =' t
-def ψ : ℒ.Formula ℕ := BoundedFormula.equal t t
+def φ : ℒ.Formula ℕ := t =' #0
+def ψ : ℒ.Formula ℕ := t =' t
 #check ![]
 example : φ////[t] = ψ := by
-  simp[subst,φ,t,ψ,Term.bdEqual,Term.subst,relabel,id,Term.relabel]
-  unfold mapTermRel
-  simp[Term.relabel]
-  unfold Term.relabel
-  simp[LPA.null,Sum.elim,Sum.inr,relabelAux,finSumFinEquiv,Equiv.sumAssoc,Fin.castAdd]
-  rfl
+  simp[t,φ,ψ,Term.bdEqual,formula_substitution,LPA.null,term_substitution,Matrix.empty_eq,subst,g₂,mapTermRel,relabel,id,castLE,Term.subst]
   sorry
- 
 example : φ = ψ := by
   simp[φ, ψ]
   sorry
