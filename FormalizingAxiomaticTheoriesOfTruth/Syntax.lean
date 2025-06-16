@@ -64,7 +64,7 @@ end BoundedFormula
 namespace Languages
   namespace LPA
     inductive Func : ℕ → Type _ where
-      | zero : Func 0
+      | null : Func 0
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
@@ -93,7 +93,7 @@ namespace Languages
       ⟨Func, Rel⟩
 
     def funToStr {n}: Func n → String
-      | .zero => "0"
+      | .null => "0"
       | .succ => "S"
       | .add => "+"
       | .mult => "×"
@@ -122,7 +122,7 @@ namespace Languages
     Useful notation
     -/
     scoped notation "S(" n ")" => Term.func Func.succ ![n]
-    scoped notation "zero" => Term.func Func.zero ![]
+--    scoped notation "null" => Term.func Func.null ![]
     scoped notation n "add" m => Term.func Func.add ![n,m]
     scoped notation n "times" m => Term.func Func.mult ![n,m]
     scoped notation n "⬝∧" m => Term.func Func.conj ![n,m]
@@ -149,16 +149,16 @@ namespace Languages
     -/
     variable {α : Type}
     def null : Term signature α :=
-      zero
+      Term.func .null ![]
 
     def numeral : ℕ → Term signature α
-      | .zero => zero
+      | .zero => null
       | .succ n => S(numeral n)
 
     section Coding
       variable {k : ℕ}
       def Func_enc : signature.Functions k → ℕ
-        | .zero => Nat.pair 0 0 + 1
+        | .null => Nat.pair 0 0 + 1
         | .succ => Nat.pair 1 0 + 1
         | .denote => Nat.pair 1 1 + 1
         | .exists => Nat.pair 1 2 + 1
@@ -177,7 +177,7 @@ namespace Languages
           match k with
             | 0 =>
               match e.unpair.2 with
-                | 0 => some (.zero)
+                | 0 => some (.null)
                 | _ => none
             | 1 =>
               match e.unpair.2 with
@@ -272,7 +272,7 @@ namespace Languages
   namespace L_T
 
     inductive Func : ℕ → Type _ where
-      | zero : Func 0
+      | null : Func 0
       | succ : Func 1
       | add : Func 2
       | mult : Func 2
@@ -303,7 +303,7 @@ namespace Languages
 
     variable {n : ℕ}
     def funToStr : Func n → String
-      | .zero => "0"
+      | .null => "0"
       | .succ => "S"
       | .add => "+"
       | .mult => "×"
@@ -334,7 +334,7 @@ namespace Languages
     -/
     scoped notation "T(" n ")" => BoundedFormula.rel Rel.t ![n]
     scoped notation "S(" n ")" => Term.func Func.succ ![n]
-    scoped notation "zero" => Term.func Func.zero ![]
+--    scoped notation "zero" => Term.func Func.zero ![]
     scoped notation n "add" m => Term.func Func.add ![n,m]
     scoped notation n "times" m => Term.func Func.mult ![n,m]
     scoped notation n "⬝∧" m => Term.func Func.conj ![n,m]
@@ -357,10 +357,10 @@ namespace Languages
 
     variable {α : Type}
     def null : Term signature α :=
-      zero
+      Term.func .null ![]
 
     def numeral : ℕ → Term signature α
-      | .zero => zero
+      | .zero => null
       | .succ n => S(numeral n)
 
   /-- Gives whether a BoundedFormula contains a T predicate-/
@@ -400,7 +400,7 @@ namespace Languages
     section Coding
       variable {k : ℕ}
       def Func_enc : signature.Functions k → ℕ
-        | .zero => Nat.pair 0 0 + 1
+        | .null => Nat.pair 0 0 + 1
         | .succ => Nat.pair 1 0 + 1
         | .denote => Nat.pair 1 1 + 1
         | .exists => Nat.pair 1 2 + 1
@@ -419,7 +419,7 @@ namespace Languages
           match k with
             | 0 =>
               match e.unpair.2 with
-                | 0 => some (.zero)
+                | 0 => some (.null)
                 | _ => none
             | 1 =>
               match e.unpair.2 with
@@ -538,7 +538,7 @@ end TermEncoding
   also lt formulas
   -/
   def to_lt_func ⦃arity : ℕ⦄ : (ℒ.Functions arity) → (ℒₜ.Functions arity)
-    | .zero => .zero
+    | .null => .null
     | .succ => .succ
     | .add => .add
     | .mult => .mult

@@ -26,6 +26,8 @@ def formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin n)) → L.Boun
 | _, t, .imp φ ψ => .imp (formula_substitution t φ) (formula_substitution t ψ)
 | _, t, .all φ => .all (formula_substitution (up_bv t) φ)
 
+notation "sub" => formula_substitution
+
 open Languages
 open LPA
 lemma atomic_term_subst : ∀t₁ : ℒ.Term (ℕ ⊕ Fin n), (term_substitution t₁ null) = null := by
@@ -44,7 +46,7 @@ namespace Conservativity
   open Languages LPA L_T Calculus FirstOrder.Language.BoundedFormula TermEncoding
 
     def to_l_func ⦃arity : ℕ⦄ : (ℒₜ.Functions arity) → (ℒ.Functions arity)
-    | .zero => .zero
+    | .null => .null
     | .succ => .succ
     | .add => .add
     | .mult => .mult
@@ -206,93 +208,57 @@ namespace Conservativity
  
   def iff_der {Th Γ Δ} (A B : ℒ.Fml) (S₁ S₂ S₃ : Finset ℒ.Fml) : Derivation Th Δ S₁ → S₁ = S₃ ∪ {A ⟹ B} → Derivation Th Δ S₂ → S₂ = S₃ ∪ {B ⟹ A} → Γ = (S₃ ∪ {A ⇔ B}) → Derivation Th Δ Γ := sorry
 
-  def subst_disj_distr {A B: ℒ.Fml} : (A ∨' B)/[t] = (A/[t] ∨' B/[t]) := by sorry
+  def subst_disj_distr {A B: ℒ.Fml} : sub t (A ∨' B) = (sub t A ∨' sub t B) := by sorry
 
-  def subst_conj_distr {A B: ℒ.Fml} : (A ∧' B)/[t] = (A/[t] ∧' B/[t]) := by sorry
+  def subst_conj_distr {A B: ℒ.Fml} : sub t (A ∧' B) = (sub t A ∧' sub t B) := by sorry
+  
+  lemma numeral_no_subst : ∀n, ∀t : ℒ.Term (ℕ ⊕ Fin m), term_substitution t (LPA.numeral n) = LPA.numeral n
+| .zero, t => by
+  simp[LPA.numeral,LPA.null,term_substitution,Matrix.empty_eq]   
+| .succ n, t => by
+  simp[LPA.numeral,term_substitution]
+  have step1 : term_substitution t (LPA.numeral n) = LPA.numeral n := by
+    apply numeral_no_subst 
+  simp[step1]
+  apply funext 
+  intro x
+  cases x with
+  | mk val isLt =>
+    cases val with
+    | zero => 
+      simp
+    | succ n => 
+      simp
+ 
     
     variable {L : Language} [∀n, DecidableEq (L.Functions n)][∀n, DecidableEq (L.Relations n)]
     axiom right_weakening {Th Δ Γ} (A : ℒ.Fml) (S) : Derivation Th Γ S → Δ = S ∪ {A} → Derivation Th Γ Δ
 
-open Matrix
-def t : ℒ.Term (ℕ ⊕ Fin 0) := LPA.null
-def φ : ℒ.Formula ℕ := t =' #0
-def ψ : ℒ.Formula ℕ := t =' t
-#check ![]
-example : φ////[t] = ψ := by
-  simp[t,φ,ψ,Term.bdEqual,formula_substitution,LPA.null,term_substitution,Matrix.empty_eq,subst,g₂,mapTermRel,relabel,id,castLE,Term.subst]
-  sorry
-example : φ = ψ := by
-  simp[φ, ψ]
-  sorry
-
-
-    def t₁ : ℒ.Term (ℕ ⊕ Fin 0) := LPA.null
-    def φ₁ : ℒ.Fml := (#0 =' t₁)
-    def φ₂ : ℒ.Fml := (t₁ =' t₁)
-    #eval φ₁ 
-    #eval (formula_substitution t₁ φ₁)  
-    #check (formula_substitution t₁ φ₁)  
-    #check (t₁ =' t₁) 
-    #eval (t₁ =' t₁) 
-    lemma this_subst : φ₁////[t₁] = φ₂ := by
-      #check (formula_substitution t₁ φ₁)  
-      #check (t₁ =' t₁)  
-      sorry    
-      
-
-  lemma test {t : ℒ.Term (ℕ ⊕ Fin 0)} {t' : ℒ.Term ℕ}: ((var (Sum.inl 0) =' t)////[t]) = (t =' t):= by
-     
-     simp
-     sorry
-
-    def all_subst : {t : ℒ.Term (ℕ ⊕ Fin 0)} → ((var (Sum.inl 0) =' t)////[t]) = (t =' t)
-      | .var v => by
-        cases v with
-        | inl n => 
-          match n with
-          | .zero => rfl
-          | .succ Nat.zero => 
-            
-            sorry
-          | .succ n => 
-            simp[subst,Function.comp,g₂,mapTermRel,Term.subst,Sum.elim,Term.relabel,id,BoundedFormula.toFormula]
-            
-            sorry
-        | inr n => sorry
-        
-      | .func f ts => sorry
-
-  noncomputable def pa_proves_all_tau_disq : (l : List ℒ.Fml) → φ ∈ l → ((build_tau l)/[ℒ.enc φ] ⇔ φ) ∈ Γ → Derivation 𝐏𝐀 Δ Γ
+  noncomputable def pa_proves_all_tau_disq : (l : List ℒ.Fml) → φ ∈ l → ((sub (ℒ.enc φ) (build_tau l)) ⇔ φ) ∈ Γ → Derivation 𝐏𝐀 Δ Γ
     | .nil, h₁, _ => by
       simp at h₁
     | .cons a lst, h₁, h₂ => by
       simp at h₁
       
-      let tau_phi := (build_tau (a :: lst)/[ℒ.enc φ])
+      let tau_phi := formula_substitution (ℒ.enc φ) (build_tau (a :: lst))
+      
 
       apply iff_der tau_phi φ ((Γ \ {tau_phi ⇔ φ}) ∪ {tau_phi ⟹ φ}) ((Γ \ {tau_phi ⇔ φ}) ∪ {φ ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ (rfl) _ rfl (by simp; exact h₂)
       -- case left_to_right
       sorry
       -- case right_to_left
       apply Derivation.right_implication φ tau_phi ({φ} ∪ Δ) (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ rfl rfl rfl    
+      
       by_cases h₃ : φ = a
       -- pos
-      simp[tau_phi,build_tau,h₃,subst_disj_distr,subst_conj_distr]
---      #check (var (Sum.inl 0) =' ℒ.enc a 
---      #check (ℒ.enc a =' ℒ.enc a) 
-      let ψ₁ : ℒ.Fml := (ℒ.enc a) =' (ℒ.enc a)
-      let ψ₂ : ℒ.Fml := (var (Sum.inl 0) =' ℒ.enc a)
-      let ψ₃ : ℒ.Fml := (ψ₂)/[ℒ.enc a]
-      #check (ℒ.enc a) =' (ℒ.enc a)
-      #check (subst ψ₃ (g₁ (ℒ.enc a))) 
-
-      have step1 : ψ₁ = ψ₃ := by
-        simp[ψ₁,ψ₂,ψ₃,subst]     
-        unfold mapTermRel Term.subst g₁ Term.subst 
+      simp[h₃,tau_phi,build_tau]
+      
+      
+      
+      
+      
         
-        simp
-        
-        sorry
+      sorry
         
         
       
@@ -305,7 +271,6 @@ example : φ = ψ := by
 
       sorry
       -- case neg
-      sorry
 
   open SyntaxAxioms
   open BoundedFormula
