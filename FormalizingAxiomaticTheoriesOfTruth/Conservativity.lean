@@ -249,14 +249,32 @@ namespace Conservativity
       -- case right_to_left
       apply Derivation.right_implication φ tau_phi ({φ} ∪ Δ) (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ rfl rfl rfl    
       
+      simp[tau_phi,build_tau,subst_disj_distr,subst_conj_distr,Term.bdEqual,formula_substitution,numeral_no_subst,term_substitution] 
+      let S : Finset ℒ.Fml := (Γ \ {((equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) φ)∨'sub (ℒ.enc φ) (build_tau lst)) ⇔ φ})
+      apply Derivation.right_disjunction ((equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) φ)) (sub (ℒ.enc φ) (build_tau lst)) (S ∪ {(equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) φ), sub (ℒ.enc φ) (build_tau lst)}) _ _
       by_cases h₃ : φ = a
-      -- pos
-      simp[h₃,tau_phi,build_tau]
-      
-      
-      
-      
-      
+      simp[h₃]
+      #check right_weakening
+
+      have union_eq : insert (equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a) (S ∪ {sub (ℒ.enc a) (build_tau lst)}) =  S ∪ {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a} ∪ {sub (ℒ.enc a) (build_tau lst)} := by 
+        simp[Finset.insert_eq]
+        rw[Finset.union_comm]
+        rw[Finset.union_assoc S {sub (ℒ.enc a) (build_tau lst)} {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a}]
+        rw[Finset.union_comm {sub (ℒ.enc a) (build_tau lst)} {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a}]
+        
+      apply right_weakening (sub (ℒ.enc a) (build_tau lst)) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a}) _ union_eq
+      #check Derivation.right_conjunction 
+      apply Derivation.right_conjunction (equal (ℒ.enc a) (ℒ.enc a)) (sub (ℒ.enc a) a) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)}) (S ∪ {sub (ℒ.enc a) a}) (S) _ (by simp) _ (by simp[S]) (by simp)
+      #check Derivation.iax (ℒ.enc a) 
+      apply Derivation.iax (ℒ.enc a) (by simp[Term.bdEqual])
+      sorry
+      sorry
+/- 
+TODO :
+1. Derivation 𝐏𝐀 ({a} ∪ Δ) (S ∪ {sub (ℒ.enc a) a}), for which we need that sub (ℒ.enc a) = a and
+2. S ∪ {(equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a)∨'sub (ℒ.enc a) (build_tau lst)} = S \ {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a, sub (ℒ.enc a) (build_tau lst)} ∪ {(equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a)∨'sub (ℒ.enc a) (build_tau lst)}, which only works if S does not contains neither (equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a) nor (sub (ℒ.enc a) (build_tau lst)) to begin with. Question for Johannes: Does applying right_disjunction mean that the A and B will not be present in the following Δ?
+3. neg
+-/
         
       sorry
         
@@ -269,7 +287,6 @@ namespace Conservativity
       let S₃ := S₁ ∪ {A₃, B₃}
       -/
 
-      sorry
       -- case neg
 
   open SyntaxAxioms
