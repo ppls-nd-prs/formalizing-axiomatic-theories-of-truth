@@ -200,9 +200,9 @@ namespace Conservativity
     | .cut _ _ _ _ _ d₁ d₂ _ _ => (build_relevant_phis d₁) ∪ (build_relevant_phis d₂)
 -/
   
-  notation "ℒ.enc" φ => LPA.numeral (formula_tonat φ)
+  notation "ℒ.enc" φ => LPA.numeral (formula_tonat (bf_empty_to_bf_N φ))
   
-  def build_tau : List ℒ.Fml → ℒ.Fml
+  def build_tau : List ℒ.Sentence → ℒ.Fml
     | .nil => ⊥
     | .cons a lst => (((#0) =' (ℒ.enc a)) ∧' a) ∨' (build_tau lst)
  
@@ -234,20 +234,36 @@ namespace Conservativity
     variable {L : Language} [∀n, DecidableEq (L.Functions n)][∀n, DecidableEq (L.Relations n)]
     axiom right_weakening {Th Δ Γ} (A : ℒ.Fml) (S) : Derivation Th Γ S → Δ = S ∪ {A} → Derivation Th Γ Δ
 
-  noncomputable def pa_proves_all_tau_disq : (l : List ℒ.Fml) → φ ∈ l → ((sub (ℒ.enc φ) (build_tau l)) ⇔ φ) ∈ Γ → Derivation 𝐏𝐀 Δ Γ
+  def forall_sent_trans_subst_self : {n : ℕ} → (φ : L.BoundedFormula Empty n) → (t : L.Term (ℕ ⊕ Fin n)) → (sub t (bf_empty_to_bf_N φ)) = bf_empty_to_bf_N φ 
+  | _, .falsum, _ => by
+    simp[bf_empty_to_bf_N]
+    rfl
+  | _, .equal t₁ t₂, t => by
+    match t₁, t₂ with
+    | .var (.inl m), _ =>
+      cases m    
+    | _, .var (.inl m) =>
+      cases m
+    | .var (.inr m), .var (.inr l) => sorry
+    | .func f ts, .var (.inr l) => sorry
+    | .var (.inr l), .func f ts => sorry
+    | .func f ts, .func g ps => sorry
+  | _, _, _ => sorry
+
+  noncomputable def pa_proves_all_tau_disq : (l : List ℒ.Sentence) → φ ∈ l → ((sub (ℒ.enc φ) (build_tau l)) ⇔ φ) ∈ Γ → Derivation 𝐏𝐀 Δ Γ
     | .nil, h₁, _ => by
       simp at h₁
     | .cons a lst, h₁, h₂ => by
       simp at h₁
       
-      let tau_phi := formula_substitution (ℒ.enc φ) (build_tau (a :: lst))
+      let tau_phi : ℒ.Fml := formula_substitution (ℒ.enc φ) (build_tau (a :: lst))
       
 
-      apply iff_der tau_phi φ ((Γ \ {tau_phi ⇔ φ}) ∪ {tau_phi ⟹ φ}) ((Γ \ {tau_phi ⇔ φ}) ∪ {φ ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ (rfl) _ rfl (by simp; exact h₂)
+      apply iff_der tau_phi (bf_empty_to_bf_N φ) ((Γ \ {tau_phi ⇔ φ}) ∪ {tau_phi ⟹ φ}) ((Γ \ {tau_phi ⇔ φ}) ∪ {(bf_empty_to_bf_N φ) ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ (rfl) _ rfl (by simp; exact h₂)
       -- case left_to_right
       sorry
       -- case right_to_left
-      apply Derivation.right_implication φ tau_phi ({φ} ∪ Δ) (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ rfl rfl rfl    
+      apply Derivation.right_implication φ tau_phi ({bf_empty_to_bf_N φ} ∪ Δ) (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ rfl rfl rfl    
       
       simp[tau_phi,build_tau,subst_disj_distr,subst_conj_distr,Term.bdEqual,formula_substitution,numeral_no_subst,term_substitution] 
       let S : Finset ℒ.Fml := (Γ \ {((equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) φ)∨'sub (ℒ.enc φ) (build_tau lst)) ⇔ φ})
@@ -267,11 +283,12 @@ namespace Conservativity
       apply Derivation.right_conjunction (equal (ℒ.enc a) (ℒ.enc a)) (sub (ℒ.enc a) a) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)}) (S ∪ {sub (ℒ.enc a) a}) (S) _ (by simp) _ (by simp[S]) (by simp)
       #check Derivation.iax (ℒ.enc a) 
       apply Derivation.iax (ℒ.enc a) (by simp[Term.bdEqual])
+      
       sorry
       sorry
 /- 
 TODO :
-1. Derivation 𝐏𝐀 ({a} ∪ Δ) (S ∪ {sub (ℒ.enc a) a}), for which we need that sub (ℒ.enc a) = a and
+1. Derivation 𝐏𝐀 ({a} ∪ Δ) (S ∪ {sub (ℒ.enc a) a}), for which we need that (sub (ℒ.enc a) a) = a and 
 2. S ∪ {(equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a)∨'sub (ℒ.enc a) (build_tau lst)} = S \ {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a, sub (ℒ.enc a) (build_tau lst)} ∪ {(equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a)∨'sub (ℒ.enc a) (build_tau lst)}, which only works if S does not contains neither (equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a) nor (sub (ℒ.enc a) (build_tau lst)) to begin with. Question for Johannes: Does applying right_disjunction mean that the A and B will not be present in the following Δ?
 3. neg
 -/
