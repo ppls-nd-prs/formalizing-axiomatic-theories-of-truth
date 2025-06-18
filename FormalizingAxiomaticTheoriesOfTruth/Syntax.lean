@@ -59,6 +59,60 @@ namespace BoundedFormula
     instance : Repr (BoundedFormula L α n) := ⟨fun t _ => toStr t⟩
     instance : ToString (BoundedFormula L α n) := ⟨toStr⟩
   end ToString
+
+  @[simp]
+  def to_extra_fin {n : ℕ} (m : ℕ) (v : Fin n) : Fin (n + m) :=
+    match v with
+    | .mk val isLt => by
+      have step1 : n ≤ n + m := by
+        simp
+      have step2 : val < n + m := by
+        apply Nat.le_iff_lt_or_eq.mp at step1
+        cases step1 with
+        | inl h =>
+          apply Nat.lt_trans isLt h
+        | inr h => 
+          rw[h.symm]
+          exact isLt
+      apply Fin.mk val step2
+        
+/-        
+apply Nat.lt_trans isLt step1
+      apply Fin.mk val step2-/
+
+variable {L : Language}
+
+def up_bv {n : ℕ} : (m : ℕ) → (ℕ ⊕ Fin n) → (ℕ ⊕ Fin (n + m))
+| _, .inl p => .inl p
+| m, .inr p => .inr (to_extra_fin m p)
+
+def up_bv_t {n : ℕ} (m : ℕ) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + m))
+| .var v => .var (up_bv m v)
+| .func f ts => .func f (fun i => up_bv_t m (ts i))
+
+def term_substitution {n : ℕ} (m : ℕ) (t_in : L.Term (ℕ ⊕ Fin (n + m))) (var_out : (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + m))
+| .var v => if v = var_out then t_in else (.var (up_bv m v))
+| .func f ts => .func f (fun i => term_substitution m t_in var_out (ts i))
+
+instance : Coe (L.Term (ℕ ⊕ Fin (a + b + c))) (L.Term (ℕ ⊕ Fin (a + c + b))) where
+  coe := by
+    simp[Nat.add_assoc, Nat.add_comm b c]
+    apply id
+instance : Coe (L.BoundedFormula ℕ (a + b + c)) (L.BoundedFormula ℕ (a + c + b)) where
+  coe := by
+    simp[Nat.add_assoc, Nat.add_comm b c]
+    apply id
+
+def formula_substitution (m : ℕ) : {n : ℕ} → (t_in : L.Term (ℕ ⊕ Fin (n + m))) → (var_out : (ℕ ⊕ Fin n)) → L.BoundedFormula ℕ n → L.BoundedFormula ℕ (n + m)
+| _, _, _, .falsum => .falsum
+| _, t_in, var_out, .equal t₁ t₂ => .equal (term_substitution m t_in var_out t₁) (term_substitution m t_in var_out t₂)
+| _, t_in, var_out, .rel R ts => .rel R (fun i => term_substitution m t_in var_out (ts i))
+| _, t_in, var_out, .imp φ ψ => .imp (formula_substitution m t_in var_out φ) (formula_substitution m t_in var_out ψ)
+| _, t_in, var_out, .all φ => .all (formula_substitution m (up_bv_t 1 t_in) (up_bv 1 var_out) φ)
+
+notation φ"("t"/"x")" => formula_substitution t x φ 
+
+
 end BoundedFormula
 
 namespace Languages
@@ -607,16 +661,6 @@ namespace FirstOrder.Language.BoundedFormula
   notation φ "////[" t "]" => my_subst φ t
 
   @[simp]
-  def to_extra_fin {n : ℕ} (v : Fin n) : Fin (n + 1) :=
-    match v with
-    | .mk val isLt => by
-      have step1 : n < n + 1 := by
-        simp
-      have step2 : val < n + 1 := by
-        apply Nat.lt_trans isLt step1
-      apply Fin.mk val step2
-
-  @[simp]
   def g₃ {n : ℕ} (t :  L.Term (ℕ ⊕ Fin (n + 1))) (α :  (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin (n + 1)) :=
   match n with   
   | 0 => 
@@ -632,7 +676,7 @@ namespace FirstOrder.Language.BoundedFormula
     match α with
     | .inl v => Term.var (.inl v)
     | .inr v => 
-      ite (v = n) t (Term.var (.inr (to_extra_fin v)))
+      ite (v = n) t (Term.var (.inr (BoundedFormula.to_extra_fin v)))
 
   @[simp]
   def my_subst_2 (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin (n + 1))) := relabel id (subst φ.toFormula (g₃ t))   
