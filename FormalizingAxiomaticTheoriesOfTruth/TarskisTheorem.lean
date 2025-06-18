@@ -192,12 +192,13 @@ theorem tarskis_theorem : syntax_and_PA_unres_TB ⊢ false_formula := by
   --   apply diagonal_lemma ∼T(var (Sum.inl 0))
 
   have liar_t_instance : syntax_and_PA_unres_TB ⊢ (T(⌜ψ⌝) ⇔ ψ) := by
-    sorry
+    simp
+    apply
   -- Step 3: Derive T(⌜ψ⌝) ⇔ ∼T(⌜ψ⌝)
   have intermediate_lemma : syntax_and_PA_unres_TB ⊢ (T(⌜ψ⌝) ⇔ ∼T(⌜ψ⌝)) := by
       obtain ⟨derivation⟩ := eqv_trans syntax_and_PA_unres_TB (T(⌜ψ⌝)) (∼T(⌜ψ⌝)) ψ
       sorry
-  obtain ⟨d⟩ := inconsistency (th_to_set_form syntax_and_PA_unres_TB) (T(⌜ψ⌝))
+  sorry
   sorry
 
 
