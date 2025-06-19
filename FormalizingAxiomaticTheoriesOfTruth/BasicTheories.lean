@@ -101,7 +101,7 @@ open Languages
   open SyntaxTheory
   open BoundedFormula
   
-  def pat : Set (ℒₜ.Formula ℕ) := (peano_axioms.image ϕ.onFormula) ∪ {φ : ℒₜ.Formula ℕ | ∃ψ : ℒₜ.Formula ℕ, φ = ψ/[L_T.null] ⟹ ∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory
+  def pat : Set (ℒₜ.Formula ℕ) := (peano_axioms.image ϕ.onFormula) ∪ {φ : ℒₜ.Formula ℕ | ∃ψ : ℒₜ.Formula ℕ, φ = ψ/[L_T.null] ∧' ∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory
 
   notation "𝐏𝐀𝐓" => pat
 end PAT
