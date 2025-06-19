@@ -4,30 +4,6 @@ import FormalizingAxiomaticTheoriesOfTruth.BasicTheories
 open FirstOrder
 open Language
 open BoundedFormula
-
-variable {L : Language}
-
-def term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin n)
-| .var v => if v = (.inl 0) then t else (.var v)
-| .func f ts => .func f (fun i => term_substitution t (ts i))
-
-def up_bv {n : ℕ} : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + 1))
-| .var v => 
-  match v with
-  | .inl m => 
-    .var (.inl m)
-  | .inr m => .var (.inr (to_extra_fin m))
-| .func f ts => .func f (fun i => up_bv (ts i))
-
-def formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin n)) → L.BoundedFormula ℕ n → L.BoundedFormula ℕ n
-| _, _, .falsum => .falsum
-| _, t, .equal t₁ t₂ => .equal (term_substitution t t₁) (term_substitution t t₂)
-| _, t, .rel R ts => .rel R (fun i => term_substitution t (ts i))
-| _, t, .imp φ ψ => .imp (formula_substitution t φ) (formula_substitution t ψ)
-| _, t, .all φ => .all (formula_substitution (up_bv t) φ)
-
-notation "sub" => formula_substitution
-
 open Languages
 open LPA
 lemma atomic_term_subst : ∀t₁ : ℒ.Term (ℕ ⊕ Fin n), (term_substitution t₁ null) = null := by
@@ -72,7 +48,7 @@ namespace Conservativity
   |  _, _, .equal t₁ t₂ => .equal (to_l_term t₁) (to_l_term t₂)
   |  _, φ, .rel R ts =>
       match R with
-      | .t => (φ////[(to_l_term (ts 0))]) 
+      | .t => (φ/[(to_l_term (ts 0))]) 
       | .var => 
              .rel LPA.Rel.var (fun i => to_l_term (ts i)) 
       | .const =>
@@ -199,8 +175,20 @@ namespace Conservativity
     | .right_exists _ _ _ _ _ d₁ _ => build_relevant_phis d₁
     | .cut _ _ _ _ _ d₁ d₂ _ _ => (build_relevant_phis d₁) ∪ (build_relevant_phis d₂)
 -/
+end Conservativity
+
+namespace FirstOrder.Language.Sentence
+variable {L : Language}
+def to_fml : L.Sentence → L.Formula ℕ := @Calculus.bf_empty_to_bf_N _ 0 
+end FirstOrder.Language.Sentence
+
+namespace Conservativity
+  open FirstOrder.Language
+  open BoundedFormula
+  open TermEncoding
+  open Calculus
   
-  notation "ℒ.enc" φ => LPA.numeral (formula_tonat (bf_empty_to_bf_N φ))
+  notation "ℒ.enc" f => LPA.numeral (formula_tonat (Sentence.to_fml f))
   
   def build_tau : List ℒ.Sentence → ℒ.Fml
     | .nil => ⊥
@@ -214,9 +202,9 @@ namespace Conservativity
 
   def split_if {Th Γ Δ} (A B : (L.Formula ℕ)) (S₁ S₂ S₃) : Derivation Th S₁ S₂ → S₂ = S₃ ∪ {A ⟹ B} → Δ = S₁ ∪ {A} → Γ = S₃ ∪ {B} → Derivation Th Δ Γ := sorry 
 
-  def subst_disj_distr {A B: (L.Formula ℕ)} : sub t (A ∨' B) = (sub t A ∨' sub t B) := by sorry
+  def subst_disj_distr {A B: (L.Formula ℕ)} : (A ∨' B)/[t] = (A/[t] ∨' B/[t]) := by sorry
 
-  def subst_conj_distr {A B: (L.Formula ℕ)} : sub t (A ∧' B) = (sub t A ∧' sub t B) := by sorry
+  def subst_conj_distr {A B: (L.Formula ℕ)} : (A ∧' B)/[t] = (A/[t] ∧' B/[t]) := by sorry
   
   lemma numeral_no_subst : ∀n, ∀t : ℒ.Term (ℕ ⊕ Fin m), term_substitution t (LPA.numeral n) = LPA.numeral n
 | .zero, t => by
@@ -248,7 +236,7 @@ namespace Conservativity
     | .func f ts, _ => by
       simp[term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
 
-  def forall_sent_trans_subst_self : {n : ℕ} → (φ : L.BoundedFormula Empty n) → (t : L.Term (ℕ ⊕ Fin n)) → (sub t (bf_empty_to_bf_N φ)) = bf_empty_to_bf_N φ 
+  def forall_sent_trans_subst_self : {n : ℕ} → (φ : L.BoundedFormula Empty n) → (t : L.Term (ℕ ⊕ Fin n)) → (bf_empty_to_bf_N φ)/[t] = bf_empty_to_bf_N φ 
   | _, .falsum, _ => by
     simp[bf_empty_to_bf_N]
     rfl
@@ -266,7 +254,7 @@ namespace Conservativity
     simp[formula_substitution,bf_empty_to_bf_N,term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
     apply forall_sent_trans_subst_self φ 
 
-  noncomputable def pa_proves_all_tau_disq : (l : List ℒ.Sentence) → φ ∈ l → ((sub (ℒ.enc φ) (build_tau l)) ⇔ φ) ∈ Γ → Derivation 𝐏𝐀 Δ Γ
+  noncomputable def pa_proves_all_tau_disq {φ : ℒ.Sentence} : (l : List ℒ.Sentence) → φ ∈ l → (build_tau l)/[ℒ.enc φ] ⇔ φ ∈ Γ → Derivation 𝐏𝐀 Δ Γ
     | .nil, h₁, _ => by
       simp at h₁
     | .cons a lst, h₁, h₂ => by
@@ -275,58 +263,58 @@ namespace Conservativity
       let tau_phi : ℒ.Fml := formula_substitution (ℒ.enc φ) (build_tau (a :: lst))
       
       
-      apply iff_from_sides tau_phi (bf_empty_to_bf_N φ) ((Γ \ {tau_phi ⇔ φ}) ∪ {tau_phi ⟹ φ}) ((Γ \ {tau_phi ⇔ φ}) ∪ {(bf_empty_to_bf_N φ) ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ (rfl) _ rfl (by simp; exact h₂)
+      apply iff_from_sides tau_phi (bf_empty_to_bf_N φ) ((Γ \ {tau_phi ⇔ φ}) ∪ {tau_phi ⟹ φ}) ((Γ \ {tau_phi ⇔ φ}) ∪ {(φ.to_fml) ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ (rfl) _ rfl (by simp; exact h₂)
       -- case left_to_right
       sorry
       -- case right_to_left
       apply Derivation.right_implication φ tau_phi ({bf_empty_to_bf_N φ} ∪ Δ) (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ rfl rfl rfl    
       
-      simp[tau_phi,build_tau,subst_disj_distr,subst_conj_distr,Term.bdEqual,formula_substitution,numeral_no_subst,term_substitution] 
-      let S : Finset ℒ.Fml := (Γ \ {((equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) φ)∨'sub (ℒ.enc φ) (build_tau lst)) ⇔ φ})
-      apply Derivation.right_disjunction ((equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) φ)) (sub (ℒ.enc φ) (build_tau lst)) (S ∪ {(equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) φ), sub (ℒ.enc φ) (build_tau lst)}) _ _
+      simp[tau_phi,build_tau,subst_disj_distr,subst_conj_distr,Term.bdEqual,formula_substitution,numeral_no_subst,term_substitution,forall_sent_trans_subst_self] 
+      let S : Finset ℒ.Fml := (Γ \ {equal (ℒ.enc φ) (ℒ.enc φ)∧' φ.to_fml ∨' (build_tau lst)/[ℒ.enc φ] ⇔ φ})
+      apply Derivation.right_disjunction (equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) (S ∪ {(equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml), (build_tau lst)/[ℒ.enc φ]}) _ _
       
       by_cases h₃ : φ = a
       simp[h₃]
       #check right_weakening
       
-      have union_eq : insert (equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a) (S ∪ {sub (ℒ.enc a) (build_tau lst)}) =  S ∪ {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a} ∪ {sub (ℒ.enc a) (build_tau lst)} := by 
+      have union_eq : insert (equal (ℒ.enc a) (ℒ.enc a) ∧' a.to_fml) (S ∪ {(build_tau lst)/[ℒ.enc a]}) =  S ∪ {equal (ℒ.enc a) (ℒ.enc a)∧' a.to_fml} ∪ {(build_tau lst)/[ℒ.enc a]} := by 
         simp[Finset.insert_eq]
         rw[Finset.union_comm]
-        rw[Finset.union_assoc S {sub (ℒ.enc a) (build_tau lst)} {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a}]
-        rw[Finset.union_comm {sub (ℒ.enc a) (build_tau lst)} {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a}]
+        rw[Finset.union_assoc S {(build_tau lst)/[ℒ.enc a]} {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}]
+        rw[Finset.union_comm {(build_tau lst)/[ℒ.enc a]} {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}]
         
-      apply right_weakening (sub (ℒ.enc a) (build_tau lst)) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a}) _ union_eq
+      apply right_weakening ((build_tau lst)/[ℒ.enc a]) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}) _ union_eq
+      
       #check Derivation.right_conjunction 
-      apply Derivation.right_conjunction (equal (ℒ.enc a) (ℒ.enc a)) (sub (ℒ.enc a) a) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)}) (S ∪ {sub (ℒ.enc a) a}) (S) _ (by simp) _ (by simp[S]) (by simp)
+      apply Derivation.right_conjunction (equal (ℒ.enc a) (ℒ.enc a)) (a.to_fml) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)}) (S ∪ {a.to_fml}) (S) _ (by simp) _ (by simp[S]) (by simp)
       #check Derivation.iax (ℒ.enc a) 
       apply Derivation.iax (ℒ.enc a) (by simp[Term.bdEqual])
       
-      simp[forall_sent_trans_subst_self]
-      have a_in_both : (bf_empty_to_bf_N a) ∈ ({bf_empty_to_bf_N a} ∪ Δ) ∧ (bf_empty_to_bf_N a) ∈ (S ∪ {bf_empty_to_bf_N a}) := And.intro (by simp) (by simp)        
+      have a_in_both : (a.to_fml) ∈ ({a.to_fml} ∪ Δ) ∧ (a.to_fml) ∈ (S ∪ {a.to_fml}) := And.intro (by simp) (by simp)        
       #check Derivation.lax 
-      apply Derivation.lax (Exists.intro (bf_empty_to_bf_N a) a_in_both)
+      apply Derivation.lax (Exists.intro (a.to_fml) a_in_both)
       
       -- case neg
-      have union_eq₂ : S ∪ {equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) (bf_empty_to_bf_N φ), sub (ℒ.enc φ) (build_tau lst)} = S ∪ {sub (ℒ.enc φ) (build_tau lst)} ∪ {equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) (bf_empty_to_bf_N φ)} := by
+      have union_eq₂ : S ∪ {equal (ℒ.enc φ) (ℒ.enc φ)∧'(φ.to_fml), (build_tau lst)/[ℒ.enc φ]} = S ∪ {(build_tau lst)/[ℒ.enc φ]} ∪ {equal (ℒ.enc φ) (ℒ.enc φ)∧'(φ.to_fml)} := by
         rw[Finset.union_assoc]
-        rw[Finset.union_comm {sub (ℒ.enc φ) (build_tau lst)}  {equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) (bf_empty_to_bf_N φ)}] 
+        rw[Finset.union_comm {(build_tau lst)/[ℒ.enc φ]}  {equal (ℒ.enc φ) (ℒ.enc φ)∧'(φ.to_fml)}] 
         rfl
 
-      apply right_weakening (equal (ℒ.enc φ) (ℒ.enc φ)∧'sub (ℒ.enc φ) φ) (S ∪ {sub (ℒ.enc φ) (build_tau lst)}) _ union_eq₂
+      apply right_weakening (equal (ℒ.enc φ) (ℒ.enc φ)∧' φ.to_fml) (S ∪ {(build_tau lst)/[ℒ.enc φ]}) _ union_eq₂
       simp[h₃] at h₁
       /-have phi_disq_in_set : ((sub (ℒ.enc φ) (build_tau lst)) ⇔ φ) ∈ {sub (ℒ.enc φ) (build_tau lst)} := by
         sorry
 -/
       
 
-      have iff_der : Derivation 𝐏𝐀 Δ (S ∪ {sub (ℒ.enc φ) (build_tau lst) ⇔ φ}) := by
-        apply pa_proves_all_tau_disq lst h₁ (by simp) 
+      have iff_der : Derivation 𝐏𝐀 Δ (S ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) := by
+        apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml]) 
       
-      have if_der : Derivation 𝐏𝐀 Δ (S ∪ {(bf_empty_to_bf_N φ) ⟹ sub (ℒ.enc φ) (build_tau lst)}) := iff_to_right (sub (ℒ.enc φ) (build_tau lst)) φ (S ∪ {sub (ℒ.enc φ) (build_tau lst) ⇔ φ}) S iff_der rfl (by simp)
+      have if_der : Derivation 𝐏𝐀 Δ (S ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) := iff_to_right ((build_tau lst)/[ℒ.enc φ]) (φ.to_fml) (S ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) S iff_der rfl (by simp)
 
       #check split_if 
 
-      apply split_if (bf_empty_to_bf_N φ) (sub (ℒ.enc φ) (build_tau lst)) Δ (S ∪ {(bf_empty_to_bf_N φ) ⟹ sub (ℒ.enc φ) (build_tau lst)}) S if_der rfl (by rw[Finset.union_comm]) rfl
+      apply split_if (φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) Δ (S ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) S if_der rfl (by rw[Finset.union_comm,Sentence.to_fml]) rfl
       
       
       
@@ -349,7 +337,7 @@ TODO :
       let S₃ := S₁ ∪ {A₃, B₃}
       -/
 
-      -- case neg
+      -- Case Neg
 
   open SyntaxAxioms
   open BoundedFormula
