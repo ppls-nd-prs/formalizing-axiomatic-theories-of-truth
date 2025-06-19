@@ -25,7 +25,7 @@ def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
 def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
   (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
 def subs_repres (φ : BoundedFormula ℒ ℕ 0) (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒ ℕ :=
-  Subs(⌜φ⌝, ⌜(@Term.var ℒ (ℕ ⊕ Fin 0) (.inl 0))⌝, ⌜t⌝) =' ⌜φ////[t]⌝
+  Subs(⌜φ⌝, ⌜(@Term.var ℒ (ℕ ⊕ Fin 0) (.inl 0))⌝, ⌜t⌝) =' ⌜φ/[t]⌝
 def term_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
   Trm( ⌜φ⌝ )
 def formulaL_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
@@ -88,7 +88,7 @@ namespace PA
     | fifth : peano_axioms (∀' ((&0 times LPA.null) =' LPA.null))
     | sixth : peano_axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
 
-  def peano_arithmetic : Set (ℒ.Formula ℕ) := peano_axioms ∪ {φ : ℒ.Formula ℕ | ∃ψ : ℒ.Formula ℕ, φ = ∼(ψ////[LPA.null] ⟹ (∼(∀'(ψ////bv[&0] ⟹ ψ////bv[S(&0)])))) ⟹ ∀'ψ////bv[&0]} ∪ syntax_theory_l
+  def peano_arithmetic : Set (ℒ.Formula ℕ) := peano_axioms ∪ {φ : ℒ.Formula ℕ | ∃ψ : ℒ.Formula ℕ, φ = (ψ/[LPA.null] ∧' (∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]))) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory_l
   
   notation "𝐏𝐀" => peano_arithmetic
 
@@ -99,8 +99,9 @@ open Languages
   open PA
   open L_T
   open SyntaxTheory
+  open BoundedFormula
   
-  def pat : Set (ℒₜ.Formula ℕ) := (peano_axioms.image ϕ.onFormula) ∪ {φ : ℒₜ.Formula ℕ | ∃ψ : ℒₜ.Formula ℕ, φ = ∼(ψ////[L_T.null] ⟹ (∼(∀'(ψ////bv[&0] ⟹ ψ////bv[S(&0)])))) ⟹ ∀'ψ////bv[&0]} ∪ syntax_theory
+  def pat : Set (ℒₜ.Formula ℕ) := (peano_axioms.image ϕ.onFormula) ∪ {φ : ℒₜ.Formula ℕ | ∃ψ : ℒₜ.Formula ℕ, φ = ψ/[L_T.null] ⟹ ∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory
 
   notation "𝐏𝐀𝐓" => pat
 end PAT

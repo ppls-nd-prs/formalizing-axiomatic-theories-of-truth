@@ -91,7 +91,7 @@ def formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin n)) → L.Boun
 | _, t, .imp φ ψ => .imp (formula_substitution t φ) (formula_substitution t ψ)
 | _, t, .all φ => .all (formula_substitution (up_bv t) φ)
 
-notation "sub" => formula_substitution
+notation φ"/["t"]" => formula_substitution t φ 
 
 def bv_term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin (n + 1))) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + 1))
 | .var v => if v = (.inl 0) then t else (up_bv (.var  v))
@@ -104,27 +104,26 @@ def bv_formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin (n + 1))) �
 | _, t, .imp φ ψ => .imp (bv_formula_substitution t φ) (bv_formula_substitution t ψ)
 | _, t, .all φ => .all (bv_formula_substitution (up_bv t) φ)
 
-notation "bv_sub" => bv_formula_substitution
+notation φ"/bv["t"]" => bv_formula_substitution t φ
 
 inductive simple_func : ℕ → Type where
   | one : simple_func 0
 
-def simple_l : Language := ⟨simple_func, (fun i => Empty)⟩ 
+def simple_l : Language := ⟨simple_func, (fun _ => Empty)⟩ 
 
 def φ : simple_l.BoundedFormula ℕ 0 := (.var (.inl 0)) =' (.func simple_func.one ![])
 def ψ : simple_l.BoundedFormula ℕ 0 := (.func simple_func.one ![]) =' (.func simple_func.one ![])
 def t₁ : simple_l.Term (ℕ ⊕ Fin 0) := .func simple_func.one ![]
 
-example : (sub t₁ φ) = ψ  := by
+example : (φ/[t₁]) = ψ  := by
   simp[formula_substitution,t₁,φ,ψ,Term.bdEqual,term_substitution,Matrix.empty_eq]
 
-def φ' : simple_l.BoundedFormula ℕ 0 := (.var (.inl 0)) =' (.func simple_func.one ![])
-def ψ' : simple_l.BoundedFormula ℕ 1 := (.var (.inr 0)) =' (.func simple_func.one ![])
-def t' : simple_l.Term (ℕ ⊕ Fin 1) := (.var (.inr 0))
+def φ₂ : simple_l.BoundedFormula ℕ 0 := (.var (.inl 0)) =' (.func simple_func.one ![])
+def ψ₂ : simple_l.BoundedFormula ℕ 1 := (.var (.inr 0)) =' (.func simple_func.one ![])
+def t₂ : simple_l.Term (ℕ ⊕ Fin 1) := (.var (.inr 0))
 
-example : (bv_sub t' φ') = ψ'  := by 
-  simp[bv_formula_substitution,t',φ',ψ',Term.bdEqual,bv_term_substitution,Matrix.empty_eq] 
-
+example : (φ₂/bv[t₂]) = ψ₂  := by 
+  simp[bv_formula_substitution,t₂,φ₂,ψ₂,Term.bdEqual,bv_term_substitution,Matrix.empty_eq] 
 
 end BoundedFormula
 
@@ -646,54 +645,6 @@ end Languages
 
 namespace FirstOrder.Language.BoundedFormula
   variable {L : Language}{α : Type}{n : ℕ}
-  @[simp]
-  def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
-    fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
-  scoped notation A "/[" t "]" => subst A (g₁ t)
-  
-  @[simp]
-  def g₂ {n : ℕ} (t :  L.Term (ℕ ⊕ Fin n)) (α :  (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin n) :=
-  match n with   
-  | 0 => 
-    match α with
-    | .inl v =>
-      match v with
-      | 0 => t
-      | .succ n => Term.var (.inl n)
-    | .inr v => by
-      cases v with
-      | mk val isLt => simp at isLt
-  | .succ k => 
-    match α with
-    | .inl v => Term.var (.inl v)
-    | .inr v => 
-      ite (v = n) t (Term.var (.inr v))
-
-  @[simp]
-  def my_subst (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin n)):= relabel id (subst φ.toFormula (g₂ t))   
-  notation φ "////[" t "]" => my_subst φ t
-
-  @[simp]
-  def g₃ {n : ℕ} (t :  L.Term (ℕ ⊕ Fin (n + 1))) (α :  (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin (n + 1)) :=
-  match n with   
-  | 0 => 
-    match α with
-    | .inl v =>
-      match v with
-      | 0 => t
-      | .succ n => Term.var (.inl n)
-    | .inr v => by
-      cases v with
-      | mk val isLt => simp at isLt
-  | .succ k => 
-    match α with
-    | .inl v => Term.var (.inl v)
-    | .inr v => 
-      ite (v = n) t (Term.var (.inr (BoundedFormula.to_extra_fin v)))
-
-  @[simp]
-  def my_subst_2 (φ : L.BoundedFormula ℕ n) (t : L.Term (ℕ ⊕ Fin (n + 1))) := relabel id (subst φ.toFormula (g₃ t))   
-  notation φ "////bv[" t "]" => my_subst_2 φ t
 
   def land (f₁ f₂: BoundedFormula L α n) :=
     ∼(f₁ ⟹ ∼f₂)
