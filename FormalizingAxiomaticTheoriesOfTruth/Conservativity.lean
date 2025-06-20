@@ -252,6 +252,10 @@ namespace Conservativity
   def subst_disj_distr {A B: (L.Formula (Fin 1))} : (A ∨' B)/[t] = (A/[t] ∨' B/[t]) := by sorry
 
   def subst_conj_distr {A B: (L.Formula (Fin 1))} : (A ∧' B)/[t] = (A/[t] ∧' B/[t]) := by sorry
+
+  def to_N_disj_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ∨' B) = (bf_empty_to_bf_N A) ∨' (bf_empty_to_bf_N B) := sorry
+
+  def to_N_conj_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ∧' B) = (bf_empty_to_bf_N A) ∧' (bf_empty_to_bf_N B) := sorry
   
   lemma numeral_no_subst : ∀n, ∀t : ℒ.Term (Empty ⊕ Fin m), term_substitution t (LPA.numeral n) = LPA.numeral n
 | .zero, t => by
@@ -318,18 +322,16 @@ namespace Conservativity
       
       apply Derivation.right_implication φ tau_phi ({bf_empty_to_bf_N φ} ∪ Δ) (Γ ∪ {tau_phi}) Γ _ rfl rfl rfl    
       
-      simp[tau_phi,build_tau,Term.bdEqual,subst_disj_distr,subst_conj_distr,numeral_no_subst,forall_sent_trans_subst_self] -- ALSO NEED: bf_empty_to_bf_N distr for everything  
-      apply Derivation.right_disjunction (equal (ℒ.enc φ) (ℒ.enc a) ∧' a.to_fml) ((build_tau lst)/[ℒ.enc φ]) (Γ ∪ {(equal (ℒ.enc φ) (ℒ.enc a) ∧' a.to_fml), (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ]))}) Γ _ rfl (by simp[bf_empty_to_bf_N, Sentence.to_fml]) 
-      
-    #check to_fin_1 
-
+      simp[tau_phi,build_tau,Term.bdEqual,subst_disj_distr,subst_conj_distr,numeral_no_subst,forall_sent_trans_subst_self,to_N_disj_distr,to_N_conj_distr] 
+      apply Derivation.right_disjunction ((bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'bf_empty_to_bf_N a)) (bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])) (Γ ∪ {(bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'bf_empty_to_bf_N a), (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ]))}) Γ _ rfl (by simp[bf_empty_to_bf_N, Sentence.to_fml]) 
+  
 -- (equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) (S ∪ {(equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml), (build_tau lst)/[ℒ.enc φ]}) _ _
       
       by_cases h₃ : φ = a
       simp[h₃]
       #check right_weakening
       
-      have union_eq : insert (equal (ℒ.enc a) (ℒ.enc a) ∧' a.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc a]}) =  Γ ∪ {equal (ℒ.enc a) (ℒ.enc a)∧' a.to_fml} ∪ {(build_tau lst)/[ℒ.enc a]} := by 
+      have union_eq : insert (equal (ℒ.enc a) (ℒ.enc a) ∧' a.to_fml) (Γ ∪ {bf_empty_to_bf_N (build_tau lst)/[ℒ.enc a]}) =  Γ ∪ {equal (ℒ.enc a) (ℒ.enc a)∧' a.to_fml} ∪ {(build_tau lst)/[ℒ.enc a]} := by 
         simp[Finset.insert_eq]
         rw[Finset.union_comm]
         rw[Finset.union_assoc Γ {(build_tau lst)/[ℒ.enc a]} {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}]
