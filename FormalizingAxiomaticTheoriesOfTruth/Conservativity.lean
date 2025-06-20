@@ -262,70 +262,70 @@ namespace Conservativity
       
       let tau_phi : ℒ.Fml := formula_substitution (ℒ.enc φ) (build_tau (a :: lst))
       
+      #check iff_from_sides 
+      apply iff_from_sides tau_phi (bf_empty_to_bf_N φ) (Γ ∪ {tau_phi ⟹ φ}) (Γ ∪ {(φ.to_fml) ⟹ tau_phi}) Γ _ rfl _ rfl (by simp; exact h₂)
       
-      apply iff_from_sides tau_phi (bf_empty_to_bf_N φ) ((Γ \ {tau_phi ⇔ φ}) ∪ {tau_phi ⟹ φ}) ((Γ \ {tau_phi ⇔ φ}) ∪ {(φ.to_fml) ⟹ tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ (rfl) _ rfl (by simp; exact h₂)
       -- case left_to_right
       sorry
       -- case right_to_left
-      apply Derivation.right_implication φ tau_phi ({bf_empty_to_bf_N φ} ∪ Δ) (Γ \ {tau_phi ⇔ φ} ∪ {tau_phi}) (Γ \ {tau_phi ⇔ φ}) _ rfl rfl rfl    
+      
+      apply Derivation.right_implication φ tau_phi ({bf_empty_to_bf_N φ} ∪ Δ) (Γ ∪ {tau_phi}) Γ _ rfl rfl rfl    
       
       simp[tau_phi,build_tau,subst_disj_distr,subst_conj_distr,Term.bdEqual,formula_substitution,numeral_no_subst,term_substitution,forall_sent_trans_subst_self] 
-      let S : Finset ℒ.Fml := (Γ \ {equal (ℒ.enc φ) (ℒ.enc φ)∧' φ.to_fml ∨' (build_tau lst)/[ℒ.enc φ] ⇔ φ})
-      apply Derivation.right_disjunction (equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) (S ∪ {(equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml), (build_tau lst)/[ℒ.enc φ]}) _ _
+      apply Derivation.right_disjunction (equal (ℒ.enc φ) (ℒ.enc a) ∧' a.to_fml) ((build_tau lst)/[ℒ.enc φ]) (Γ ∪ {(equal (ℒ.enc φ) (ℒ.enc a) ∧' a.to_fml), (build_tau lst)/[ℒ.enc φ]}) Γ _ rfl (by simp[Sentence.to_fml]) 
+      
+
+-- (equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) (S ∪ {(equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml), (build_tau lst)/[ℒ.enc φ]}) _ _
       
       by_cases h₃ : φ = a
       simp[h₃]
       #check right_weakening
       
-      have union_eq : insert (equal (ℒ.enc a) (ℒ.enc a) ∧' a.to_fml) (S ∪ {(build_tau lst)/[ℒ.enc a]}) =  S ∪ {equal (ℒ.enc a) (ℒ.enc a)∧' a.to_fml} ∪ {(build_tau lst)/[ℒ.enc a]} := by 
+      have union_eq : insert (equal (ℒ.enc a) (ℒ.enc a) ∧' a.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc a]}) =  Γ ∪ {equal (ℒ.enc a) (ℒ.enc a)∧' a.to_fml} ∪ {(build_tau lst)/[ℒ.enc a]} := by 
         simp[Finset.insert_eq]
         rw[Finset.union_comm]
-        rw[Finset.union_assoc S {(build_tau lst)/[ℒ.enc a]} {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}]
+        rw[Finset.union_assoc Γ {(build_tau lst)/[ℒ.enc a]} {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}]
         rw[Finset.union_comm {(build_tau lst)/[ℒ.enc a]} {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}]
         
-      apply right_weakening ((build_tau lst)/[ℒ.enc a]) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}) _ union_eq
+      apply right_weakening ((build_tau lst)/[ℒ.enc a]) (Γ ∪ {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}) _ union_eq
       
       #check Derivation.right_conjunction 
-      apply Derivation.right_conjunction (equal (ℒ.enc a) (ℒ.enc a)) (a.to_fml) (S ∪ {equal (ℒ.enc a) (ℒ.enc a)}) (S ∪ {a.to_fml}) (S) _ (by simp) _ (by simp[S]) (by simp)
+      apply Derivation.right_conjunction (equal (ℒ.enc a) (ℒ.enc a)) (a.to_fml) (Γ ∪ {equal (ℒ.enc a) (ℒ.enc a)}) (Γ ∪ {a.to_fml}) (Γ) _ (by simp) _ (by simp[Γ]) (by simp)
       #check Derivation.iax (ℒ.enc a) 
       apply Derivation.iax (ℒ.enc a) (by simp[Term.bdEqual])
       
-      have a_in_both : (a.to_fml) ∈ ({a.to_fml} ∪ Δ) ∧ (a.to_fml) ∈ (S ∪ {a.to_fml}) := And.intro (by simp) (by simp)        
+      have a_in_both : (a.to_fml) ∈ ({a.to_fml} ∪ Δ) ∧ (a.to_fml) ∈ (Γ ∪ {a.to_fml}) := And.intro (by simp) (by simp)        
       #check Derivation.lax 
       apply Derivation.lax (Exists.intro (a.to_fml) a_in_both)
       
       -- case neg
-      have union_eq₂ : S ∪ {equal (ℒ.enc φ) (ℒ.enc φ)∧'(φ.to_fml), (build_tau lst)/[ℒ.enc φ]} = S ∪ {(build_tau lst)/[ℒ.enc φ]} ∪ {equal (ℒ.enc φ) (ℒ.enc φ)∧'(φ.to_fml)} := by
+      have union_eq₂ : Γ ∪ {equal (ℒ.enc φ) (ℒ.enc a)∧'(a.to_fml), (build_tau lst)/[ℒ.enc φ]} = Γ ∪ {(build_tau lst)/[ℒ.enc φ]} ∪ {equal (ℒ.enc φ) (ℒ.enc a)∧'(a.to_fml)} := by
         rw[Finset.union_assoc]
-        rw[Finset.union_comm {(build_tau lst)/[ℒ.enc φ]}  {equal (ℒ.enc φ) (ℒ.enc φ)∧'(φ.to_fml)}] 
+        rw[Finset.union_comm {(build_tau lst)/[ℒ.enc φ]}  {equal (ℒ.enc φ) (ℒ.enc a)∧'(a.to_fml)}] 
         rfl
-
-      apply right_weakening (equal (ℒ.enc φ) (ℒ.enc φ)∧' φ.to_fml) (S ∪ {(build_tau lst)/[ℒ.enc φ]}) _ union_eq₂
+      
+      apply right_weakening (equal (ℒ.enc φ) (ℒ.enc a)∧' a.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc φ]}) _ union_eq₂
       simp[h₃] at h₁
       /-have phi_disq_in_set : ((sub (ℒ.enc φ) (build_tau lst)) ⇔ φ) ∈ {sub (ℒ.enc φ) (build_tau lst)} := by
         sorry
 -/    
 
-      have iff_der : Derivation 𝐏𝐀 Δ (S ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) := by
+      have iff_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) := by
         apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml]) 
       
-      have if_der : Derivation 𝐏𝐀 Δ (S ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) := iff_to_right ((build_tau lst)/[ℒ.enc φ]) (φ.to_fml) (S ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) S iff_der rfl (by simp)
+      have if_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) := iff_to_right ((build_tau lst)/[ℒ.enc φ]) (φ.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) Γ iff_der rfl (by simp)
 
       #check split_if 
 
-      apply split_if (φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) Δ (S ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) S if_der rfl (by rw[Finset.union_comm,Sentence.to_fml]) rfl
-      simp
+      apply split_if (φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) Γ if_der rfl (by rw[Finset.union_comm,Sentence.to_fml]) rfl
       
       
       
 
 /- 
 TODO :
-1. Derivation 𝐏𝐀 ({a} ∪ Δ) (S ∪ {sub (ℒ.enc a) a}), for which we need that (sub (ℒ.enc a) a) = a and 
-2. S ∪ {(equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a)∨'sub (ℒ.enc a) (build_tau lst)} = S \ {equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a, sub (ℒ.enc a) (build_tau lst)} ∪ {(equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a)∨'sub (ℒ.enc a) (build_tau lst)}, which only works if S does not contains neither (equal (ℒ.enc a) (ℒ.enc a)∧'sub (ℒ.enc a) a) nor (sub (ℒ.enc a) (build_tau lst)) to begin with. Question for Johannes: Does applying right_disjunction mean that the A and B will not be present in the following Δ?
-3. neg : we need to prove that Derivation 𝐏𝐀 Δ (S ∪ {sub (ℒ.enc φ) (build_tau lst) ⇔ bf_empty_to_bf_N φ}) → Derivation 𝐏𝐀 ({bf_empty_to_bf_N φ} ∪ Δ) (S ∪ {sub (ℒ.enc φ) (build_tau lst)})
+1. Introduce theoretically sensible meta-rules for the above derivation.
 -/
-      sorry  
         
         
       
