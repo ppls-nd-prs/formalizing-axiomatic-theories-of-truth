@@ -103,17 +103,17 @@ namespace Calculus
   inductive Derivation : (Set (Formula L ℕ)) → (Finset (Formula L ℕ)) → (Finset (Formula L ℕ)) → Type _ where
     | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : ∃f, f ∈ Γ ∧ f ∈ Δ) : Derivation Th Γ Δ
-    | left_conjunction (A B S) {Th Γ Δ} (h₁ : Derivation Th S Δ) (h₂ : A ∈ S) (h₃ : B ∈ S) (h₄ : Γ = (((S \ {A}) \ {B}) ∪ {A ∧' B})): Derivation Th Γ Δ
-    | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (h₁ : Derivation Th S₁ Δ) (h₂ : S₁ = S₃ ∪ {A}) (h₃ : Derivation Th S₂ Δ) (h₄ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
+    | left_conjunction (A B S₁ S₂) {Th Γ Δ} (d₁ : Derivation Th S₁ Δ) (h₁ : S₁ = S₂ ∪ {A, B}) (h₂ : Γ = S₂ ∪ {A ∧' B}): Derivation Th Γ Δ
+    | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ Δ) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th S₂ Δ) (h₂ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
     | left_implication (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation Th S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}): Derivation Th Γ Δ
     | left_bot {Th Γ Δ} (h : ⊥ ∈ Γ) : Derivation Th Γ Δ
     | right_conjunction {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th Γ S₁) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th Γ S₂) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ∧' B}) : Derivation Th Γ Δ
-    | right_disjunction {Th Γ Δ} (A B S) (d₁ : Derivation Th Γ S) (h₁ : Δ = (S \ {A, B}) ∪ {A ∨' B}): Derivation Th Γ Δ
+    | right_disjunction {Th Γ Δ} (A B S₁ S₂) (d₁ : Derivation Th Γ S₁) (h₁ : S₁ = S₂ ∪ {A, B}) (h₂ : Δ = S₂ ∪ {A ∨' B}): Derivation Th Γ Δ
     | right_implication {Th Γ Δ} (A B S₁ S₂ S₃) (d₁ : Derivation Th S₁ S₂) (h₁ : S₁ = {A} ∪ Γ) (h₂ : S₂ = S₃ ∪ {B}) (h₃ : Δ = S₃ ∪ {A ⟹ B}): Derivation Th Γ Δ
-    | left_forall {Th Γ Δ}  (A : Formula L ℕ) (B) (h₁ : B = A↓) (t S) (d : Derivation Th S Δ) (h₂ : A/[t] ∈ S ∧ (∀'B) ∈ S) (h₃ : Γ = S \ {A/[t]}) : Derivation Th Γ Δ
+    | left_forall {Th Γ Δ}  (A : Formula L ℕ) (B) (h₁ : B = A↓) (t S₁ S₂) (d : Derivation Th S₁ Δ) (h₂ : S₁ = S₂ ∪ {A/[t], ∀'B}) (h₃ : Γ = S₂ ∪ {∀'B}) : Derivation Th Γ Δ
     | left_exists {Th Γ Δ} (A B) (S₁ : Finset (Formula L ℕ)) (p : B = A↓) (d₁ : Derivation Th ((S₁↑) ∪ {A}) (Δ↑)) (h₁ : Γ = S₁ ∪ {∃' B}) : Derivation Th Γ Δ
     | right_forall {Th Γ Δ} (A B S) (p : B = A↓) (d₁ : Derivation Th (Γ↑) ((S↑) ∪ {A})) (h₁ : Δ = S ∪ {∀'B}) : Derivation Th Γ Δ
-    | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S) (p : B = A↓) (d₁ : Derivation Th Γ (S ∪ {∃'B, A/[t]})) (h₁ : Δ = S ∪ {∃'B}) : Derivation Th Γ Δ
+    | right_exists {Th Γ Δ} (A : Formula L ℕ) (B t S₁ S₂) (p : B = A↓) (d₁ : Derivation Th Γ S₁) (h₁ : S₁ = S₂ ∪ {∃'B, A/[t]}) (h₂ : Δ = S₂ ∪ {∃'B}) : Derivation Th Γ Δ
 
   def emptyFormList : Finset (Formula L ℕ) := ∅
 
@@ -132,8 +132,8 @@ namespace Calculus
 
     variable {Th : Set (L.Formula ℕ)}{Γ Δ : Finset (L.Formula ℕ)}
     def iax (t : L.Term (ℕ ⊕ Fin 0)) (h : t =' t ∈ Δ) : Derivation Th Γ Δ := sorry
-    def i_two_for_one (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A/[t₁] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A/[t₂] ∈ Δ) : Derivation Th Γ Δ := sorry
-    def i_one_for_two (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A/[t₂] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A/[t₂] ∈ Δ) : Derivation Th Γ Δ := sorry
+    def i_two_for_one (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A/[t₁] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A/[t₂] ∈ Δ) : Derivation Th Γ Δ := sorry --might not need this
+    def i_one_for_two (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A/[t₂] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A/[t₂] ∈ Δ) : Derivation Th Γ Δ := sorry --might not need this
     def left_negation (A S₁ S₂) (d₁ : Derivation Th S₁ S₂) (h₁ : Γ = S₁ ∪ {∼A}) : Derivation Th Γ Δ := sorry
     def right_negation (A S₁ S₂) (d₁ : Derivation Th S₁ S₂) (h₂ : Δ = S₂ ∪ {∼A}) : Derivation Th Γ Δ := sorry
     def cut (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ := sorry
