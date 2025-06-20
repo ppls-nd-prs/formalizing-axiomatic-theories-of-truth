@@ -42,16 +42,14 @@ namespace Calculus
     coe := m_add_eq_add_m
 
   def sent_term_to_formula_term : Term L (Empty ⊕ Fin n) → Term L (ℕ ⊕ Fin n)
-      | .var n => match n with
-        | .inl _ => .var (.inl Nat.zero)
-        | .inr k => .var (.inr k)
+      | .var (.inl _) => .var (.inl Nat.zero)
+      | .var (.inr k) => .var (.inr k)
       | .func f ts => .func f (fun i => sent_term_to_formula_term (ts i))
-  instance : Coe (Term L (Empty ⊕ Fin n)) (Term L (ℕ ⊕ Fin n)) where
-    coe := sent_term_to_formula_term
+
   def bf_empty_to_bf_N : ∀{n}, BoundedFormula L Empty n → BoundedFormula L ℕ n
       | _, .falsum => .falsum
-      | _, .equal t₁ t₂ => .equal t₁ t₂
-      | _, .rel R ts => .rel R (fun i => ts i)
+      | _, .equal t₁ t₂ => .equal (sent_term_to_formula_term t₁) (sent_term_to_formula_term t₂)
+      | _, .rel R ts => .rel R (fun i => (sent_term_to_formula_term (ts i)))
       | _, .imp f₁ f₂ => .imp (bf_empty_to_bf_N f₁) (bf_empty_to_bf_N f₂)
       | _, .all f => .all (bf_empty_to_bf_N f)
   instance : Coe (Sentence L) (Formula L ℕ) where
