@@ -304,8 +304,7 @@ namespace Conservativity
       simp[h₃] at h₁
       /-have phi_disq_in_set : ((sub (ℒ.enc φ) (build_tau lst)) ⇔ φ) ∈ {sub (ℒ.enc φ) (build_tau lst)} := by
         sorry
--/
-      
+-/    
 
       have iff_der : Derivation 𝐏𝐀 Δ (S ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) := by
         apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml]) 
@@ -315,7 +314,7 @@ namespace Conservativity
       #check split_if 
 
       apply split_if (φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) Δ (S ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) S if_der rfl (by rw[Finset.union_comm,Sentence.to_fml]) rfl
-      
+      simp
       
       
       
