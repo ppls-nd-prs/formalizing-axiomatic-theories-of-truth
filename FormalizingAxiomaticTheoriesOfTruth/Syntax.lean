@@ -587,6 +587,8 @@ namespace TermEncoding
   /-- Encodes terms as natural numbers -/
   def term_tonat : Term L (ℕ ⊕ Fin 0) → ℕ :=
     fun t => Encodable.encodeList (Term.listEncode t)
+  def sentence_term_tonat : Term L (Empty ⊕ Fin 0) → ℕ :=
+    fun t => Encodable.encodeList (Term.listEncode t)
 
  /-- Encodes BoundedFormulas as natural numbers -/
   def formula_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=

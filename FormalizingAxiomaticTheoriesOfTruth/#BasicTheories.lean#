@@ -1,4 +1,3 @@
-
 import FormalizingAxiomaticTheoriesOfTruth.Syntax
 
 open FirstOrder
@@ -161,6 +160,7 @@ namespace PA
 
   example : φ₂/bv[t₂] = ψ₂ := by
     simp[φ₂,t₂,ψ₂,LPA.null,Term.bdEqual,Matrix.empty_eq]
+
 
   
 
