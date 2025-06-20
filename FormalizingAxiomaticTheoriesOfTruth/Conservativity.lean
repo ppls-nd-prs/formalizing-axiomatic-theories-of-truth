@@ -6,7 +6,8 @@ open Language
 open BoundedFormula
 open Languages
 open LPA
-lemma atomic_term_subst : ∀t₁ : ℒ.Term (ℕ ⊕ Fin n), (term_substitution t₁ null) = null := by
+open PA.Induction
+lemma atomic_term_subst : ∀t₁ : ℒ.Term (Empty ⊕ Fin n), (term_substitution t₁ null) = null := by
   intro t₁
   simp[null,term_substitution]
   cases t₁ with
@@ -79,8 +80,8 @@ namespace Conservativity
 
   def add_one_bv : {n : ℕ} → ℒ.BoundedFormula (Fin 1) n → ℒ.BoundedFormula (Fin 1) (n + 1)
   | _, .falsum => .falsum
-  | _, .equal t p => .equal (up_bv t) (up_bv p)
-  | _, .rel R ts => .rel R (fun i => up_bv (ts i))
+  | _, .equal t p => .equal (Substitution.up_bv t) (Substitution.up_bv p)
+  | _, .rel R ts => .rel R (fun i => Substitution.up_bv (ts i))
   | _, .imp φ ψ => .imp (add_one_bv φ) (add_one_bv ψ)
   | _, .all φ => .all (add_one_bv φ)
 
@@ -220,7 +221,7 @@ namespace Conservativity
   open TermEncoding
   open Calculus
   
-  notation "ℒ.enc" f => LPA.numeral (formula_tonat (Sentence.to_fml f))
+  notation "ℒ.enc" f => LPA.numeral (sent_tonat f)
   variable {L : Language}
 
   def up_fv {n : ℕ} : L.Term (Empty ⊕ Fin n) → L.Term ((Fin 1) ⊕ Fin n)
@@ -248,11 +249,11 @@ namespace Conservativity
 
   def split_if {Th Γ Δ} (A B : (L.Formula ℕ)) (S₁ S₂ S₃) : Derivation Th S₁ S₂ → S₂ = S₃ ∪ {A ⟹ B} → Δ = S₁ ∪ {A} → Γ = S₃ ∪ {B} → Derivation Th Δ Γ := sorry 
 
-  def subst_disj_distr {A B: (L.Formula ℕ)} : (A ∨' B)/[t] = (A/[t] ∨' B/[t]) := by sorry
+  def subst_disj_distr {A B: (L.Formula (Fin 1))} : (A ∨' B)/[t] = (A/[t] ∨' B/[t]) := by sorry
 
-  def subst_conj_distr {A B: (L.Formula ℕ)} : (A ∧' B)/[t] = (A/[t] ∧' B/[t]) := by sorry
+  def subst_conj_distr {A B: (L.Formula (Fin 1))} : (A ∧' B)/[t] = (A/[t] ∧' B/[t]) := by sorry
   
-  lemma numeral_no_subst : ∀n, ∀t : ℒ.Term (ℕ ⊕ Fin m), term_substitution t (LPA.numeral n) = LPA.numeral n
+  lemma numeral_no_subst : ∀n, ∀t : ℒ.Term (Empty ⊕ Fin m), term_substitution t (LPA.numeral n) = LPA.numeral n
 | .zero, t => by
   simp[LPA.numeral,LPA.null,term_substitution,Matrix.empty_eq]   
 | .succ n, t => by
@@ -274,30 +275,29 @@ namespace Conservativity
     variable {L : Language} [∀n, DecidableEq (L.Functions n)][∀n, DecidableEq (L.Relations n)]
     axiom right_weakening {Th Δ Γ} (A : (L.Formula ℕ)) (S) : Derivation Th Γ S → Δ = S ∪ {A} → Derivation Th Γ Δ
 
-  def forall_sent_term_trans_subst_self {n : ℕ} : (t₁ : L.Term (Empty ⊕ Fin n)) → (t₂ : L.Term (ℕ ⊕ Fin n)) → (term_substitution t₂ (sent_term_to_formula_term t₁)) = (sent_term_to_formula_term t₁)
+  def forall_sent_term_trans_subst_self {n : ℕ} : (t₁ : L.Term (Empty ⊕ Fin n)) → (t₂ : L.Term (Empty ⊕ Fin n)) → (term_substitution t₂ (up_fv t₁)) = t₁
     | .var (.inl m), _ => 
       by cases m
     | .var (.inr m), _ => by
-      simp[term_substitution,sent_term_to_formula_term]
+      simp[term_substitution,up_fv]
     | .func f ts, _ => by
-      simp[term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
+      simp[term_substitution,up_fv,forall_sent_term_trans_subst_self]
 
-  def forall_sent_trans_subst_self : {n : ℕ} → (φ : L.BoundedFormula Empty n) → (t : L.Term (ℕ ⊕ Fin n)) → (bf_empty_to_bf_N φ)/[t] = bf_empty_to_bf_N φ 
+  def forall_sent_trans_subst_self : {n : ℕ} → (φ : L.BoundedFormula Empty n) → (t : L.Term (Empty ⊕ Fin n)) → (to_fin_1 φ)/[t] = φ 
   | _, .falsum, _ => by
-    simp[bf_empty_to_bf_N]
-    rfl
+    simp[to_fin_1]
   | _, .equal t₁ t₂, t => by
-      simp[formula_substitution,bf_empty_to_bf_N,term_substitution,sent_term_to_formula_term]
+      simp[formula_substitution,to_fin_1,term_substitution,sent_term_to_formula_term]
       simp[formula_substitution,bf_empty_to_bf_N,term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
   | _, .rel R ts, t => by
-    simp[formula_substitution,bf_empty_to_bf_N,term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
+    simp[formula_substitution,to_fin_1,term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
   | _, .imp φ ψ, t => by
-    simp[formula_substitution,bf_empty_to_bf_N,term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
+    simp[formula_substitution,to_fin_1,term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
     apply And.intro
     apply forall_sent_trans_subst_self φ 
     apply forall_sent_trans_subst_self ψ
   | _, .all φ, t => by
-    simp[formula_substitution,bf_empty_to_bf_N,term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
+    simp[formula_substitution,to_fin_1,term_substitution,sent_term_to_formula_term,forall_sent_term_trans_subst_self]
     apply forall_sent_trans_subst_self φ 
 
   open PA.Induction
@@ -318,9 +318,10 @@ namespace Conservativity
       
       apply Derivation.right_implication φ tau_phi ({bf_empty_to_bf_N φ} ∪ Δ) (Γ ∪ {tau_phi}) Γ _ rfl rfl rfl    
       
-      simp[tau_phi,build_tau,subst_disj_distr,subst_conj_distr,Term.bdEqual,PA.Induction.formula_substitution,numeral_no_subst,bf_empty_to_bf_N,PA.Induction.term_substitution,forall_sent_trans_subst_self] 
+      simp[tau_phi,build_tau,Term.bdEqual,subst_disj_distr,subst_conj_distr,numeral_no_subst,forall_sent_trans_subst_self] -- ALSO NEED: bf_empty_to_bf_N distr for everything  
       apply Derivation.right_disjunction (equal (ℒ.enc φ) (ℒ.enc a) ∧' a.to_fml) ((build_tau lst)/[ℒ.enc φ]) (Γ ∪ {(equal (ℒ.enc φ) (ℒ.enc a) ∧' a.to_fml), (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ]))}) Γ _ rfl (by simp[bf_empty_to_bf_N, Sentence.to_fml]) 
       
+    #check to_fin_1 
 
 -- (equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) (S ∪ {(equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml), (build_tau lst)/[ℒ.enc φ]}) _ _
       

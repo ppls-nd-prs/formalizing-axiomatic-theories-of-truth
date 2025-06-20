@@ -6,6 +6,7 @@ open Languages
 
 namespace Calculus
   open BoundedFormula
+  open Substitution
   variable {L : Language}{n : ℕ}{α : Type}
   /- Some notation -/
   notation f " ↑' " n " at "  m => liftAt n m f

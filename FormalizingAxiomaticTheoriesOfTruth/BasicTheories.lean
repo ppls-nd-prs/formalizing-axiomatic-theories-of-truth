@@ -148,19 +148,19 @@ namespace PA
 
   scoped notation φ"/bv["t"]" => bv_formula_substitution t φ
 
-  def φ₁ : ℒ.Formula (Fin 1) := #0 =' LPA.null
-  def t₁ : ℒ.Term (Empty ⊕ Fin 0) := LPA.null
-  def ψ₁ : ℒ.Sentence := LPA.null =' LPA.null
+  def φ1 : ℒ.Formula (Fin 1) := #0 =' LPA.null
+  def t1 : ℒ.Term (Empty ⊕ Fin 0) := LPA.null
+  def ψ1 : ℒ.Sentence := LPA.null =' LPA.null
 
-  example : φ₁/[t₁] = ψ₁ := by
-    simp[φ₁,t₁,ψ₁,LPA.null,Term.bdEqual,Matrix.empty_eq]
+  example : φ1/[t1] = ψ1 := by
+    simp[φ1,t1,ψ1,LPA.null,Term.bdEqual,Matrix.empty_eq]
 
-  def φ₂ : ℒ.Formula (Fin 1) := #0 =' LPA.null
-  def t₂ : ℒ.Term (Empty ⊕ Fin 1) := &0
-  def ψ₂ : ℒ.BoundedFormula Empty 1 := (&0) =' LPA.null
+  def φ2 : ℒ.Formula (Fin 1) := #0 =' LPA.null
+  def t2 : ℒ.Term (Empty ⊕ Fin 1) := &0
+  def ψ2 : ℒ.BoundedFormula Empty 1 := (&0) =' LPA.null
 
-  example : φ₂/bv[t₂] = ψ₂ := by
-    simp[φ₂,t₂,ψ₂,LPA.null,Term.bdEqual,Matrix.empty_eq]
+  example : φ2/bv[t2] = ψ2 := by
+    simp[φ2,t2,ψ2,LPA.null,Term.bdEqual,Matrix.empty_eq]
 
   
 

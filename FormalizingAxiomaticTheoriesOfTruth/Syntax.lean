@@ -72,6 +72,7 @@ namespace BoundedFormula
         
 variable {L : Language}
 
+namespace Substitution
 def term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin n)
 | .var v => if v = (.inl 0) then t else (.var v)
 | .func f ts => .func f (fun i => term_substitution t (ts i))
@@ -105,6 +106,7 @@ def bv_formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin (n + 1))) �
 | _, t, .all φ => .all (bv_formula_substitution (up_bv t) φ)
 
 notation φ"/bv["t"]" => bv_formula_substitution t φ
+end Substitution
 
 inductive simple_func : ℕ → Type where
   | one : simple_func 0
@@ -115,6 +117,7 @@ def φ : simple_l.BoundedFormula ℕ 0 := (.var (.inl 0)) =' (.func simple_func.
 def ψ : simple_l.BoundedFormula ℕ 0 := (.func simple_func.one ![]) =' (.func simple_func.one ![])
 def t₁ : simple_l.Term (ℕ ⊕ Fin 0) := .func simple_func.one ![]
 
+open Substitution
 example : (φ/[t₁]) = ψ  := by
   simp[formula_substitution,t₁,φ,ψ,Term.bdEqual,term_substitution,Matrix.empty_eq]
 
