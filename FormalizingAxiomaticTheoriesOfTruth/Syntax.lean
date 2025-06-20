@@ -76,7 +76,7 @@ def term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ F
 | .var v => if v = (.inl 0) then t else (.var v)
 | .func f ts => .func f (fun i => term_substitution t (ts i))
 
-def up_bv {n : ℕ} : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + 1))
+def up_bv {n : ℕ} : L.Term (α ⊕ Fin n) → L.Term (α ⊕ Fin (n + 1))
 | .var v => 
   match v with
   | .inl m => 
@@ -430,14 +430,21 @@ namespace Languages
       | .succ n => S(numeral n)
 
   /-- Gives whether a BoundedFormula contains a T predicate-/
-  @[simp] def contains_T {n} : ℒₜ.BoundedFormula ℕ n → Prop
+  @[simp] def contains_T {n} : ℒₜ.BoundedFormula α n → Prop
   | .rel L_T.Rel.t _ => true
   | .imp f₁ f₂ => contains_T f₁ ∨ contains_T f₂
   | .all f => contains_T f
   | _ => false
+  
+  namespace FirstOrder.Language.Sentence
+    variable {L : Language}
+    open Languages
+    @[simp]
+    def contains_T (s : ℒₜ.Sentence) : Prop := L_T.contains_T s
+  end FirstOrder.Language.Sentence
 
   /-- Proves that contains_T is a decidable predicate-/
-  def decPred_contains_T : {n : ℕ} → (a : ℒₜ.BoundedFormula ℕ n) → Decidable (contains_T a)
+  def decPred_contains_T : {n : ℕ} → (a : ℒₜ.BoundedFormula α n) → Decidable (contains_T a)
   | _, .falsum => by
     apply Decidable.isFalse
     simp
@@ -461,7 +468,8 @@ namespace Languages
     simp
     exact f
 
-  instance : DecidablePred (@contains_T 0) := decPred_contains_T
+  instance : DecidablePred (@contains_T ℕ 0) := decPred_contains_T
+  instance : DecidablePred (@contains_T Empty 0) := decPred_contains_T
 
     section Coding
       variable {k : ℕ}
@@ -590,6 +598,8 @@ namespace TermEncoding
     fun t => Encodable.encodeList (Term.listEncode t)
 
  /-- Encodes BoundedFormulas as natural numbers -/
+  def sent_tonat : BoundedFormula L Empty 0 → ℕ := 
+    fun f => Encodable.encodeList (BoundedFormula.listEncode f)
   def formula_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
