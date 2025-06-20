@@ -319,7 +319,7 @@ namespace Conservativity
       -- case left_to_right
       sorry
       -- case right_to_left
-      
+     
       apply Derivation.right_implication φ tau_phi ({bf_empty_to_bf_N φ} ∪ Δ) (Γ ∪ {tau_phi}) Γ _ rfl rfl rfl    
       
       simp[tau_phi,build_tau,Term.bdEqual,subst_disj_distr,subst_conj_distr,numeral_no_subst,forall_sent_trans_subst_self,to_N_disj_distr,to_N_conj_distr] 
@@ -330,37 +330,45 @@ namespace Conservativity
       by_cases h₃ : φ = a
       simp[h₃]
       #check right_weakening
-      
-      have union_eq : insert (equal (ℒ.enc a) (ℒ.enc a) ∧' a.to_fml) (Γ ∪ {bf_empty_to_bf_N (build_tau lst)/[ℒ.enc a]}) =  Γ ∪ {equal (ℒ.enc a) (ℒ.enc a)∧' a.to_fml} ∪ {(build_tau lst)/[ℒ.enc a]} := by 
+
+      have union_eq : insert (bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))∧'bf_empty_to_bf_N a)  (Γ ∪ {bf_empty_to_bf_N (build_tau lst/[ℒ.enc a])}) = Γ ∪ {bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))∧'bf_empty_to_bf_N a} ∪ {bf_empty_to_bf_N (build_tau lst/[ℒ.enc a])} := by 
         simp[Finset.insert_eq]
         rw[Finset.union_comm]
-        rw[Finset.union_assoc Γ {(build_tau lst)/[ℒ.enc a]} {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}]
-        rw[Finset.union_comm {(build_tau lst)/[ℒ.enc a]} {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}]
+        rw[Finset.union_assoc Γ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc a])} {bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))∧' bf_empty_to_bf_N a}]
+        rw[Finset.union_comm {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc a])} {bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))∧' bf_empty_to_bf_N a}]
         
-      apply right_weakening ((build_tau lst)/[ℒ.enc a]) (Γ ∪ {equal (ℒ.enc a) (ℒ.enc a)∧'a.to_fml}) _ union_eq
+      apply right_weakening (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc a])) (Γ ∪ {bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))∧' bf_empty_to_bf_N a}) _ union_eq  
       
       #check Derivation.right_conjunction 
-      apply Derivation.right_conjunction (equal (ℒ.enc a) (ℒ.enc a)) (a.to_fml) (Γ ∪ {equal (ℒ.enc a) (ℒ.enc a)}) (Γ ∪ {a.to_fml}) (Γ) _ (by simp) _ (by simp) (by simp)
+      apply Derivation.right_conjunction (bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))) (bf_empty_to_bf_N a) (Γ ∪ {bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))}) (Γ ∪ {bf_empty_to_bf_N a}) (Γ) _ (by simp) _ (by simp) (by simp)
       #check Calculus.iax (ℒ.enc a) 
-      apply Calculus.iax (ℒ.enc a) (by simp[Term.bdEqual])
+      apply Calculus.iax (sent_term_to_formula_term (ℒ.enc a)) (by simp[Term.bdEqual, bf_empty_to_bf_N]) 
       
       have a_in_both : (a.to_fml) ∈ ({a.to_fml} ∪ Δ) ∧ (a.to_fml) ∈ (Γ ∪ {a.to_fml}) := And.intro (by simp) (by simp)        
       #check Derivation.lax 
       apply Derivation.lax (Exists.intro (a.to_fml) a_in_both)
+
       
+      
+      sorry
+            
+ /-     
       -- case neg
-      have union_eq₂ : Γ ∪ {equal (ℒ.enc φ) (ℒ.enc a)∧'(a.to_fml), (build_tau lst)/[ℒ.enc φ]} = Γ ∪ {(build_tau lst)/[ℒ.enc φ]} ∪ {equal (ℒ.enc φ) (ℒ.enc a)∧'(a.to_fml)} := by
+      have union_eq₂ : Γ ∪ {bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'(bf_empty_to_bf_N a), (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ]))} = Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ])} ∪ {bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'(bf_empty_to_bf_N a)} := by
+        sorry
+
         rw[Finset.union_assoc]
-        rw[Finset.union_comm {(build_tau lst)/[ℒ.enc φ]}  {equal (ℒ.enc φ) (ℒ.enc a)∧'(a.to_fml)}] 
+        rw[Finset.union_comm {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ])}  {bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'(bf_empty_to_bf_N a)}] 
         rfl
+
       
-      apply right_weakening (equal (ℒ.enc φ) (ℒ.enc a)∧' a.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc φ]}) _ union_eq₂
+      apply right_weakening (bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧' bf_empty_to_bf_N a) (Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ])}) 
+      
       simp[h₃] at h₁
       /-have phi_disq_in_set : ((sub (ℒ.enc φ) (build_tau lst)) ⇔ φ) ∈ {sub (ℒ.enc φ) (build_tau lst)} := by
         sorry
 -/    
-
-      have iff_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) := by
+      have if_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) := by
         apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml]) 
       
       have if_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) := iff_to_right ((build_tau lst)/[ℒ.enc φ]) (φ.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) Γ iff_der rfl (by simp)
@@ -368,6 +376,8 @@ namespace Conservativity
       #check split_if 
 
       apply split_if (φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) Γ if_der rfl (by rw[Finset.union_comm,Sentence.to_fml]) rfl
+-/
+      
       
       
       
