@@ -1,5 +1,5 @@
 import FormalizingAxiomaticTheoriesOfTruth.ProofTheory
-import FormalizingAxiomaticTheoriesOfTruth.ArithTheories
+import FormalizingAxiomaticTheoriesOfTruth.BasicTheories
 open FirstOrder
 open Language
 
