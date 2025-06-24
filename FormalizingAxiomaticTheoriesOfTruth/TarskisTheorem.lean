@@ -55,28 +55,73 @@ axiom diagonal_lemma
 
 lemma eqv_trans : ∀Th : Set (Formula L ℕ), ∀(A B C : L.Formula ℕ), Nonempty (Derivation Th {A ⇔ B, C ⇔ B} {A ⇔ C}) := by
   let eqv_trans_derivation
-    (Th : Set (Formula L ℕ)) (A B C : Formula L ℕ) (h₁ : C = A ∨ C = ∼((A ⟹ B) ⟹ ∼(B ⟹ A)) ∨ C = ∼((C ⟹ B) ⟹ ∼(B ⟹ C))) (h₂ : A = C ∨ A = ∼((A ⟹ B) ⟹ ∼(B ⟹ A)) ∨ A = ∼((C ⟹ B) ⟹ ∼(B ⟹ C))) :
+    (Th : Set (Formula L ℕ)) (A B C : Formula L ℕ) :
     Derivation Th {A ⇔ B, C ⇔ B} {A ⇔ C} := by
     dsimp [FirstOrder.Language.BoundedFormula.iff]
     dsimp [instMin]
     apply Derivation.right_conjunction (A ⟹ C) (C ⟹ A) {A ⟹ C} {C ⟹ A} ∅
     apply Derivation.right_implication A C {A, (A ⟹ B) ⊓ (B ⟹ A), (C ⟹ B) ⊓ (B ⟹ C)} {C} ∅
+    apply Derivation.left_conjunction (A ⟹ B) (B ⟹ A) {A, (A ⟹ B), (B ⟹ A), (C ⟹ B) ⊓ (B ⟹ C)}
+    apply Derivation.left_conjunction (C ⟹ B) (B ⟹ C) {A, (A ⟹ B), (B ⟹ A), (C ⟹ B), (B ⟹ C)}
+    apply Derivation.cut B {A, (A ⟹ B)} ∅ {(B ⟹ A), (C ⟹ B), (B ⟹ C)} {C}
+    apply mp_derivation
+    rw [← Finset.insert_eq]
+    apply Derivation.left_implication B C {B, (B ⟹ A), (C ⟹ B)} {C, B} {C, B, (B ⟹ A), (C ⟹ B)}
     apply Derivation.lax
     simp
-    dsimp [instMin]
-    exact h₁
-    dsimp [instMin]
     rw [Finset.insert_eq]
+    apply Derivation.lax
+    simp
+    rw [Finset.insert_eq]
+    rw [Finset.insert_eq, Finset.insert_eq, Finset.insert_eq, Finset.insert_eq, Finset.insert_eq]
+    rw [← Finset.union_assoc]
+    rw [← Finset.union_assoc]
+    rw [← Finset.union_assoc]
+    rw [Finset.insert_eq]
+    rw [Finset.insert_eq, Finset.insert_eq, Finset.insert_eq, Finset.insert_eq]
+    rw [← Finset.union_assoc]
+    rw [Finset.empty_union]
+    simp
+    simp
+    sorry -- figure out later
+    simp
+    simp
+    sorry -- figure out later
+    rw [← Finset.insert_eq]
+    dsimp [instMin]
     rw [Finset.empty_union]
     rw [Finset.empty_union]
     rw [Finset.empty_union]
     apply Derivation.right_implication C A {C, (A ⟹ B) ⊓ (B ⟹ A), (C ⟹ B) ⊓ (B ⟹ C)} {A} ∅
+    apply Derivation.left_conjunction (A ⟹ B) (B ⟹ A) {C, (A ⟹ B), (B ⟹ A), (C ⟹ B) ⊓ (B ⟹ C)}
+    apply Derivation.left_conjunction (C ⟹ B) (B ⟹ C) {C, (C ⟹ B), (A ⟹ B), (B ⟹ A),  (B ⟹ C)}
+    apply Derivation.cut B {C, (C ⟹ B)} ∅ {(A ⟹ B), (B ⟹ A), (B ⟹ C)} {A}
+    apply mp_derivation
+    rw [← Finset.insert_eq]
+    apply Derivation.left_implication B A {B, (A ⟹ B), (B ⟹ C)} {A, B} {A, B, (A ⟹ B), (B ⟹ C)}
     apply Derivation.lax
     simp
-    dsimp [instMin]
-    exact h₂
-    dsimp[instMin]
     rw [Finset.insert_eq]
+    apply Derivation.lax
+    simp
+    rw [Finset.insert_eq]
+    rw [Finset.insert_eq, Finset.insert_eq, Finset.insert_eq, Finset.insert_eq, Finset.insert_eq]
+    rw [← Finset.union_assoc]
+    rw [← Finset.union_assoc]
+    rw [← Finset.union_assoc]
+    rw [Finset.union_right_comm]
+    rw [Finset.insert_eq]
+    rw [Finset.insert_eq, Finset.insert_eq, Finset.insert_eq, Finset.insert_eq]
+    rw [← Finset.union_assoc]
+    rw [Finset.empty_union]
+    simp
+    simp
+    sorry -- figure out later
+    simp
+    simp
+    sorry -- figure out later
+    rw [← Finset.insert_eq]
+    dsimp [instMin]
     rw [Finset.empty_union]
     rw [Finset.empty_union]
     rw [Finset.empty_union]
@@ -87,81 +132,144 @@ lemma eqv_trans : ∀Th : Set (Formula L ℕ), ∀(A B C : L.Formula ℕ), Nonem
   apply Th at A
   apply A at B
   apply B at C
-  apply Nonempty.intro
-  sorry
+  apply Nonempty.intro C
 
 lemma inconsistency : ∀Th : Set (Formula L ℕ), ∀(A : L.Formula ℕ), Nonempty (Derivation Th {A ⇔ ∼A} {⊥}) := by
   let inconsistency_derivation
-    (Th : Set (Formula L ℕ)) (A : Formula L ℕ) (h₁ : ⊥ ∉ {A}) (h₂ : ∼A ∉ {A}) (h₃ : ⊥ ≠ A) (h₄ : A ⟹ ∼A ∈ {A ⟹ ∼A, ∼A ⟹ A}) (h₅ : ∼A ⟹ A ∈ {A ⟹ ∼A, ∼A ⟹ A}) (h₆ : A ⟹ ∼A ≠ ∼A ⟹ A):
+    (Th : Set (Formula L ℕ)) (A : Formula L ℕ) :
     Derivation Th {A ⇔ ∼A} {⊥} := by
     dsimp [FirstOrder.Language.BoundedFormula.iff]
     apply Derivation.left_conjunction (A ⟹ ∼A) (∼A ⟹ A) {(A ⟹ ∼A), (∼A ⟹ A)}
-    apply Derivation.left_implication A ∼A {(∼A ⟹ A)} {⊥, A} {∼A, (∼A ⟹ A)}
-    apply Derivation.left_implication ∼A A ∅ {⊥, A, ∼A} {A}
-    apply Derivation.right_negation A {A} {⊥, A}
+    apply Derivation.left_implication ∼A A {(A ⟹ ∼A)} {⊥, ∼A} {A, (A ⟹ ∼A)}
+    apply Derivation.right_negation A {(A ⟹ ∼A), A} {⊥}
+    apply Derivation.left_implication A ∼A {A} {A} {∼A, A}
     apply Derivation.lax
     simp
-    rw [Finset.sdiff_self]
-    rw [Finset.insert_eq]
-    rw [Finset.union_comm]
-    rw [Finset.insert_eq]
-    rw [Finset.insert_eq]
-    rw [Finset.union_comm]
-    rw [Finset.union_assoc]
-    rw [Finset.insert_eq]
-    rw [Finset.insert_eq]
-    rw [Finset.union_comm]
-    rw [Finset.insert_eq]
-    rw [Finset.union_comm]
-    rw [Finset.union_assoc]
-    apply Derivation.lax
-    simp
-    rw [Finset.union_empty]
-    rw [Finset.empty_union]
-    rw [Finset.insert_eq]
-    apply Derivation.left_implication ∼A A {∼A} {⊥, ∼A} {A, ∼A}
-    apply Derivation.right_negation A {∼A, A} {⊥}
-    apply Derivation.left_negation A {A} {⊥, A}
+    sorry -- solve {A} = {⊥} ∪ {A}
+    apply Derivation.left_negation A {A} {A, ⊥}
     apply Derivation.lax
     simp
     rw [Finset.insert_eq]
     rw [Finset.union_comm]
-    rw [Finset.insert_sdiff_cancel]
-    exact h₁
-    rw [Finset.insert_sdiff_cancel]
-    exact h₂
     rw [Finset.insert_eq]
-    rw [Finset.insert_eq]
-    apply Derivation.left_negation A {A} {⊥, A}
-    apply Derivation.lax
-    simp
-    rw [Finset.insert_eq]
+    rw [Finset.union_comm]
+    rw [← Finset.insert_eq]
     rw [Finset.insert_sdiff_cancel]
     rw [Finset.not_mem_singleton]
-    exact h₃
-    rw [Finset.insert_eq]
-    rw [Finset.insert_eq]
-    rw [Finset.insert_eq]
+    sorry -- solve ⊥ ≠ A
+    rw [← Finset.insert_eq]
     rw [Finset.insert_eq]
     rw [Finset.union_comm]
-    exact h₄
-    exact h₅
+    rw [Finset.insert_sdiff_cancel]
+    rw [Finset.not_mem_singleton]
+    sorry -- solve A ⟹ ∼A ≠ A
     rw [Finset.insert_eq]
-    rw [Finset.union_sdiff_cancel_left]
-    rw [Finset.sdiff_self]
-    rw [Finset.empty_union]
-    dsimp [land, instMin]
-    rw [Finset.disjoint_singleton]
-    exact h₆
+    rw [Finset.insert_eq]
+    apply Derivation.left_implication A ∼A {A} {A} {∼A, A}
+    apply Derivation.lax
+    simp
+    sorry -- solve {A} = {⊥} ∪ {A}
+    apply Derivation.left_negation A {A} {A, ⊥}
+    apply Derivation.lax
+    simp
+    rw [Finset.insert_eq]
+    rw [Finset.union_comm]
+    rw [Finset.insert_eq]
+    rw [Finset.union_comm]
+    rw [← Finset.insert_eq]
+    rw [Finset.insert_sdiff_cancel]
+    rw [Finset.not_mem_singleton]
+    sorry -- solve ⊥ ≠ A
+    rw [Finset.insert_eq]
+    rw [← Finset.insert_eq]
+    rw [Finset.insert_eq]
+    rw [Finset.insert_eq]
+    simp
+    simp
+    sorry -- can work this out later
   intro Th A
   apply inconsistency_derivation at Th
   apply Th at A
-  apply Nonempty.intro
-  sorry
+  apply Nonempty.intro A
+
+-- lemma inconsistency : ∀Th : Set (Formula L ℕ), ∀(A : L.Formula ℕ), Nonempty (Derivation Th {A ⇔ ∼A} {⊥}) := by
+--   let inconsistency_derivation
+--     (Th : Set (Formula L ℕ)) (A : Formula L ℕ) (h₂ : ∼A ≠ A) (h₃ : ⊥ ≠ A) (h₆ : A ⟹ ∼A ≠ ∼A ⟹ A):
+--     Derivation Th {A ⇔ ∼A} {⊥} := by
+--     dsimp [FirstOrder.Language.BoundedFormula.iff]
+--     apply Derivation.left_conjunction (A ⟹ ∼A) (∼A ⟹ A) {(A ⟹ ∼A), (∼A ⟹ A)}
+--     apply Derivation.left_implication A ∼A {(∼A ⟹ A)} {⊥, A} {∼A, (∼A ⟹ A)}
+--     apply Derivation.left_implication ∼A A ∅ {⊥, A, ∼A} {A}
+--     apply Derivation.right_negation A {A} {⊥, A}
+--     apply Derivation.lax
+--     simp
+--     rw [Finset.sdiff_self]
+--     rw [Finset.insert_eq]
+--     rw [Finset.union_comm]
+--     rw [Finset.insert_eq]
+--     rw [Finset.insert_eq]
+--     rw [Finset.union_comm]
+--     rw [Finset.union_assoc]
+--     rw [Finset.insert_eq]
+--     rw [Finset.insert_eq]
+--     rw [Finset.union_comm]
+--     rw [Finset.insert_eq]
+--     rw [Finset.union_comm]
+--     rw [Finset.union_assoc]
+--     apply Derivation.lax
+--     simp
+--     rw [Finset.union_empty]
+--     rw [Finset.empty_union]
+--     rw [Finset.insert_eq]
+--     apply Derivation.left_implication ∼A A {∼A} {⊥, ∼A} {A, ∼A}
+--     apply Derivation.right_negation A {∼A, A} {⊥}
+--     apply Derivation.left_negation A {A} {⊥, A}
+--     apply Derivation.lax
+--     simp
+--     rw [Finset.insert_eq]
+--     rw [Finset.union_comm]
+--     rw [Finset.insert_sdiff_cancel]
+--     rw [Finset.not_mem_singleton]
+--     sorry
+--     rw [Finset.insert_sdiff_cancel]
+--     rw [Finset.not_mem_singleton]
+--     have h : ∼A ≠ A := by
+--       sorry
+--     exact h
+--     rw [Finset.insert_eq]
+--     rw [Finset.insert_eq]
+--     apply Derivation.left_negation A {A} {⊥, A}
+--     apply Derivation.lax
+--     simp
+--     rw [Finset.insert_eq]
+--     rw [Finset.insert_sdiff_cancel]
+--     rw [Finset.not_mem_singleton]
+--     sorry
+--     rw [Finset.insert_eq]
+--     rw [Finset.insert_eq]
+--     rw [Finset.insert_eq]
+--     rw [Finset.insert_eq]
+--     rw [Finset.union_comm]
+--     rw [Finset.mem_insert]
+--     simp
+--     rw [Finset.mem_insert]
+--     simp
+--     rw [Finset.insert_eq]
+--     rw [Finset.union_sdiff_cancel_left]
+--     rw [Finset.sdiff_self]
+--     rw [Finset.empty_union]
+--     dsimp [land, instMin]
+--     rw [Finset.disjoint_singleton]
+--     sorry
+--   intro Th A
+--   apply inconsistency_derivation at Th
+--   apply Th at A
+--   apply Nonempty.intro
+--   sorry
+
 
 def false_formula : Formula ℒₜ ℕ := ⊥
 theorem tarskis_theorem : syntax_and_PA_unres_TB ⊢ false_formula := by
-  -- Step 1: Get the liar formula using the diagonal lemma
   have liar_formula_exists :
     ∃ (ψ : Formula ℒₜ ℕ),
       syntax_and_PA_unres_TB ⊢ (ψ ⇔ ∼T(⌜ψ⌝)) := by
@@ -193,19 +301,14 @@ theorem tarskis_theorem : syntax_and_PA_unres_TB ⊢ false_formula := by
 
   have liar_t_instance : syntax_and_PA_unres_TB ⊢ (T(⌜ψ⌝) ⇔ ψ) := by
     simp
-    apply
-  -- Step 3: Derive T(⌜ψ⌝) ⇔ ∼T(⌜ψ⌝)
+    exact
   have intermediate_lemma : syntax_and_PA_unres_TB ⊢ (T(⌜ψ⌝) ⇔ ∼T(⌜ψ⌝)) := by
-      obtain ⟨derivation⟩ := eqv_trans syntax_and_PA_unres_TB (T(⌜ψ⌝)) (∼T(⌜ψ⌝)) ψ
-      sorry
+      -- obtain ⟨derivation⟩ := eqv_trans syntax_and_PA_unres_TB (T(⌜ψ⌝)) (∼T(⌜ψ⌝)) ψ
+      simp
+      exact
   sorry
   sorry
-
-
-  lemma test {t t' : ℒ.Term (ℕ ⊕ Fin 0)} : ((var (Sum.inl 0) =' t)////[t']) = (t' =' t):= by
-    #check ((var (Sum.inl 0) =' t)////[t'])
-    #check t' =' t
-
+  sorry
 
 
   -- let φ : BoundedFormula ℒₜ Empty 1 := ∼(T(&0))
@@ -223,8 +326,13 @@ namespace SandBox
 
 open Languages
   open L_T
+  open LPA
   open Calculus
   open BoundedFormula
+
+  lemma test {t t' : ℒ.Term (ℕ ⊕ Fin 0)} : ((var (Sum.inl 0) =' t)////[t']) = (t' =' t):= by
+    #check ((var (Sum.inl 0) =' t)////[t'])
+    #check t' =' t
 
   def f₁ : Formula ℒₜ ℕ :=
     ∀' (&0 =' &0)
