@@ -59,6 +59,72 @@ namespace BoundedFormula
     instance : Repr (BoundedFormula L α n) := ⟨fun t _ => toStr t⟩
     instance : ToString (BoundedFormula L α n) := ⟨toStr⟩
   end ToString
+
+ @[simp]
+  def to_extra_fin {n : ℕ} (v : Fin n) : Fin (n + 1) :=
+    match v with
+    | .mk val isLt => by
+      have step1 : n < n + 1 := by
+        simp
+      have step2 : val < n + 1 := by
+        apply Nat.lt_trans isLt step1
+      apply Fin.mk val step2
+        
+variable {L : Language}
+
+def term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin n)
+| .var v => if v = (.inl 0) then t else (.var v)
+| .func f ts => .func f (fun i => term_substitution t (ts i))
+
+def up_bv {n : ℕ} : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + 1))
+| .var v => 
+  match v with
+  | .inl m => 
+    .var (.inl m)
+  | .inr m => .var (.inr (to_extra_fin m))
+| .func f ts => .func f (fun i => up_bv (ts i))
+
+def formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin n)) → L.BoundedFormula ℕ n → L.BoundedFormula ℕ n
+| _, _, .falsum => .falsum
+| _, t, .equal t₁ t₂ => .equal (term_substitution t t₁) (term_substitution t t₂)
+| _, t, .rel R ts => .rel R (fun i => term_substitution t (ts i))
+| _, t, .imp φ ψ => .imp (formula_substitution t φ) (formula_substitution t ψ)
+| _, t, .all φ => .all (formula_substitution (up_bv t) φ)
+
+notation φ"/["t"]" => formula_substitution t φ 
+
+def bv_term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin (n + 1))) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + 1))
+| .var v => if v = (.inl 0) then t else (up_bv (.var  v))
+| .func f ts => .func f (fun i => term_substitution t (up_bv (ts i)))
+
+def bv_formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin (n + 1))) → L.BoundedFormula ℕ n → L.BoundedFormula ℕ (n + 1)
+| _, _, .falsum => .falsum
+| _, t, .equal t₁ t₂ => .equal (bv_term_substitution t t₁) (bv_term_substitution t t₂)
+| _, t, .rel R ts => .rel R (fun i => term_substitution t (up_bv (ts i)))
+| _, t, .imp φ ψ => .imp (bv_formula_substitution t φ) (bv_formula_substitution t ψ)
+| _, t, .all φ => .all (bv_formula_substitution (up_bv t) φ)
+
+notation φ"/bv["t"]" => bv_formula_substitution t φ
+
+inductive simple_func : ℕ → Type where
+  | one : simple_func 0
+
+def simple_l : Language := ⟨simple_func, (fun _ => Empty)⟩ 
+
+def φ : simple_l.BoundedFormula ℕ 0 := (.var (.inl 0)) =' (.func simple_func.one ![])
+def ψ : simple_l.BoundedFormula ℕ 0 := (.func simple_func.one ![]) =' (.func simple_func.one ![])
+def t₁ : simple_l.Term (ℕ ⊕ Fin 0) := .func simple_func.one ![]
+
+example : (φ/[t₁]) = ψ  := by
+  simp[formula_substitution,t₁,φ,ψ,Term.bdEqual,term_substitution,Matrix.empty_eq]
+
+def φ₂ : simple_l.BoundedFormula ℕ 0 := (.var (.inl 0)) =' (.func simple_func.one ![])
+def ψ₂ : simple_l.BoundedFormula ℕ 1 := (.var (.inr 0)) =' (.func simple_func.one ![])
+def t₂ : simple_l.Term (ℕ ⊕ Fin 1) := (.var (.inr 0))
+
+example : (φ₂/bv[t₂]) = ψ₂  := by 
+  simp[bv_formula_substitution,t₂,φ₂,ψ₂,Term.bdEqual,bv_term_substitution,Matrix.empty_eq] 
+
 end BoundedFormula
 
 namespace Languages
@@ -579,6 +645,7 @@ end Languages
 
 namespace FirstOrder.Language.BoundedFormula
   variable {L : Language}{α : Type}{n : ℕ}
+
   @[simp]
   def g₁ : (Term L ℕ) → ℕ → (Term L ℕ) :=
     fun t : Term L ℕ => fun k : ℕ => ite (k = 0) t (Term.var (k - 1))
@@ -648,71 +715,4 @@ namespace FirstOrder.Language.BoundedFormula
 end FirstOrder.Language.BoundedFormula
 
 
-namespace SyntaxAxioms
-open Languages
-open L_T
-open LPA
-open BoundedFormula
-open TermEncoding
 
-scoped notation "⌜"φ"⌝" => LPA.numeral (formula_tonat φ)
-scoped notation "⌜"t"⌝" => LPA.numeral (term_tonat t)
-def neg_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
-def conj_repres (φ ψ : Formula ℒ ℕ): Formula ℒ ℕ :=
-  (⌜φ⌝ ⬝∧ ⌜ψ⌝) =' (⌜φ ∧' ψ⌝)
-def disj_repres (φ ψ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  (⌜φ⌝ ⬝∨ ⌜ψ⌝) =' (⌜φ ∨' ψ⌝)
-def cond_repres (φ ψ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  (⌜φ⌝ ⬝⟹ ⌜ψ⌝) =' (⌜φ ⟹ ψ⌝)
-def forall_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
-  (⬝∀ ⌜φ⌝) =' (⌜∀'φ⌝)
-def exists_repres (φ : BoundedFormula ℒ ℕ 1) : Formula ℒ ℕ :=
-  (⬝∃ ⌜φ⌝) =' (⌜∃'φ⌝)
-def subs_repres (φ : BoundedFormula ℒ ℕ 0) (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒ ℕ :=
-  Subs(⌜φ⌝, ⌜(@Term.var ℒ (ℕ ⊕ Fin 0) (.inl 0))⌝, ⌜t⌝) =' ⌜φ////[t]⌝
-def term_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  Trm( ⌜φ⌝ )
-def formulaL_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  FormL( ⌜φ⌝ )
-def formulaL_T_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  FormLT( ⌜φ⌝ )
-def sentenceL_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  SentenceL( ⌜φ⌝ )
-def sentenceL_T_respres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  SentenceLT( ⌜φ⌝ )
-def closed_term_repres (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒ ℕ :=
-  ClosedTerm(⌜t⌝)
-def var_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  Var( ⌜φ⌝ )
-def const_repres (φ : Formula ℒ ℕ) : Formula ℒ ℕ :=
-  Const( ⌜φ⌝ )
-def denote_repres (t : Term ℒ (ℕ ⊕ Fin 0)) : Formula ℒ ℕ :=
-  ClosedTerm(⌜t⌝) ⟹ ((⬝°(⌜t⌝)) =' t)
-
-end SyntaxAxioms
-
-namespace SyntaxTheory
-open Languages
-open LPA
-open SyntaxAxioms
-inductive syntax_theory_l : Set (ℒ.Formula ℕ) where
-  | negation_representation {φ} : syntax_theory_l (neg_repres φ)
-  | conjunction_representation {φ ψ} : syntax_theory_l (conj_repres φ ψ)
-  | disjunction_representation {φ ψ} : syntax_theory_l (disj_repres φ ψ)
-  | conditional_representation {φ ψ} : syntax_theory_l (cond_repres φ ψ)
-  | forall_representation {φ} : syntax_theory_l (forall_repres φ)
-  | exists_representation {φ} : syntax_theory_l (exists_repres φ)
-  | term_representation {φ} : syntax_theory_l (term_repres φ)
-  | formula_L_representation {φ} : syntax_theory_l (formulaL_repres φ)
-  | formula_L_T_representation {φ} : syntax_theory_l (formulaL_T_repres φ)
-  | sentence_L_representation {φ} : syntax_theory_l (sentenceL_repres φ)
-  | sentence_L_T_representation {φ} : syntax_theory_l (sentenceL_T_respres φ)
-  | closed_term_representation {φ} : syntax_theory_l (closed_term_repres φ)
-  | variable_representation {φ} : syntax_theory_l (var_repres φ)
-  | constant_representation {φ} : syntax_theory_l (const_repres φ)
-  | denote_representation {t} : syntax_theory_l (denote_repres t)
-
-open L_T
-def syntax_theory : Set (ℒₜ.Formula ℕ) := syntax_theory_l.image ϕ.onFormula
-end SyntaxTheory
