@@ -100,8 +100,8 @@ namespace Calculus
   variable [BEq (Formula L ℕ)][DecidableEq (Formula L ℕ)]
 
   /-- G3c sequent calculus -/
-  inductive Derivation : (Set (Formula L ℕ)) → (Finset (Formula L ℕ)) → (Finset (Formula L ℕ)) → Type _ where
-    | tax {Th Γ Δ} (h : ∃f : Formula L ℕ, f ∈ Th ∧ f ∈ Δ) : Derivation Th Γ Δ
+  inductive Derivation : L.Theory → (Finset (Formula L ℕ)) → (Finset (Formula L ℕ)) → Type _ where
+    | tax {Th Γ Δ} (h : ∃f : L.Sentence, f ∈ Th ∧ (bf_empty_to_bf_N f) ∈ Δ) : Derivation Th Γ Δ
     | lax {Th Γ Δ} (h : ∃f, f ∈ Γ ∧ f ∈ Δ) : Derivation Th Γ Δ
     | left_conjunction (A B S₁ S₂) {Th Γ Δ} (d₁ : Derivation Th S₁ Δ) (h₁ : S₁ = S₂ ∪ {A, B}) (h₂ : Γ = S₂ ∪ {A ∧' B}): Derivation Th Γ Δ
     | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ Δ) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th S₂ Δ) (h₂ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
@@ -118,19 +118,19 @@ namespace Calculus
   def emptyFormList : Finset (Formula L ℕ) := ∅
 
   @[simp]
-  def sequent_provable (Th : Set (Formula L ℕ)) (Γ Δ : Finset (Formula L ℕ)) : Prop :=
+  def sequent_provable (Th : L.Theory) (Γ Δ : Finset (Formula L ℕ)) : Prop :=
     Nonempty (Derivation Th Γ Δ)
   notation Th " ⊢ " Γ " ⟶ " Δ => sequent_provable Th Γ Δ
 
   @[simp]
-  def formula_provable (Th : Set (Formula L ℕ)) (f : Formula L ℕ) : Prop :=
+  def formula_provable (Th : L.Theory) (f : Formula L ℕ) : Prop :=
     sequent_provable Th emptyFormList {f}
   notation Th " ⊢ " f => formula_provable Th f
 
   section MetaRules
-    axiom left_weakening : ∀Th : Set (L.Formula ℕ), ∀Γ Δ : Finset (L.Formula ℕ), ∀φ : L.Formula ℕ, (Th ⊢ Γ ⟶ Δ) → (Th ⊢ {φ} ∪ Γ ⟶ Δ)
+    axiom left_weakening : ∀Th : L.Theory, ∀Γ Δ : Finset (L.Formula ℕ), ∀φ : L.Formula ℕ, (Th ⊢ Γ ⟶ Δ) → (Th ⊢ {φ} ∪ Γ ⟶ Δ)
 
-    variable {Th : Set (L.Formula ℕ)}{Γ Δ : Finset (L.Formula ℕ)}
+    variable {Th : L.Theory}{Γ Δ : Finset (L.Formula ℕ)}
     def iax (t : L.Term (ℕ ⊕ Fin 0)) (h : t =' t ∈ Δ) : Derivation Th Γ Δ := sorry
     def i_two_for_one (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A/[t₁] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A/[t₂] ∈ Δ) : Derivation Th Γ Δ := sorry --might not need this
     def i_one_for_two (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A/[t₂] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A/[t₂] ∈ Δ) : Derivation Th Γ Δ := sorry --might not need this
