@@ -2,27 +2,27 @@
 \section{Syntax}
 The ordinary definition of a first-order language $\mathcal{L}$ proceeds from the specification of a signature $\mathcal{S}$ and then an inductive definition of the way formulas can be build with elements from $\mathcal{S}$, the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature.
 
-% \begin{definition}[formal language] \label{def:formal-language}
-%     Let $\Sigma$ be a set of symbols. Then a formal language $\mathcal{L}$ is a subset of $\Sigma^*$.
-% \end{definition}
+\begin{definition}[formal language] \label{def:formal-language}
+    Let $\Sigma$ be a set of symbols. Then a formal language $\mathcal{L}$ is a subset of $\Sigma^*$.
+\end{definition}
 
-% \begin{definition}[first-order logical vocabulary]\label{def:FO-logical-vocab}
-%     The \textit{first-order logical vocabulary}, is a structure $\mathcal{S} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P}, \top, \bot)$ where
-%     \begin{enumerate}
-%         \item $\mathcal{V} = \{x,y,z,...\}$ is the \textit{set of variables},
-%         \item $\neg$ is the \textit{negation operator},
-%         \item $\mathcal{B} = \{\land,\lor,\to,\leftrightarrow\}$ is the \textit{set of binary sentential operators},
-%         \item $=$ is the \textit{identity predicate},
-%         \item $\mathcal{Q} = \{\forall, \exists\}$ is the \textit{set of quantifiers},
-%         \item $\mathcal{P} = \{(,)\}$ is the \textit{set of parentheses},
-%         \item $\top$ is called \textit{top} and
-%         \item $\bot$ is called \textit{bottom}.
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[first-order logical vocabulary]\label{def:FO-logical-vocab}
+    The \textit{first-order logical vocabulary}, is a structure $\mathcal{S} = (\mathcal{V},\neg,\mathcal{B},=,\mathcal{Q},\mathcal{P}, \top, \bot)$ where
+    \begin{enumerate}
+        \item $\mathcal{V} = \{x,y,z,...\}$ is the \textit{set of variables},
+        \item $\neg$ is the \textit{negation operator},
+        \item $\mathcal{B} = \{\land,\lor,\to,\leftrightarrow\}$ is the \textit{set of binary sentential operators},
+        \item $=$ is the \textit{identity predicate},
+        \item $\mathcal{Q} = \{\forall, \exists\}$ is the \textit{set of quantifiers},
+        \item $\mathcal{P} = \{(,)\}$ is the \textit{set of parentheses},
+        \item $\top$ is called \textit{top} and
+        \item $\bot$ is called \textit{bottom}.
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[variables]\label{def:FO-variables}
-%     We define the set of variables for a first order language as the finite set $\mathcal{V} = \{x,y,z,...\}$.
-% \end{definition}
+\begin{definition}[variables]\label{def:FO-variables}
+    We define the set of variables for a first order language as the finite set $\mathcal{V} = \{x,y,z,...\}$.
+\end{definition}
 
 \begin{definition}[first-order language]\label{def:fol}
     \lean{FirstOrder.Language}
@@ -33,7 +33,7 @@ The ordinary definition of a first-order language $\mathcal{L}$ proceeds from th
             \item $R : \mathbb{N} \to B$.
         \end{enumerate}
 
-    % A language is a structure $((F_i)_{i\in \mathbb{N}}, (R_i)_{i\in \mathbb{N}})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
+    A language is a structure $((F_i)_{i\in \mathbb{N}}, (R_i)_{i\in \mathbb{N}})$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
 \end{definition}
 
 Note that this defines a language as consisting only of functions and relations, whereas traditionally a language also contains a set of constants. Observe, however, that constants can be modelled as $0$-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language. 
@@ -70,25 +70,24 @@ We will be implementing the languages $\mathcal{L}$ and $\mathcal{L}_T$ that are
 
 We can then work our way up, first to the level of terms and then that of formulas. For this, we use \texttt{mathlib}'s implementation of \texttt{Term}s and \texttt{BoundedFormula}s. 
 
-% As \cite{ffl} want to be able to make a distinction between sentences, i.e. formulas without free variables, and non-sentences, i.e. formulas containing free variables, their formalization of formulas features a distinction between bound and free variables, something which is not present in traditional de Bruijn syntax, where free variables are just those that are indexed by a number higher than the amount of quantifiers ($-1$ as Lean 4 is 0-based). For example in the de-Bruijn style formula 
-% \begin{equation}
-% \forall P(0,1),
-% \label{eq:db}
-% \end{equation}
-% the variable indexed by 1 is a free variable, while the variable indexed by 0 is bound by the universal quantifier. In \cite{ffl}'s notation, however, this formula would be coded as
-% \begin{equation}
-% \forall P(\#0,\&0),
-% \label{eq:ffl}
-% \end{equation}
-% where \& indicates the index following it indexes a free variables and \# indicates the index following it indexes a bound variable. Hence the universal quantifier binds \#0 and not \&0, corresponding to the meaning of expression \ref{eq:db}.
+As \cite{ffl} want to be able to make a distinction between sentences, i.e. formulas without free variables, and non-sentences, i.e. formulas containing free variables, their formalization of formulas features a distinction between bound and free variables, something which is not present in traditional de Bruijn syntax, where free variables are just those that are indexed by a number higher than the amount of quantifiers ($-1$ as Lean 4 is 0-based). For example in the de-Bruijn style formula 
+\begin{equation}
+\forall P(0,1),
+\label{eq:db}
+\end{equation}
+the variable indexed by 1 is a free variable, while the variable indexed by 0 is bound by the universal quantifier. In \cite{ffl}'s notation, however, this formula would be coded as
+\begin{equation}
+\forall P(\#0,\&0),
+\label{eq:ffl}
+\end{equation}
+where \& indicates the index following it indexes a free variables and \# indicates the index following it indexes a bound variable. Hence the universal quantifier binds \#0 and not \&0, corresponding to the meaning of expression \ref{eq:db}.
 
-% Another consequence of this distinction is that we need an effective method to ensure all variables that were intended as bound variables are indeed bound by some quantifier. To ensure that is the case \cite{ffl}'s authors make use of \textit{partially applied} formulas, called semi-formulas, that have a parameter $n \in \mathbb{N}$ measuring the difference between the intended and present number of quantifiers. As a result, $n$ also indicates the number of distinct bound variables the semi-formula may contain that do not yet have a corresponding quantifier. The idea is that these $n$ quantifiers will still be added. 
+Another consequence of this distinction is that we need an effective method to ensure all variables that were intended as bound variables are indeed bound by some quantifier. To ensure that is the case \cite{ffl}'s authors make use of \textit{partially applied} formulas, called semi-formulas, that have a parameter $n \in \mathbb{N}$ measuring the difference between the intended and present number of quantifiers. As a result, $n$ also indicates the number of distinct bound variables the semi-formula may contain that do not yet have a corresponding quantifier. The idea is that these $n$ quantifiers will still be added. 
 
-% Pried loose from the ordered nature of indexing that only bound variable match-up with quantifiers requires it is now also possible, for abstraction purposes, to have the free variables indexed by an aribitrary set rather than an ordered one. Nevertheless, for most purposes using $\mathbb{N}$ for free variable indexing is convenient.
+Pried loose from the ordered nature of indexing that only bound variable match-up with quantifiers requires it is now also possible, for abstraction purposes, to have the free variables indexed by an aribitrary set rather than an ordered one. Nevertheless, for most purposes using $\mathbb{N}$ for free variable indexing is convenient.
 
-
-% % Now, assuming expression \ref{eq:ffl} is a well-formed formula, we should, by the above concept of \textit{partially applied formulas}, have that its sub-formula $\varphi = P(\#0,\&0)$ has a parameter $n = 1$ specifying one quantifier should be added to $\varphi$ to obtain a well-formed formula. As will become apparent from Definition \ref{def:sem-t} and Definition \ref{def:sem-f}.3 this is exactly why $P(\#0,\&0)$ can contain \#0 as a term in the first place: Definition \ref{def:sem-f}.3 and Definition \ref{def:sem-f}.4 state that semiformulas of the set with $n = k$ can only contains semiterms from the set of semiterms with $n = k$ and sets of semi-terms with parameter $n$ can only contain bound variables $\#i$ with $i < n$. Together with Definitions \ref{def:sem-f}.7 and \ref{def:sem-f}.8 this assures that in formulas in the set of semiformulas with $n = 0$ all bound variables are bound.
-% %  then assure that whenever a quantifier $Q$ is placed in front of a formula $\psi$ from the set of semiformulas with parameter $n = k$ the resulting formula $Q \psi$ is a member of the set of semiformulas with parameter $n = k - 1$. So the only way to obtain a semiformula in the set with $n = k - 1$ is to either (i) place a quantifier in front of a semiformula from the set with $n = k$, all of which only require $k$ extra quantifiers before the formula is well-formed or (ii) construct a semiformula that only contains bound variables that require $k - 1$ quantifiers before the formula to make it well-formed. Hence, a semiformula from the set with $n = 0$ can be obtained by either (i) placing a quantifier in front of a semiformula from the set of semiformulas that only need $n = 1$ extra quantifier to make them well-formed or (ii) by constructing a semiformula that only contains bound variables that require $0 - 1 \in \mathbb{N}$, i.e. no, quantifiers to make it well-formed. This guarantees that all formulas in the set of semiformulas with $n = 0$ are well-formed.
+ Now, assuming expression \ref{eq:ffl} is a well-formed formula, we should, by the above concept of \textit{partially applied formulas}, have that its sub-formula $\varphi = P(\#0,\&0)$ has a parameter $n = 1$ specifying one quantifier should be added to $\varphi$ to obtain a well-formed formula. As will become apparent from Definition \ref{def:sem-t} and Definition \ref{def:sem-f}.3 this is exactly why $P(\#0,\&0)$ can contain \#0 as a term in the first place: Definition \ref{def:sem-f}.3 and Definition \ref{def:sem-f}.4 state that semiformulas of the set with $n = k$ can only contains semiterms from the set of semiterms with $n = k$ and sets of semi-terms with parameter $n$ can only contain bound variables $\#i$ with $i < n$. Together with Definitions \ref{def:sem-f}.7 and \ref{def:sem-f}.8 this assures that in formulas in the set of semiformulas with $n = 0$ all bound variables are bound.
+  then assure that whenever a quantifier $Q$ is placed in front of a formula $\psi$ from the set of semiformulas with parameter $n = k$ the resulting formula $Q \psi$ is a member of the set of semiformulas with parameter $n = k - 1$. So the only way to obtain a semiformula in the set with $n = k - 1$ is to either (i) place a quantifier in front of a semiformula from the set with $n = k$, all of which only require $k$ extra quantifiers before the formula is well-formed or (ii) construct a semiformula that only contains bound variables that require $k - 1$ quantifiers before the formula to make it well-formed. Hence, a semiformula from the set with $n = 0$ can be obtained by either (i) placing a quantifier in front of a semiformula from the set of semiformulas that only need $n = 1$ extra quantifier to make them well-formed or (ii) by constructing a semiformula that only contains bound variables that require $0 - 1 \in \mathbb{N}$, i.e. no, quantifiers to make it well-formed. This guarantees that all formulas in the set of semiformulas with $n = 0$ are well-formed.
 
 \begin{definition}[Term]\label{def:term}
     \uses{def:fol}
@@ -101,26 +100,26 @@ We can then work our way up, first to the level of terms and then that of formul
         \end{enumerate}
 \end{definition}
 
-% \begin{definition}[semi-term]\label{def:sem-t}
-%     \uses{def:fol}
-%     \lean{LO.FirstOrder.Semiterm}
-%     \leanok
-%     Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set used for indexing of free variables and $n \in \mathbb{N}$ an intended number of quantifiers. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
-%     \begin{enumerate}
-%         \item the set of bound variables $BV_n = \{\#i | 0 \leq i < n\} \subseteq A_{\mathcal{L},\xi,n}$,
-%         \item the set of free variables $FV_\xi = \{\&i | i \in \xi\} \subseteq A_{\mathcal{L},\xi,n}$ and
-%         \item for all $i \in \mathbb{N}$, if $f \in F(i)$ and $x_1,...,x_i \in A_{\mathcal{L},\xi,n}$, then $f(x_1,...,x_i) \in A_{\mathcal{L},\xi,n}$.
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[semi-term]\label{def:sem-t}
+    \uses{def:fol}
+    \lean{LO.FirstOrder.Semiterm}
+    \leanok
+    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set used for indexing of free variables and $n \in \mathbb{N}$ an intended number of quantifiers. Then, the set of semi-terms $A_{\mathcal{L},\xi,n}$ is the smallest set such that
+    \begin{enumerate}
+        \item the set of bound variables $BV_n = \{\#i | 0 \leq i < n\} \subseteq A_{\mathcal{L},\xi,n}$,
+        \item the set of free variables $FV_\xi = \{\&i | i \in \xi\} \subseteq A_{\mathcal{L},\xi,n}$ and
+        \item for all $i \in \mathbb{N}$, if $f \in F(i)$ and $x_1,...,x_i \in A_{\mathcal{L},\xi,n}$, then $f(x_1,...,x_i) \in A_{\mathcal{L},\xi,n}$.
+    \end{enumerate}
+\end{definition}
 
-% Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb{N}$, as we are using de Bruijn indexing to index our free variables, and $n = 0$, as syntactic terms are not bound variables.
+Subsequently, we define full syntactic terms from this by setting $\xi = \mathbb{N}$, as we are using de Bruijn indexing to index our free variables, and $n = 0$, as syntactic terms are not bound variables.
 
-% \begin{definition}[syntactic term]\label{def:syn-t}
-%     \uses{def:fol, def:sem-t}
-%     \lean{LO.FirstOrder.SyntacticTerm}
-%     \leanok
-%     Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $\mathcal{T}_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
-% \end{definition}
+\begin{definition}[syntactic term]\label{def:syn-t}
+    \uses{def:fol, def:sem-t}
+    \lean{LO.FirstOrder.SyntacticTerm}
+    \leanok
+    Let $\mathcal{L}$ be a first-order language. Then, the set of syntactic terms $\mathcal{T}_{\mathcal{L}}$ associated with this language is the set of semi-terms $A_{\mathcal{L},\mathbb{N},0}$. 
+\end{definition}
 
 The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormula}.
 
@@ -138,22 +137,22 @@ The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormul
     \end{enumerate}
 \end{definition}
 
-% \begin{definition}[semi-formula]\label{def:sem-f}
-%     \uses{def:fol,def:sem-t}
-%     \lean{LO.FirstOrder.Semiformula}
-%     \leanok
-%     Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set used for indexing of free variables, $n \in \mathbb{N}$ an intended number of quantifiers and $A_{\mathcal{L},\xi,n}$ the associated set of semi-terms. Then, the set of semi-formulas $B_{\mathcal{L},\xi,n}$ is the smallest set such that 
-%     \begin{enumerate}
-%         \item $\texttt{verum} \in B_{\mathcal{L},\xi,n}$,
-%         \item $\texttt{falsum} \in B_{\mathcal{L},\xi,n}$,
-%         \item for all $i \in \mathbb{N}$, if $P \in R(i)$ and $a_1,...,a_i \in A_{\mathcal{L},\xi,n}$, then $P(a_1,...,a_i) \in B_{\mathcal{L},\xi,n}$,
-%         \item for all $i \in \mathbb{N}$, if $P \in R(i)$ and $a_1,...,a_i \in A_{\mathcal{L},\xi,n}$, then $\neg P(a_1,...,a_i) \in B_{\mathcal{L},\xi,n}$,
-%         \item if $\varphi_1,\varphi_2 \in B_{\mathcal{L},\xi,n}$, then $\texttt{and}(\varphi_1,\varphi_2) \in B_{\mathcal{L},\xi,n}$,
-%         \item if $\varphi_1,\varphi_2 \in B_{\mathcal{L},\xi,n}$, then $\texttt{or}(\varphi_1,\varphi_2) \in B_{\mathcal{L},\xi,n}$,
-%         \item if $\varphi_1 \in B_{\mathcal{L},\xi,n+1}$, then $\texttt{all}(\varphi_1) \in B_{\mathcal{L},\xi,n}$ and
-%         \item if $\varphi_1 \in B_{\mathcal{L},\xi,n+1}$, then $\texttt{ex}(\varphi_1) \in B_{\mathcal{L},\xi,n}$.
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[semi-formula]\label{def:sem-f}
+    \uses{def:fol,def:sem-t}
+    \lean{LO.FirstOrder.Semiformula}
+    \leanok
+    Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language, $\xi$ a set used for indexing of free variables, $n \in \mathbb{N}$ an intended number of quantifiers and $A_{\mathcal{L},\xi,n}$ the associated set of semi-terms. Then, the set of semi-formulas $B_{\mathcal{L},\xi,n}$ is the smallest set such that 
+    \begin{enumerate}
+        \item $\texttt{verum} \in B_{\mathcal{L},\xi,n}$,
+        \item $\texttt{falsum} \in B_{\mathcal{L},\xi,n}$,
+        \item for all $i \in \mathbb{N}$, if $P \in R(i)$ and $a_1,...,a_i \in A_{\mathcal{L},\xi,n}$, then $P(a_1,...,a_i) \in B_{\mathcal{L},\xi,n}$,
+        \item for all $i \in \mathbb{N}$, if $P \in R(i)$ and $a_1,...,a_i \in A_{\mathcal{L},\xi,n}$, then $\neg P(a_1,...,a_i) \in B_{\mathcal{L},\xi,n}$,
+        \item if $\varphi_1,\varphi_2 \in B_{\mathcal{L},\xi,n}$, then $\texttt{and}(\varphi_1,\varphi_2) \in B_{\mathcal{L},\xi,n}$,
+        \item if $\varphi_1,\varphi_2 \in B_{\mathcal{L},\xi,n}$, then $\texttt{or}(\varphi_1,\varphi_2) \in B_{\mathcal{L},\xi,n}$,
+        \item if $\varphi_1 \in B_{\mathcal{L},\xi,n+1}$, then $\texttt{all}(\varphi_1) \in B_{\mathcal{L},\xi,n}$ and
+        \item if $\varphi_1 \in B_{\mathcal{L},\xi,n+1}$, then $\texttt{ex}(\varphi_1) \in B_{\mathcal{L},\xi,n}$.
+    \end{enumerate}
+\end{definition}
 
 A \texttt{Formula} is defined as a \texttt{BoundedFormula} that has no variables that still need to be bound.
 
@@ -199,318 +198,318 @@ We want to use $\mathcal{L}_T$ as meta-theory to reason about $\mathcal{L}$. Hen
 
 
 
-% \begin{definition}[syntactic formula]\label{def:syn-f}
-%     \uses{def:fol,def:sem-f}
-%     \lean{LO.FirstOrder.SyntacticFormula}
+\begin{definition}[syntactic formula]\label{def:syn-f}
+    \uses{def:fol,def:sem-f}
+    \lean{LO.FirstOrder.SyntacticFormula}
+    \leanok
+    Let $\mathcal{L}$ be a language. Then the set of syntactic formulas $W_{\mathcal{L}}$ associated with this language is the set of semi-formulas $B_{\mathcal{L},\mathbb{N},0}$.
+\end{definition}
+
+\section{Proof Theory}
+Once we have a formal language and specification of its formulas, we can define a proof system. Proof systems require three elements:
+\begin{enumerate}
+\item a formal language,
+\item a set of formulas in the language that function as axioms and
+\item a set of rules for deriving formulas from other formulas.
+\end{enumerate}    
+
+We will here define proof systems for $\texttt{PA}$ and $\texttt{PAT}$. To that end we will need these theories' axioms and derivation rules for first-order languages. In \cite{ffl} theories are indexed by their defining axioms, so constructing a theory is equivalent to specifying its defining axioms. 
+
+\begin{definition}[theory]\label{def:theory}
+  \uses{def:fol,def:syn-f}
+  \lean{LO.FirstOrder.Theory}
+  \leanok
+  Let $\mathcal{L}$ be a formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulas. Then, a theory $T_{\mathcal{L}}$ of $\mathcal{L}$ is a set of syntactic formulas $X$ such that $X \subset W_{\mathcal{L}}$.
+\end{definition}
+
+Furthermore, we can use \cite{ffl}'s derivation rules that are based on tait calculus (see for example \cite{lee2007}). These rules depend on the concept of substitution of terms in terms and formulas with free bound variables. Traditionally, for example in \cite{negri2001}, substitution is inductively defined over terms, then over formulas. For reasons of integration with Lean 4's preset notions of substitution of terms (Lean 4 is after all a logical system in itself), \cite{ffl} has chosen to not define their substitution methods themselves but rely on Lean 4's innate function for substitution. As the inner workings of Lean 4 are outside the scope of this project and characterizations using the traditional accounts of these operations can be given that function equivalently on the current level of term and formula substitution we will give the traditional definitions of substitution, with the exception that the denotation of term substitution will not resemble that of substitution of terms in formulae, accentuating the fact that $t_0/[t_1]$, where $t_0$ and $t_1$ are semiterms, is not defined in Lean 4.
+
+\begin{definition}[substitution in terms]\label{def:sub-t}
+    \uses{def:sem-t}
+    \leanok
+    Let $\mathcal{A} = A_{\mathcal{L},\mathbb{N},n}$ and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ be sets of semiterms. Then, the substitution function $\texttt{sub}_t : \mathcal{A} \times \mathcal{T}^n \to \mathcal{A}$, where $\textbf{t}$ denotes $(t_1,...,t_n)$ is recursively defined as
+    \begin{enumerate}
+        \item if $a = \#i \in BV_n$, then $\texttt{sub}_t(a,\textbf{t}) = t_i$,
+        \item if $a \in FV_{\mathbb{N}}$, then $\texttt{sub}_t(a,\textbf{t}) = a$ and
+        \item if $a = f(b_1,...,b_k) \in \mathcal{A}$, then $\texttt{sub}_t(a,\textbf{t}) = f(\texttt{sub}_t(b_1,\textbf{t}),...,\texttt{sub}_t(b_k,\textbf{t}))$. 
+    \end{enumerate}
+\end{definition}
+
+With this concept we can then define the concept of substitution in formulas.
+
+\begin{definition}[substitution]\label{def:subst}
+    \uses{def:sem-t,def:sem-f,def:sub-t}
+    \leanok
+    Let $\mathcal{F} = B_{\mathcal{L},\mathbb{N},n}$ be a set of semiformulae and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ a set of terms. Then, the substitution function $\texttt{sub}_f : \mathcal{F} \times \mathcal{T}^{n} \to \mathcal{F}$, of terms $\textbf{t} \in \mathcal{T}$, where $\textbf{t} = (t_1,...,t_n)$, in formula $\varphi \in \mathcal{F}$, denoted $\varphi/[\textbf{t}]$, is inductively defined as
+    \begin{enumerate}
+        \item $\texttt{verum}/[\textbf{t}] = \texttt{verum}$;
+        \item $\texttt{falsum}/[\textbf{t}] = \texttt{falsum}$;
+        \item if $P(a_1,...,a_k) \in \mathcal{F}$, then $P(a_1,...,a_k)/[\textbf{t}] = P(\texttt{sub}_t(a_1,\textbf{t}),...,\texttt{sub}(a_k,\textbf{t}))$;
+        \item if $\neg P(a_1,...,a_k) \in \mathcal{F}$, then $ \neg P(a_1,...,a_k)/[\textbf{t}] = \neg P(\texttt{sub}_t(a_1,\textbf{t}),...,\texttt{sub}_t(a_k,\textbf{t}))$;
+        \item if $\texttt{and}(\varphi_1, \varphi_2) \in \mathcal{F}$, then $\texttt{and}(\varphi_1, \varphi_2)/[\textbf{t}] = \texttt{and}(\varphi_1/[\textbf{t}],\varphi/[t])$;
+        \item if $\texttt{or}(\varphi_1, \varphi_2) \in \mathcal{F}$, then $\texttt{or}(\varphi_1, \varphi_2)/[\textbf{t}] = \texttt{or}(\varphi_1/[\textbf{t}],\varphi/[\textbf{t}])$;
+        \item if $\texttt{all}(\varphi) \in \mathcal{F}$, then $\texttt{all}(\varphi)/[\textbf{t}] = \texttt{all}(\varphi/[\textbf{t}])$ and
+        \item if $\texttt{ex}(\varphi)\in \mathcal{F}$, then $\texttt{ex}(\varphi)/[\textbf{t}] = \texttt{ex}(\varphi/[\textbf{t}])$.
+    \end{enumerate}
+\end{definition}
+
+As our derivation rules are over sequents, below we define the concept of a sequent.
+
+\begin{definition}[sequent]\label{def:seq}
+    \uses{def:fol,def:syn-f}
+    \lean{LO.FirstOrder.Sequent}
+    \leanok
+    Let $\mathcal{L}$ be some formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulae. Then, a sequent of $\mathcal{L}$ is a tuple $(f_1,...,f_n) \in W_{\mathcal{L}}^n$, where $n \in \mathbb{N}$.
+\end{definition}
+
+Now we have everything in place to define sequent calculus.
+
+\begin{definition}[sequent calculus]\label{def:seq-calc}
+    \uses{def:fol,def:sem-t,def:theory,def:syn-t,def:subst,def:seq}
+    \lean{LO.FirstOrder.Derivation}
+    \leanok
+    Let $\mathcal{L} = \langle F,R \rangle$ be some formal language, some $T_{\mathcal{L}}$ an associated theory of this language. Then, the set of sequents derivable from $T_{\mathcal{L}}$ is inductively defined as the smallest set of sequents $X$ such that
+    \begin{enumerate}
+        \item if $(f_1,...,f_n) \in X$ and for some $i \in \mathbb{N}$, $P \in R(i)$ and $a_1,...,a_i \in \mathcal{T}_{\mathcal{L}}$, then \\ $(P(a_1...a_n),\neg P(a_1,...,a_n),f_1,...,f_n) \in X$;
+        \item if $(f_1,...,f_n) \in X$, then $(\top,f_1,...,f_n) \in X$;
+        \item if $(\varphi,\psi,f_1,...,f_n) \in X$, then $(\varphi \lor \psi,f_1,...,f_n) \in X$;
+        \item if $(\varphi,f_1,...,f_n) \in X$ and $(\psi,f_1,...,f_n) \in X$, then $(\varphi \land \psi,f_1,...,f_n) \in X$;
+        \item if $(\varphi,f_1,...,f_n) \in X$, then $(\forall \varphi, f_1,...,f_n) \in X$;
+        \item if $(f_1,...,f_n) \in X$ and there is some $t \in \mathcal{T}$ such that $(\varphi /[t],f_1,...,f_n) \in X$, then $(\exists \varphi, f_1,...,f_n) \in X$;
+        \item for $\Delta = (g_1,...,g_k) \in X$ and $\Gamma = (f_1,...,f_n)$ some sequent, if for all $i: 0 \leq i \leq k$ there is some $j: 0 \leq j \leq n$ such that $g_i = f_j$, then $\Gamma \in X$;
+        \item if $(\varphi,f_1,...,f_n) \in X$ and $(\neg \varphi,f_1,...,f_n) \in X$, then $(f_1,...,f_n) \in X$;
+        \item if $\varphi \in T_{\mathcal{L}}$, then $(\varphi) \in X$. 
+    \end{enumerate}
+\end{definition}
+
+Intuitively, we can think of all distinct formulas comprising our sequents as disjuncts of one big disjunction thereby making one sequent a big disjunction \cite{lee2007}. The derivation rules ensure that only disjuncts can be derived where truth is preserved.
+
+\section{Pair encoding}
+Formulas in some first-order langauge $\mathcal{L}$ can be encoded to and decoded from natural numbers. An advantage of this is that we can use a language that has natural numbers as terms, in our case $\mathcal{L}_T$ to formulate metatheoretical statements. In this project we make use of pair encoding.
+
+Pair encoding of sequences is based on a recursive notion of sequence building, where a pairing function encodes two natural numbers into one natural number, where these natural numbers themselves could again be encodings of two natural numbers, allowing encoding of an arbitrarily large sequence. Hence, we first need the pairing function. This function is native to mathlib.
+
+\begin{definition}[\texttt{pair}]\label{def:pair}
+    \lean{Nat.pair}
+    \leanok
+    The pairing function $\texttt{pair} : \mathbb{N}^2 \to \mathbb{N}$ is defined as 
+    \begin{align*}
+        \texttt{pair}(a,b) = \begin{cases}
+            b \cdot b + a &\text{if } a < b \\
+            a \cdot a + a + b &\text{else}.        
+        \end{cases}
+    \end{align*}
+\end{definition}
+
+The encoding this results in is illustrated in Figure \ref{fig:pairing-table}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=6cm]{./img/pairing-table.pdf}
+    \caption{An illustration of the process of encoding natural numbers using \texttt{pair}.}
+    \label{fig:pairing-table}
+\end{figure}
+
+Accordingly, we also need a decoding function $\texttt{unpair} : \mathbb{N} \to \mathbb{N}^2$. 
+
+% \begin{definition}[\texttt{unpair}]\label{def:unpair}
+%     \lean{Nat.unpair}
 %     \leanok
-%     Let $\mathcal{L}$ be a language. Then the set of syntactic formulas $W_{\mathcal{L}}$ associated with this language is the set of semi-formulas $B_{\mathcal{L},\mathbb{N},0}$.
-% \end{definition}
-
-% \section{Proof Theory}
-% Once we have a formal language and specification of its formulas, we can define a proof system. Proof systems require three elements:
-% \begin{enumerate}
-%     \item a formal language,
-%     \item a set of formulas in the language that function as axioms and
-%     \item a set of rules for deriving formulas from other formulas.
-% \end{enumerate}    
-
-% We will here define proof systems for $\texttt{PA}$ and $\texttt{PAT}$. To that end we will need these theories' axioms and derivation rules for first-order languages. In \cite{ffl} theories are indexed by their defining axioms, so constructing a theory is equivalent to specifying its defining axioms. 
-
-% \begin{definition}[theory]\label{def:theory}
-%     \uses{def:fol,def:syn-f}
-%     \lean{LO.FirstOrder.Theory}
-%     \leanok
-%     Let $\mathcal{L}$ be a formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulas. Then, a theory $T_{\mathcal{L}}$ of $\mathcal{L}$ is a set of syntactic formulas $X$ such that $X \subset W_{\mathcal{L}}$.
-% \end{definition}
-
-% Furthermore, we can use \cite{ffl}'s derivation rules that are based on tait calculus (see for example \cite{lee2007}). These rules depend on the concept of substitution of terms in terms and formulas with free bound variables. Traditionally, for example in \cite{negri2001}, substitution is inductively defined over terms, then over formulas. For reasons of integration with Lean 4's preset notions of substitution of terms (Lean 4 is after all a logical system in itself), \cite{ffl} has chosen to not define their substitution methods themselves but rely on Lean 4's innate function for substitution. As the inner workings of Lean 4 are outside the scope of this project and characterizations using the traditional accounts of these operations can be given that function equivalently on the current level of term and formula substitution we will give the traditional definitions of substitution, with the exception that the denotation of term substitution will not resemble that of substitution of terms in formulae, accentuating the fact that $t_0/[t_1]$, where $t_0$ and $t_1$ are semiterms, is not defined in Lean 4.
-
-% \begin{definition}[substitution in terms]\label{def:sub-t}
-%     \uses{def:sem-t}
-%     \leanok
-%     Let $\mathcal{A} = A_{\mathcal{L},\mathbb{N},n}$ and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ be sets of semiterms. Then, the substitution function $\texttt{sub}_t : \mathcal{A} \times \mathcal{T}^n \to \mathcal{A}$, where $\textbf{t}$ denotes $(t_1,...,t_n)$ is recursively defined as
-%     \begin{enumerate}
-%         \item if $a = \#i \in BV_n$, then $\texttt{sub}_t(a,\textbf{t}) = t_i$,
-%         \item if $a \in FV_{\mathbb{N}}$, then $\texttt{sub}_t(a,\textbf{t}) = a$ and
-%         \item if $a = f(b_1,...,b_k) \in \mathcal{A}$, then $\texttt{sub}_t(a,\textbf{t}) = f(\texttt{sub}_t(b_1,\textbf{t}),...,\texttt{sub}_t(b_k,\textbf{t}))$. 
-%     \end{enumerate}
-% \end{definition}
-
-% With this concept we can then define the concept of substitution in formulas.
-
-% \begin{definition}[substitution]\label{def:subst}
-%     \uses{def:sem-t,def:sem-f,def:sub-t}
-%     \leanok
-%     Let $\mathcal{F} = B_{\mathcal{L},\mathbb{N},n}$ be a set of semiformulae and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ a set of terms. Then, the substitution function $\texttt{sub}_f : \mathcal{F} \times \mathcal{T}^{n} \to \mathcal{F}$, of terms $\textbf{t} \in \mathcal{T}$, where $\textbf{t} = (t_1,...,t_n)$, in formula $\varphi \in \mathcal{F}$, denoted $\varphi/[\textbf{t}]$, is inductively defined as
-%     \begin{enumerate}
-%         \item $\texttt{verum}/[\textbf{t}] = \texttt{verum}$;
-%         \item $\texttt{falsum}/[\textbf{t}] = \texttt{falsum}$;
-%         \item if $P(a_1,...,a_k) \in \mathcal{F}$, then $P(a_1,...,a_k)/[\textbf{t}] = P(\texttt{sub}_t(a_1,\textbf{t}),...,\texttt{sub}(a_k,\textbf{t}))$;
-%         \item if $\neg P(a_1,...,a_k) \in \mathcal{F}$, then $ \neg P(a_1,...,a_k)/[\textbf{t}] = \neg P(\texttt{sub}_t(a_1,\textbf{t}),...,\texttt{sub}_t(a_k,\textbf{t}))$;
-%         \item if $\texttt{and}(\varphi_1, \varphi_2) \in \mathcal{F}$, then $\texttt{and}(\varphi_1, \varphi_2)/[\textbf{t}] = \texttt{and}(\varphi_1/[\textbf{t}],\varphi/[t])$;
-%         \item if $\texttt{or}(\varphi_1, \varphi_2) \in \mathcal{F}$, then $\texttt{or}(\varphi_1, \varphi_2)/[\textbf{t}] = \texttt{or}(\varphi_1/[\textbf{t}],\varphi/[\textbf{t}])$;
-%         \item if $\texttt{all}(\varphi) \in \mathcal{F}$, then $\texttt{all}(\varphi)/[\textbf{t}] = \texttt{all}(\varphi/[\textbf{t}])$ and
-%         \item if $\texttt{ex}(\varphi)\in \mathcal{F}$, then $\texttt{ex}(\varphi)/[\textbf{t}] = \texttt{ex}(\varphi/[\textbf{t}])$.
-%     \end{enumerate}
-% \end{definition}
-
-% As our derivation rules are over sequents, below we define the concept of a sequent.
-
-% \begin{definition}[sequent]\label{def:seq}
-%     \uses{def:fol,def:syn-f}
-%     \lean{LO.FirstOrder.Sequent}
-%     \leanok
-%     Let $\mathcal{L}$ be some formal language and $W_{\mathcal{L}}$ its associated set of syntactic formulae. Then, a sequent of $\mathcal{L}$ is a tuple $(f_1,...,f_n) \in W_{\mathcal{L}}^n$, where $n \in \mathbb{N}$.
-% \end{definition}
-
-% Now we have everything in place to define sequent calculus.
-
-% \begin{definition}[sequent calculus]\label{def:seq-calc}
-%     \uses{def:fol,def:sem-t,def:theory,def:syn-t,def:subst,def:seq}
-%     \lean{LO.FirstOrder.Derivation}
-%     \leanok
-%     Let $\mathcal{L} = \langle F,R \rangle$ be some formal language, some $T_{\mathcal{L}}$ an associated theory of this language. Then, the set of sequents derivable from $T_{\mathcal{L}}$ is inductively defined as the smallest set of sequents $X$ such that
-%     \begin{enumerate}
-%         \item if $(f_1,...,f_n) \in X$ and for some $i \in \mathbb{N}$, $P \in R(i)$ and $a_1,...,a_i \in \mathcal{T}_{\mathcal{L}}$, then \\ $(P(a_1...a_n),\neg P(a_1,...,a_n),f_1,...,f_n) \in X$;
-%         \item if $(f_1,...,f_n) \in X$, then $(\top,f_1,...,f_n) \in X$;
-%         \item if $(\varphi,\psi,f_1,...,f_n) \in X$, then $(\varphi \lor \psi,f_1,...,f_n) \in X$;
-%         \item if $(\varphi,f_1,...,f_n) \in X$ and $(\psi,f_1,...,f_n) \in X$, then $(\varphi \land \psi,f_1,...,f_n) \in X$;
-%         \item if $(\varphi,f_1,...,f_n) \in X$, then $(\forall \varphi, f_1,...,f_n) \in X$;
-%         \item if $(f_1,...,f_n) \in X$ and there is some $t \in \mathcal{T}$ such that $(\varphi /[t],f_1,...,f_n) \in X$, then $(\exists \varphi, f_1,...,f_n) \in X$;
-%         \item for $\Delta = (g_1,...,g_k) \in X$ and $\Gamma = (f_1,...,f_n)$ some sequent, if for all $i: 0 \leq i \leq k$ there is some $j: 0 \leq j \leq n$ such that $g_i = f_j$, then $\Gamma \in X$;
-%         \item if $(\varphi,f_1,...,f_n) \in X$ and $(\neg \varphi,f_1,...,f_n) \in X$, then $(f_1,...,f_n) \in X$;
-%         \item if $\varphi \in T_{\mathcal{L}}$, then $(\varphi) \in X$. 
-%     \end{enumerate}
-% \end{definition}
-
-% Intuitively, we can think of all distinct formulas comprising our sequents as disjuncts of one big disjunction thereby making one sequent a big disjunction \cite{lee2007}. The derivation rules ensure that only disjuncts can be derived where truth is preserved.
-
-% \section{Pair encoding}
-% Formulas in some first-order langauge $\mathcal{L}$ can be encoded to and decoded from natural numbers. An advantage of this is that we can use a language that has natural numbers as terms, in our case $\mathcal{L}_T$ to formulate metatheoretical statements. In this project we make use of pair encoding.
-
-% Pair encoding of sequences is based on a recursive notion of sequence building, where a pairing function encodes two natural numbers into one natural number, where these natural numbers themselves could again be encodings of two natural numbers, allowing encoding of an arbitrarily large sequence. Hence, we first need the pairing function. This function is native to mathlib.
-
-% \begin{definition}[\texttt{pair}]\label{def:pair}
-%     \lean{Nat.pair}
-%     \leanok
-%     The pairing function $\texttt{pair} : \mathbb{N}^2 \to \mathbb{N}$ is defined as 
+%     The unparing function \texttt{unpair}$: \mathbb{N} \to \mathbb{N}^2$ is defined as 
 %     \begin{align*}
-%         \texttt{pair}(a,b) = \begin{cases}
-%             b \cdot b + a &\text{if } a < b \\
-%             a \cdot a + a + b &\text{else}.        
+%         \texttt{unpair}(n) = \begin{cases}
+%             (0, \sqrt{n}) &\text{if } 0 < \sqrt{n} \\
+%             (\sqrt{n}, - \sqrt{n}) &\text{else}.     
 %         \end{cases}
 %     \end{align*}
 % \end{definition}
 
-% The encoding this results in is illustrated in Figure \ref{fig:pairing-table}.
+Then, we can use this to have an encoding function $\texttt{toNat} : B_{\mathcal{L},\xi,n} \to \mathbb{N}$ from semiformulas to natural numbers.
 
-% \begin{figure}[h]
-%     \centering
-%     \includegraphics[width=6cm]{./img/pairing-table.pdf}
-%     \caption{An illustration of the process of encoding natural numbers using \texttt{pair}.}
-%     \label{fig:pairing-table}
-% \end{figure}
-
-% Accordingly, we also need a decoding function $\texttt{unpair} : \mathbb{N} \to \mathbb{N}^2$. 
-
-% % \begin{definition}[\texttt{unpair}]\label{def:unpair}
-% %     \lean{Nat.unpair}
-% %     \leanok
-% %     The unparing function \texttt{unpair}$: \mathbb{N} \to \mathbb{N}^2$ is defined as 
-% %     \begin{align*}
-% %         \texttt{unpair}(n) = \begin{cases}
-% %             (0, \sqrt{n}) &\text{if } 0 < \sqrt{n} \\
-% %             (\sqrt{n}, - \sqrt{n}) &\text{else}.     
-% %         \end{cases}
-% %     \end{align*}
-% % \end{definition}
-
-% Then, we can use this to have an encoding function $\texttt{toNat} : B_{\mathcal{L},\xi,n} \to \mathbb{N}$ from semiformulas to natural numbers.
-
-% \begin{definition}[\texttt{toNat}]\label{def:toNat}
-%     \lean{LO.FirstOrder.Semiformula.toNat}
-%     \leanok
-%     Let $B_{\mathcal{L},\xi,\mathbb{N}}$ be a set of semiformulas. Then the function $\texttt{toNat} : B_{\mathcal{L},\xi,\mathbb{N}} \to \mathbb{N}$ is defined such that
-%     \begin{enumerate}
-%         \item \texttt{toNat}$(a,b)$
+\begin{definition}[\texttt{toNat}]\label{def:toNat}
+    \lean{LO.FirstOrder.Semiformula.toNat}
+    \leanok
+    Let $B_{\mathcal{L},\xi,\mathbb{N}}$ be a set of semiformulas. Then the function $\texttt{toNat} : B_{\mathcal{L},\xi,\mathbb{N}} \to \mathbb{N}$ is defined such that
+    \begin{enumerate}
+        \item \texttt{toNat}$(a,b)$
         
-%     \end{enumerate}
+    \end{enumerate}
 
-% \end{definition}
+\end{definition}
 
-% \begin{definition}[primitive term]%\label{def:primitive-term}
-%     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
-% \end{definition}
+\begin{definition}[primitive term]%\label{def:primitive-term}
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first-order signature. Then, we define the corresponding set of primitive terms $\mathcal{P}_{\mathcal{S}} = \mathcal{C} \cup \mathcal{V}$.
+\end{definition}
 
-% \begin{definition}[first-order term]%\label{def:FO-term}
-%     %\uses{def:FO-logical-vocab, def:FO-signature}
-%     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first-order signature. Then, the set $\mathcal{T}_{\mathcal{S}}$ of \textit{terms} corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
-%     \begin{enumerate}
-%         \item $\mathcal{P}_{\mathcal{S}} \subseteq X$ and
-%         \item if $t_1,...,t_n \in X$, $f \in \mathcal{F}$ and $ar(f) = n$, then $f(t_1,...,t_n) \in X$.
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[first-order term]%\label{def:FO-term}
+    %\uses{def:FO-logical-vocab, def:FO-signature}
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first-order signature. Then, the set $\mathcal{T}_{\mathcal{S}}$ of \textit{terms} corresponding to $\mathcal{S}$ is recursively defined as the smallest set $X$ such that:
+    \begin{enumerate}
+        \item $\mathcal{P}_{\mathcal{S}} \subseteq X$ and
+        \item if $t_1,...,t_n \in X$, $f \in \mathcal{F}$ and $ar(f) = n$, then $f(t_1,...,t_n) \in X$.
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[first-order language]%\label{def:FO-language}
-%     %\uses{def:FO-logical-vocab, def:FO-signature, def:FO-term}
-%     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first-order signature. Then the first order language $\mathcal{L}_{\mathcal{S}}$ is recursively defined as the smallest set $X$ such that:
-%     \begin{enumerate}
-%         \item \begin{enumerate}
-%             \item $\top,\bot \in X$,
-%             \item if $R \in \mathcal{R}$, $ar(R) = n$ and $t_1,...,t_n \in \mathcal{T}_{\mathcal{S}}$, then $R(t_1,...t_n) \in X$,
-%             \item if $t_1,t_2 \in \mathcal{T}_{\mathcal{S}}$, then $t_1 = t_2 \in X$, 
-%         \end{enumerate}
-%         \item \begin{enumerate}
-%             \item if $\phi \in X$, then $\neg \phi \in X$,
-%             \item if $\phi, \psi \in X$ then $(\phi \circ \psi) \in X$ for $\circ \in \{\land,\lor,\to,\leftrightarrow\}$ and
-%             \item if $x \in \mathcal{V}$ and $\phi \in X$, then $Qx\phi \in X$ for $Q \in \{\forall,\exists\}$.
-%         \end{enumerate}
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[first-order language]%\label{def:FO-language}
+    %\uses{def:FO-logical-vocab, def:FO-signature, def:FO-term}
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first-order signature. Then the first order language $\mathcal{L}_{\mathcal{S}}$ is recursively defined as the smallest set $X$ such that:
+    \begin{enumerate}
+        \item \begin{enumerate}
+            \item $\top,\bot \in X$,
+            \item if $R \in \mathcal{R}$, $ar(R) = n$ and $t_1,...,t_n \in \mathcal{T}_{\mathcal{S}}$, then $R(t_1,...t_n) \in X$,
+            \item if $t_1,t_2 \in \mathcal{T}_{\mathcal{S}}$, then $t_1 = t_2 \in X$, 
+        \end{enumerate}
+        \item \begin{enumerate}
+            \item if $\phi \in X$, then $\neg \phi \in X$,
+            \item if $\phi, \psi \in X$ then $(\phi \circ \psi) \in X$ for $\circ \in \{\land,\lor,\to,\leftrightarrow\}$ and
+            \item if $x \in \mathcal{V}$ and $\phi \in X$, then $Qx\phi \in X$ for $Q \in \{\forall,\exists\}$.
+        \end{enumerate}
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[term's primitive term set]%\label{def:terms-pt-set}
-%     Let $\mathcal{S}$ be a first order signature. Then we define the function $tpts_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \to \mathcal{P}(\mathcal{P}_{\mathcal{S}})$ mapping terms to the set of primitive terms they contain as
-%     \begin{enumerate}
-%         \item $tpts_{\mathcal{S}}(s) = \{s\}$ if $s \in \mathcal{P}_{\mathcal{S}}$ and
-%         \item $tpts_{\mathcal{S}}(f(t_1,...,t_n)) = tpts_{\mathcal{S}}(t_1)\cup ... \cup tpts_{\mathcal{S}}(t_n)$.
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[term's primitive term set]%\label{def:terms-pt-set}
+    Let $\mathcal{S}$ be a first order signature. Then we define the function $tpts_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \to \mathcal{P}(\mathcal{P}_{\mathcal{S}})$ mapping terms to the set of primitive terms they contain as
+    \begin{enumerate}
+        \item $tpts_{\mathcal{S}}(s) = \{s\}$ if $s \in \mathcal{P}_{\mathcal{S}}$ and
+        \item $tpts_{\mathcal{S}}(f(t_1,...,t_n)) = tpts_{\mathcal{S}}(t_1)\cup ... \cup tpts_{\mathcal{S}}(t_n)$.
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[formula's primitive term set]%\label{FO-term-set}
-%     Let $\mathcal{S}$ be a first order signature. We then define the primitive term set function $pts_{\mathcal{S}} : \mathcal{L}_{\mathcal{S}} \to \mathcal{P}_{\mathcal{S}}$ as 
-%     \begin{enumerate}
-%         \item \begin{enumerate}
-%             \item $pts_{\mathcal{S}}(R(t_1,...,t_n)) = tpts_{\mathcal{S}}(t_1) \cup ... \cup tpts_{\mathcal{S}}(t_n)$,
-%             \item $pts_{\mathcal{S}}(t_1 = t_2) = tpts_{\mathcal{S}}(t_1) \cup tpts_{\mathcal{S}}(t_2)$,
-%         \end{enumerate}
-%         \item \begin{enumerate}
-%             \item $pts_{\mathcal{S}}(\neg \phi) = pts_{\mathcal{S}}(\phi)$,
-%             \item $pts_{\mathcal{S}}((\phi \circ \psi)) = pts_{\mathcal{S}}(\phi) \cup pts_{\mathcal{S}}(\psi)$ for $\circ \in \{\land, \lor, \to, \leftrightarrow\}$,
-%             \item $pts_{\mathcal{S}}(Qx\phi) = pts_{\mathcal{S}}(\phi) - \{x\}$ for $Q \in \{\forall, \exists\}$.
-%         \end{enumerate}
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[formula's primitive term set]%\label{FO-term-set}
+    Let $\mathcal{S}$ be a first order signature. We then define the primitive term set function $pts_{\mathcal{S}} : \mathcal{L}_{\mathcal{S}} \to \mathcal{P}_{\mathcal{S}}$ as 
+    \begin{enumerate}
+        \item \begin{enumerate}
+            \item $pts_{\mathcal{S}}(R(t_1,...,t_n)) = tpts_{\mathcal{S}}(t_1) \cup ... \cup tpts_{\mathcal{S}}(t_n)$,
+            \item $pts_{\mathcal{S}}(t_1 = t_2) = tpts_{\mathcal{S}}(t_1) \cup tpts_{\mathcal{S}}(t_2)$,
+        \end{enumerate}
+        \item \begin{enumerate}
+            \item $pts_{\mathcal{S}}(\neg \phi) = pts_{\mathcal{S}}(\phi)$,
+            \item $pts_{\mathcal{S}}((\phi \circ \psi)) = pts_{\mathcal{S}}(\phi) \cup pts_{\mathcal{S}}(\psi)$ for $\circ \in \{\land, \lor, \to, \leftrightarrow\}$,
+            \item $pts_{\mathcal{S}}(Qx\phi) = pts_{\mathcal{S}}(\phi) - \{x\}$ for $Q \in \{\forall, \exists\}$.
+        \end{enumerate}
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[substitution function over terms]%\label{def:sub-term}
-%     %\uses{def:FO-signature, def:FO-term}
-%     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first order signature. Then, we define the substitution function over terms $subt_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{T}_{\mathcal{S}} \to \mathcal{T}_{\mathcal{S}}$ recursively such that
-%     \begin{enumerate}
-%         \item if $s \in \mathcal{P}_{\mathcal{S}}$, then $subt_{\mathcal{S}}(s,x,t) = \begin{cases}
-%                         s, &\text{if }s \not = x \\
-%                         t, &\text{if }s = x
-%                         \end{cases}$
-%         \item $subt_{\mathcal{S}}(f(t_1,...,t_n),x,t) = f(subt_{\mathcal{S}}(t_1,x,t),...,subt_{\mathcal{S}}(t_n,x,t))$.
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[substitution function over terms]%\label{def:sub-term}
+    %\uses{def:FO-signature, def:FO-term}
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first order signature. Then, we define the substitution function over terms $subt_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{T}_{\mathcal{S}} \to \mathcal{T}_{\mathcal{S}}$ recursively such that
+    \begin{enumerate}
+        \item if $s \in \mathcal{P}_{\mathcal{S}}$, then $subt_{\mathcal{S}}(s,x,t) = \begin{cases}
+                        s, &\text{if }s \not = x \\
+                        t, &\text{if }s = x
+                        \end{cases}$
+        \item $subt_{\mathcal{S}}(f(t_1,...,t_n),x,t) = f(subt_{\mathcal{S}}(t_1,x,t),...,subt_{\mathcal{S}}(t_n,x,t))$.
+    \end{enumerate}
+\end{definition}
 
-% % TODO: Proceed here with removing explicit references to the logical vocabulary and indexing the functions on signatures.
+% TODO: Proceed here with removing explicit references to the logical vocabulary and indexing the functions on signatures.
 
-% \begin{definition}[substitution function over formulas]%\label{def:sub-f}
-%     %\uses{def:FO-signature, def:FO-term, def:FO-language, def:sub-term}
-%     Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first order signature. Then, we define the substitution function over $\mathcal{L}_{\mathcal{S}}$ as $subf_{\mathcal{S}} : \mathcal{L}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{L}_{\mathcal{S}} \to \mathcal{L}_{\mathcal{S}}$ such that
-%     \begin{enumerate}
-%         \item \begin{enumerate} 
-%             \item $subf_{\mathcal{S}}(R(t_1,...,t_n),x,t) = R(subt_{\mathcal{S}}(t_1,x,t),...,subt_{\mathcal{S}}(t_n,x,t))$,
-%             \item $subf_{\mathcal{S}}(t_1 = t_2,x,t) = subt_{\mathcal{S}}(t_1,x,t) = subt_{\mathcal{S}}(t_2,x,t)$
-%         \end{enumerate}
-%         % TODO : replace sub
-%         \item \begin{enumerate}
-%             \item $subf_{\mathcal{S}}(\neg \phi,x,t) = \neg subf_{\mathcal{S}}(\phi,x,t)$,
-%             \item $subf_{\mathcal{S}}((\phi \circ \psi),x,t) = (subf_{\mathcal{S}}(\phi,x,t) \circ subf_{\mathcal{S}}(\psi,x,t))$, for $\circ \in \{\land,\lor,\to,\leftrightarrow\}$ 
-%             \item $subf_{\mathcal{S}}(Qy\phi,x,t)= \begin{cases}
-%                 Qy(subf_{\mathcal{S}}(\phi,x,t)) &\text{if } y \not = x \\
-%                 Qy\phi &\text{if } y = x
-%             \end{cases}$ for $Q \in \{\forall, \exists\}$.
-%         \end{enumerate}
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[substitution function over formulas]%\label{def:sub-f}
+    %\uses{def:FO-signature, def:FO-term, def:FO-language, def:sub-term}
+    Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ a first order signature. Then, we define the substitution function over $\mathcal{L}_{\mathcal{S}}$ as $subf_{\mathcal{S}} : \mathcal{L}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{L}_{\mathcal{S}} \to \mathcal{L}_{\mathcal{S}}$ such that
+    \begin{enumerate}
+        \item \begin{enumerate} 
+            \item $subf_{\mathcal{S}}(R(t_1,...,t_n),x,t) = R(subt_{\mathcal{S}}(t_1,x,t),...,subt_{\mathcal{S}}(t_n,x,t))$,
+            \item $subf_{\mathcal{S}}(t_1 = t_2,x,t) = subt_{\mathcal{S}}(t_1,x,t) = subt_{\mathcal{S}}(t_2,x,t)$
+        \end{enumerate}
+        % TODO : replace sub
+        \item \begin{enumerate}
+            \item $subf_{\mathcal{S}}(\neg \phi,x,t) = \neg subf_{\mathcal{S}}(\phi,x,t)$,
+            \item $subf_{\mathcal{S}}((\phi \circ \psi),x,t) = (subf_{\mathcal{S}}(\phi,x,t) \circ subf_{\mathcal{S}}(\psi,x,t))$, for $\circ \in \{\land,\lor,\to,\leftrightarrow\}$ 
+            \item $subf_{\mathcal{S}}(Qy\phi,x,t)= \begin{cases}
+                Qy(subf_{\mathcal{S}}(\phi,x,t)) &\text{if } y \not = x \\
+                Qy\phi &\text{if } y = x
+            \end{cases}$ for $Q \in \{\forall, \exists\}$.
+        \end{enumerate}
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[inference rule]%\label{def:inf-rule}
-%     %\uses{def:formal-language}
-%     Let $\mathcal{L}$ be a formal language. Then an inference rule defined over $\mathcal{L}$ is a function $r : \mathcal{L}^n \to \mathcal{L}$, where $n \in \mathbb{N}$.
-% \end{definition}
+\begin{definition}[inference rule]%\label{def:inf-rule}
+    %\uses{def:formal-language}
+    Let $\mathcal{L}$ be a formal language. Then an inference rule defined over $\mathcal{L}$ is a function $r : \mathcal{L}^n \to \mathcal{L}$, where $n \in \mathbb{N}$.
+\end{definition}
 
-% \begin{definition}[formal system]%\label{def:formal-system}
-%     %\uses{def:formal-language, def:inf-rule}
-%     A formal system $\mathcal{S}$ is a structure $\mathcal{S} = (\mathcal{L}, \mathcal{A}, \mathcal{R})$, where 
-%     \begin{enumerate}
-%         \item $\mathcal{L}$ is a formal language,
-%         \item $\mathcal{A} \subseteq \mathcal{L}$ is a \textit{set of axioms} and 
-%         \item $\mathcal{R}$ is a \textit{set of inference rules defined over $\mathcal{L}$}.
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[formal system]%\label{def:formal-system}
+    %\uses{def:formal-language, def:inf-rule}
+    A formal system $\mathcal{S}$ is a structure $\mathcal{S} = (\mathcal{L}, \mathcal{A}, \mathcal{R})$, where 
+    \begin{enumerate}
+        \item $\mathcal{L}$ is a formal language,
+        \item $\mathcal{A} \subseteq \mathcal{L}$ is a \textit{set of axioms} and 
+        \item $\mathcal{R}$ is a \textit{set of inference rules defined over $\mathcal{L}$}.
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[sequent set]%\label{def:sequent-set}
-%     %\uses{def:formal-language}
-%     Let $\mathcal{L}$ be a formal language. Then the set of sequents for that language $\mathcal{S} = \mathcal{P}(\mathcal{L}) \times \mathcal{P}(\mathcal{L})$.
-% \end{definition}
+\begin{definition}[sequent set]%\label{def:sequent-set}
+    %\uses{def:formal-language}
+    Let $\mathcal{L}$ be a formal language. Then the set of sequents for that language $\mathcal{S} = \mathcal{P}(\mathcal{L}) \times \mathcal{P}(\mathcal{L})$.
+\end{definition}
 
-% \begin{definition}[sequent calculus inference rules]%\label{def:Rsc}
-%     %\uses{def:formal-language, def:sequent-set}
-%     Let $\mathcal{L}$ be a formal language and $\mathcal{S}$ the sequent set for $\mathcal{L}$. Then the set of inference rules of sequent calculus is the set $\mathcal{R}_{sc}$ containing the functions
-%     \begin{enumerate}
-%         \item $r_{ax} : \mathcal{S} \to \mathcal{S}$ defined by $r_{ax}((\emptyset,\emptyset)) = (\{\phi\},\{\phi\})$,
-%         \item $r_{cut} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{cut}((\Gamma,\Delta \cup \{\phi\}),(\{\phi\} \cup \Sigma,\Pi))=(\Gamma \cup \Sigma, \Delta \cup \Pi)$,
-%         \item $r_{\land L_1} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\land L_1}((\Gamma \cup \{\phi\}, \Delta))=(\Gamma \cup \{\phi \land \psi\}, \Delta)$,
-%         \item $r_{\land L_2} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\land L_2}((\Gamma \cup \{\psi\}, \Delta))=(\Gamma \cup \{\phi \land \psi\}, \Delta)$,
-%         \item $r_{\lor L} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{\lor L}((\Gamma \cup \{\phi\},\Delta),(\Gamma \cup \{\psi\},\Delta))=(\Gamma \cup \{\phi \lor \psi\},\Delta)$,
-%         \item $r_{\to L} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{\to L}((\Gamma, \{\phi\} \cup \Delta),(\Sigma \cup \{\psi\},\Pi))=(\Gamma \cup \Sigma \cup \{(\phi \to \psi)\},\Delta \cup \Pi)$,
-%         \item $r_{\neg L} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\neg L}(\Gamma,\{\phi\} \cup \Delta)=(\Gamma \cup \{\neg \phi\},\Delta)$,
-%         \item $r_{\forall L} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\forall L}(\Gamma \cup \{\phi [t/x]\},\Delta)=(\Gamma \cup \{ \forall x \phi \},\Delta)$,
-%         \item PROCEED HERE
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[sequent calculus inference rules]%\label{def:Rsc}
+    %\uses{def:formal-language, def:sequent-set}
+    Let $\mathcal{L}$ be a formal language and $\mathcal{S}$ the sequent set for $\mathcal{L}$. Then the set of inference rules of sequent calculus is the set $\mathcal{R}_{sc}$ containing the functions
+    \begin{enumerate}
+        \item $r_{ax} : \mathcal{S} \to \mathcal{S}$ defined by $r_{ax}((\emptyset,\emptyset)) = (\{\phi\},\{\phi\})$,
+        \item $r_{cut} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{cut}((\Gamma,\Delta \cup \{\phi\}),(\{\phi\} \cup \Sigma,\Pi))=(\Gamma \cup \Sigma, \Delta \cup \Pi)$,
+        \item $r_{\land L_1} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\land L_1}((\Gamma \cup \{\phi\}, \Delta))=(\Gamma \cup \{\phi \land \psi\}, \Delta)$,
+        \item $r_{\land L_2} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\land L_2}((\Gamma \cup \{\psi\}, \Delta))=(\Gamma \cup \{\phi \land \psi\}, \Delta)$,
+        \item $r_{\lor L} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{\lor L}((\Gamma \cup \{\phi\},\Delta),(\Gamma \cup \{\psi\},\Delta))=(\Gamma \cup \{\phi \lor \psi\},\Delta)$,
+        \item $r_{\to L} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{\to L}((\Gamma, \{\phi\} \cup \Delta),(\Sigma \cup \{\psi\},\Pi))=(\Gamma \cup \Sigma \cup \{(\phi \to \psi)\},\Delta \cup \Pi)$,
+        \item $r_{\neg L} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\neg L}(\Gamma,\{\phi\} \cup \Delta)=(\Gamma \cup \{\neg \phi\},\Delta)$,
+        \item $r_{\forall L} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\forall L}(\Gamma \cup \{\phi [t/x]\},\Delta)=(\Gamma \cup \{ \forall x \phi \},\Delta)$,
+        \item PROCEED HERE
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[natural deduction inference rules]%\label{def:Rnd}
-%     %\uses{def:FO-language}
-%     Let $\mathcal{L}$ be a first order language. Then, the set of inference rules of natural deduction is the set $\mathcal{R}_{nd}$ containing the functions 
-%     \begin{enumerate}
-%         \item $r_{\land I} : \mathcal{L}^2 \to \mathcal{L}$ defined by $r_{\land I}(\phi,\psi) = \phi \land \psi$,
-%         \item $r_{\land E_1} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\land E_1}(\phi \land \psi) = \phi$,
-%         \item $r_{\land E_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\land E_2}(\phi \land \psi) = \psi$,
-%         \item $r_{\lor I_1} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_1}(\phi) = \phi \lor \psi$,
-%         \item $r_{\lor I_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_2}(\psi) = \phi \lor \psi$,
-%         \item $r_{\lor E} : \mathcal{L}^3 \to \mathcal{L}$ defined by $r_{\lor E}(\phi \lor \psi, \phi \to \omega, \psi \to \omega)=\omega$,
-%         \item $r_{\to E} : \mathcal{L}^2 \to \mathcal{L}$ defined by $r_{\to E}(\phi \to \psi, \phi)=\psi$,
-%         \item $r_{\neg I} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg I}(\phi \to \bot) = \neg \phi$,
-%         \item $r_{\neg E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg E}(\phi, \neg \phi)= \bot$,
-%         \item $r_{\bot E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\bot E}(\bot)=\phi$ and
-%         \item $r_{\neg \neg E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg \neg E}(\neg \phi \to \bot)=\phi$,
-%         \item PROCEED HERE
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[natural deduction inference rules]%\label{def:Rnd}
+    %\uses{def:FO-language}
+    Let $\mathcal{L}$ be a first order language. Then, the set of inference rules of natural deduction is the set $\mathcal{R}_{nd}$ containing the functions 
+    \begin{enumerate}
+        \item $r_{\land I} : \mathcal{L}^2 \to \mathcal{L}$ defined by $r_{\land I}(\phi,\psi) = \phi \land \psi$,
+        \item $r_{\land E_1} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\land E_1}(\phi \land \psi) = \phi$,
+        \item $r_{\land E_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\land E_2}(\phi \land \psi) = \psi$,
+        \item $r_{\lor I_1} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_1}(\phi) = \phi \lor \psi$,
+        \item $r_{\lor I_2} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\lor I_2}(\psi) = \phi \lor \psi$,
+        \item $r_{\lor E} : \mathcal{L}^3 \to \mathcal{L}$ defined by $r_{\lor E}(\phi \lor \psi, \phi \to \omega, \psi \to \omega)=\omega$,
+        \item $r_{\to E} : \mathcal{L}^2 \to \mathcal{L}$ defined by $r_{\to E}(\phi \to \psi, \phi)=\psi$,
+        \item $r_{\neg I} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg I}(\phi \to \bot) = \neg \phi$,
+        \item $r_{\neg E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg E}(\phi, \neg \phi)= \bot$,
+        \item $r_{\bot E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\bot E}(\bot)=\phi$ and
+        \item $r_{\neg \neg E} : \mathcal{L} \to \mathcal{L}$ defined by $r_{\neg \neg E}(\neg \phi \to \bot)=\phi$,
+        \item PROCEED HERE
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[\texttt{PA}: the formal system of Peano arithmetic]%\label{def:PA}
-%     %\uses{def:LPA, def:formal-system, def:Rnd}
-%     The formal system of Peano arithmetic \texttt{PA} is defined as $\texttt{PA} = (\mathcal{L}_{PA},\mathcal{A},\mathcal{R}_{nd})$, where $\mathcal{A}$ is the smallest set $X$ such that
-%     \begin{enumerate}
-%         \item $\forall x (0 \not = S(x)) \in \mathcal{A}$, 
-%         \item $\forall x,y (S(x) = S(y) \rightarrow x = y) \in \mathcal{A}$,
-%         \item $\forall x(x + 0 = x) \in \mathcal{A}$,
-%         \item $\forall x,y(x + S(y) = S(x+y)) \in \mathcal{A}$,
-%         \item $\forall x(x \cdot 0 = 0) \in \mathcal{A}$,
-%         \item $\forall x,y(x \cdot S(y) = x \cdot y + x) \in \mathcal{A}$ and
-%         \item if $\varphi(x,y_1,...,y_k) \in \mathcal{L}_{PA}$, then $\bar y \Bigl( \bigl(\varphi(0,\bar y) \land \forall x (\varphi(x,\bar y) \to \varphi(S(x),\bar y))\bigr)\Bigr) \to \forall x \varphi(x, \bar y)$, where $\bar y = y_1,...,y_k$
-%     \end{enumerate}
-% \end{definition}
+\begin{definition}[\texttt{PA}: the formal system of Peano arithmetic]%\label{def:PA}
+    %\uses{def:LPA, def:formal-system, def:Rnd}
+    The formal system of Peano arithmetic \texttt{PA} is defined as $\texttt{PA} = (\mathcal{L}_{PA},\mathcal{A},\mathcal{R}_{nd})$, where $\mathcal{A}$ is the smallest set $X$ such that
+    \begin{enumerate}
+        \item $\forall x (0 \not = S(x)) \in \mathcal{A}$, 
+        \item $\forall x,y (S(x) = S(y) \rightarrow x = y) \in \mathcal{A}$,
+        \item $\forall x(x + 0 = x) \in \mathcal{A}$,
+        \item $\forall x,y(x + S(y) = S(x+y)) \in \mathcal{A}$,
+        \item $\forall x(x \cdot 0 = 0) \in \mathcal{A}$,
+        \item $\forall x,y(x \cdot S(y) = x \cdot y + x) \in \mathcal{A}$ and
+        \item if $\varphi(x,y_1,...,y_k) \in \mathcal{L}_{PA}$, then $\bar y \Bigl( \bigl(\varphi(0,\bar y) \land \forall x (\varphi(x,\bar y) \to \varphi(S(x),\bar y))\bigr)\Bigr) \to \forall x \varphi(x, \bar y)$, where $\bar y = y_1,...,y_k$
+    \end{enumerate}
+\end{definition}
 
-% \begin{definition}[formal proof]%\label{def:formal-proof}
-%     A formal proof in a logical system $\mathcal{S}$ is a finite sequence of sentences, where each sentence is an axiom of $\mathcal{S}$, an assumption, or follows from the application of one of $\mathcal{S}$'s rules of inference to previous sentences in the sequence (Wikipedia: Formal proof).
-% \end{definition}
+\begin{definition}[formal proof]%\label{def:formal-proof}
+    A formal proof in a logical system $\mathcal{S}$ is a finite sequence of sentences, where each sentence is an axiom of $\mathcal{S}$, an assumption, or follows from the application of one of $\mathcal{S}$'s rules of inference to previous sentences in the sequence (Wikipedia: Formal proof).
+\end{definition}
 
-% \begin{definition}[provability]
-%     %\label{def:provable-pa}
-%     %\uses{def:formal-proof, def:PA}
-%     A formula $\varphi$ is provable in a proof system $\mathcal{S}$ if and only if there exists a formal proof $\mathcal{P}$ in $\mathcal{S}$, such that $\mathcal{P}$ contains no assumptions and $\varphi$ is the last sentence of $\mathcal{P}$.
-% \end{definition}
+\begin{definition}[provability]
+    %\label{def:provable-pa}
+    %\uses{def:formal-proof, def:PA}
+    A formula $\varphi$ is provable in a proof system $\mathcal{S}$ if and only if there exists a formal proof $\mathcal{P}$ in $\mathcal{S}$, such that $\mathcal{P}$ contains no assumptions and $\varphi$ is the last sentence of $\mathcal{P}$.
+\end{definition}
 
-% \begin{definition}[$\mathcal{L}_T$]
-%     %\label{def:LT}
-%     We define the language $\mathcal{L}_T$ as the language resulting from adding the predicate symbol $T$ to the language $\mathcal{L}$ of \texttt{PA}. 
-% \end{definition}
+\begin{definition}[$\mathcal{L}_T$]
+    %\label{def:LT}
+    We define the language $\mathcal{L}_T$ as the language resulting from adding the predicate symbol $T$ to the language $\mathcal{L}$ of \texttt{PA}. 
+\end{definition}
 
-% \begin{definition}[\texttt{PAT}]
-%     %\label{def:PAT}
-%     %\uses{def:LT}
-%     We define the system \texttt{PAT} as the system of Peano arithmetic formulated in $\mathcal{L}_T$ including the induction schema for each formula of the language $\mathcal{L}_T$.
-% \end{definition}
+\begin{definition}[\texttt{PAT}]
+    %\label{def:PAT}
+    %\uses{def:LT}
+    We define the system \texttt{PAT} as the system of Peano arithmetic formulated in $\mathcal{L}_T$ including the induction schema for each formula of the language $\mathcal{L}_T$.
+\end{definition}

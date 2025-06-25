@@ -357,6 +357,7 @@ namespace Conservativity
       have ih : Derivation 𝐏𝐀 Δ (Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ] ⇔ φ)}) := by
         apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml])
       
+      have if_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) := iff_to_right ((build_tau lst)/[ℒ.enc φ]) (φ.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) Γ iff_der rfl  
       
       sorry
             
