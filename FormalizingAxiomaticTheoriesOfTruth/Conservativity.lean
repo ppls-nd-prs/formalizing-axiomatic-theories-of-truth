@@ -335,6 +335,15 @@ namespace Conservativity
     rw[Finset.union_comm]
 
   set_option maxHeartbeats 1000000
+  
+  open Encodable
+  def tonat_inj {L : Language}{Th : L.Theory}{Γ Δ : Finset (L.Formula ℕ)}[∀i, DecidableEq (L.Functions i)][∀i, DecidableEq (L.Relations i)] {A B a: L.Formula ℕ}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)] (φ ψ : L.Formula ℕ) : φ ≠ ψ → (formula_tonat φ) ≠ (formula_tonat ψ) := by  
+  sorry
+
+  def neq_num_derivable {Δ Γ : Finset (ℒ.Formula ℕ)}:  (n m : ℕ) →  (∼(LPA.numeral n =' LPA.numeral m) ∈ Γ) → Derivation 𝐏𝐀 Δ Γ
+    | .zero, .zero, h => by
+      sorry
+    | _, _, _ => sorry
 
   noncomputable def extend_iff {L : Language}{Th : L.Theory}{Γ Δ : Finset (L.Formula ℕ)}[∀i, DecidableEq (L.Functions i)][∀i, DecidableEq (L.Relations i)] {A B a: L.Formula ℕ} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {B ⟹ (A ∨' a)}) := by
     intro h
