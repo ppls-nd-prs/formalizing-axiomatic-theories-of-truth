@@ -217,9 +217,11 @@ namespace Languages
     Some useful terms
     -/
     variable {α : Type}
+    @[simp]
     def null : Term signature α :=
       Term.func .null ![]
-
+   
+    @[simp]
     def numeral : ℕ → Term signature α
       | .zero => null
       | .succ n => S(numeral n)

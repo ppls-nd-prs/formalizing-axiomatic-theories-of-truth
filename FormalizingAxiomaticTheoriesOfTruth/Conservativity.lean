@@ -338,7 +338,7 @@ namespace Conservativity
       sorry
     | _, _, _, _ => sorry
 
-  noncomputable def extend_iff {A B a: L.Formula ℕ} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {B ⟹ (A ∨' a)}) := by
+  noncomputable def extend_iff_right {A B a: L.Formula ℕ} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {B ⟹ (A ∨' a)}) := by
     intro d
     apply Derivation.right_implication B (A ∨' a) ({B} ∪ Γ) (Δ ∪ {A ∨' a}) Δ _ rfl rfl rfl
     apply Derivation.right_disjunction A a (Δ ∪ {A, a}) Δ _ rfl rfl 
@@ -348,32 +348,51 @@ namespace Conservativity
     rw[Finset.union_comm] at d 
     exact d  
 
-  def right_instantiation {t : L.Term _} {A : L.BoundedFormula (Fin 1) 0} {h : B = A↓} : Derivation Th Δ (S ∪ {bf_empty_to_bf_N (∀'B)}) → Derivation Th Δ (S ∪ {bf_empty_to_bf_N A/[t]}) := by sorry
+namespace FirstOrder.Language.Term
+  def fin_one_to_bv : L.Term ((Fin 1) ⊕ Fin n) → L.Term (Empty ⊕ Fin (n + 1))
+    | .var v => match v with
+      | .inl m => .var (.inr ⟨n,(by simp)⟩)
+      | .inr m => match m with
+        | .mk k isLt => .var (.inr ⟨k,(Nat.lt_trans isLt (Nat.lt_succ_self n))⟩)
+    | .func f ts => .func f (fun i => fin_one_to_bv (ts i))
+end FirstOrder.Language.Term
+
+namespace FirstOrder.Language.BoundedFormula
+open Term
+  def fin_one_to_bv : {n : ℕ} → L.BoundedFormula (Fin 1) n → L.BoundedFormula Empty (n + 1)
+    | _, .falsum => .falsum
+    | _, .equal t₁ t₂ => .equal (Term.fin_one_to_bv t₁) (Term.fin_one_to_bv t₂)
+    | _, .rel R ts => .rel R (fun i => Term.fin_one_to_bv (ts i))
+    | _, .imp φ ψ => .imp (fin_one_to_bv φ) (fin_one_to_bv ψ)
+    | _, .all φ => .all (fin_one_to_bv φ)
+namespace FirstOrder.Language.BoundedFormula
+
+  def right_instantiation {t : L.Term (Empty ⊕ Fin 0)} {A : L.BoundedFormula (Fin 1) 0} {h : B = fin_one_to_bv A} : Derivation Th Δ (S ∪ {bf_empty_to_bf_N (∀'B)}) → Derivation Th Δ (S ∪ {bf_empty_to_bf_N (A/[t])}) := by sorry
 
   def derivable_num_not_eq {S : Finset (ℒ.Formula ℕ)}: (n m : ℕ) → (h₁ : n ≠ m) → Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N (∼(numeral n =' numeral m))})
     | .zero, .zero, h₁ => by
       trivial
     | .zero, .succ k, h₁ => by
       simp[numeral]
-      have h₂ : Derivation 𝐏𝐀 Δ (S ∪ {∀' ∼(null =' S(&0))}) := by
+      have h₂ : Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N (∀' ∼(null =' S(&0)))}) := by
         apply Derivation.tax
         apply Exists.intro (∀' ∼(null =' S(&0)))
         apply And.intro
         simp[PA.peano_arithmetic]
         apply Or.intro_left
         apply PA.peano_axioms.first
-        simp
-        apply Or.intro_right
-        simp[bf_empty_to_bf_N,Term.bdEqual,sent_term_to_formula_term,null,not,Matrix.empty_eq,BoundedFormula.not]
-        apply And.intro
-        simp[Matrix.vec_single_eq_const]
-        trivial
+        simp  
+
+      have step3 : Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N (∼(null =' S(numeral k)))}) := by
+        apply @right_instantiation _ _ _ (∼(null =' S((var ∘ Sum.inr) 0))) _ _ _ (numeral k) (∼(null =' S(#0))) (by simp[Term.bdEqual,LPA.null,BoundedFormula.not,Term.fin_one_to_bv,Matrix.empty_eq,fin_one_to_bv,Matrix.vec_single_eq_const]; rfl) at h₂
+        simp[Term.bdEqual,Matrix.empty_eq] at h₂       
+        simp[Term.bdEqual,Matrix.empty_eq,BoundedFormula.not,BoundedFormula.falsum,Matrix.vec_single_eq_const]
+        exact h₂
       
-      have step3 : Derivation 𝐏𝐀 Δ (S ∪ {∼(null =' S(numeral k))}) := by
-        apply @right_instantiation _ _ _ (∼(null =' S((var ∘ Sum.inr) 0))) _ _ _ (numeral k) (∼(null =' S(#0))) _  at h₂ 
-        simp[Term.bdEqual,LPA.numeral,PA.Induction.formula_substitution,BoundedFormula.not,subst_if_distr,term_substitution,null] at h₂ 
-      sorry
+      exact step3
     | _, _, _ => sorry
+
+--  def extend_iff_left : Derivation 𝐏𝐀 Δ {}
 
   def if_first {a φ : ℒ.Sentence}{S : Finset (ℒ.Formula ℕ)} (h₁ : φ = a) (h₂ : Δ = S ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ] ⇔ φ)}) : Derivation 𝐏𝐀 Γ Δ := by sorry 
 
@@ -394,7 +413,9 @@ namespace Conservativity
       
       
       have step1 : Derivation 𝐏𝐀 Δ (S ∪ {(bf_empty_to_bf_N φ) ⟹ (bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])) ∨' (bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a)) ∧' (bf_empty_to_bf_N a))}) := by
-        exact extend_iff ih
+        exact extend_iff_right ih
+
+--      have step2 : Derivation 𝐏𝐀 Δ (S ∪ 
     
       
       
