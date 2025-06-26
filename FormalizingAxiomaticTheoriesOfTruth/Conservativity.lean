@@ -249,13 +249,18 @@ namespace Conservativity
 
   def split_if {Th Γ Δ} (A B : (L.Formula ℕ)) (S₁ S₂ S₃) : Derivation Th S₁ S₂ → S₂ = S₃ ∪ {A ⟹ B} → Δ = S₁ ∪ {A} → Γ = S₃ ∪ {B} → Derivation Th Δ Γ := sorry 
 
-  def subst_disj_distr {A B: (L.Formula (Fin 1))} : (A ∨' B)/[t] = (A/[t] ∨' B/[t]) := by sorry
+  def subst_disj_distr {A B: (L.Formula (Fin 1))} : (A ∨' B)/[t] = (A/[t] ∨' B/[t]) := by trivial
 
-  def subst_conj_distr {A B: (L.Formula (Fin 1))} : (A ∧' B)/[t] = (A/[t] ∧' B/[t]) := by sorry
+  def subst_conj_distr {A B: (L.Formula (Fin 1))} : (A ∧' B)/[t] = (A/[t] ∧' B/[t]) := by trivial
 
-  def to_N_disj_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ∨' B) = (bf_empty_to_bf_N A) ∨' (bf_empty_to_bf_N B) := sorry
+  def to_N_disj_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ∨' B) = (bf_empty_to_bf_N A) ∨' (bf_empty_to_bf_N B) := by trivial
 
-  def to_N_conj_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ∧' B) = (bf_empty_to_bf_N A) ∧' (bf_empty_to_bf_N B) := sorry
+  def to_N_conj_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ∧' B) = (bf_empty_to_bf_N A) ∧' (bf_empty_to_bf_N B) := by trivial
+  
+  def to_N_iff_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ⇔ B) = (bf_empty_to_bf_N A) ⇔ (bf_empty_to_bf_N B) := by trivial
+
+  def to_N_if_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ⟹ B) = (bf_empty_to_bf_N A) ⟹ (bf_empty_to_bf_N B) := by trivial
+  
   
   lemma numeral_no_subst : ∀n, ∀t : ℒ.Term (Empty ⊕ Fin m), term_substitution t (LPA.numeral n) = LPA.numeral n
 | .zero, t => by
@@ -340,19 +345,29 @@ namespace Conservativity
   def tonat_inj {L : Language}{Th : L.Theory}{Γ Δ : Finset (L.Formula ℕ)}[∀i, DecidableEq (L.Functions i)][∀i, DecidableEq (L.Relations i)] {A B a: L.Formula ℕ}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)] (φ ψ : L.Formula ℕ) : φ ≠ ψ → (formula_tonat φ) ≠ (formula_tonat ψ) := by  
   sorry
 
-  def neq_num_derivable {Δ Γ : Finset (ℒ.Formula ℕ)}:  (n m : ℕ) →  (∼(LPA.numeral n =' LPA.numeral m) ∈ Γ) → Derivation 𝐏𝐀 Δ Γ
-    | .zero, .zero, h => by
+  def neq_num_derivable {Δ Γ : Finset (ℒ.Formula ℕ)}:  (n m : ℕ) → (h : n ≠ m) → (∼(LPA.numeral n =' LPA.numeral m) ∈ Γ) → Derivation 𝐏𝐀 Δ Γ
+    | .zero, .zero, h₁, h₂ => by
+      simp at h₁
+    | .zero, .succ m, h₁, h₂ => by
+      simp[numeral] at h₂ 
+      have h₃ : (∀' ∼(LPA.null =' S(&0))) ∈ 𝐏𝐀 := by
+        simp[PA.peano_arithmetic]
+        apply Or.intro_left
+        apply PA.peano_axioms.first
+      have h₅ : Derivation 𝐏𝐀 Δ (Γ ∪ {∀' ∼(LPA.null =' S(&0))} := by
+--        apply Derivation.tax ...
+        sorry
+      have h₄ : Derivation 𝐏𝐀 Δ (Γ ∪ {∼(null =' S(numeral m))}) := by
+--        apply universal_instantiation_right
+        sorry
       sorry
-    | _, _, _ => sorry
+    | _, _, _, _ => sorry
 
-  noncomputable def extend_iff {L : Language}{Th : L.Theory}{Γ Δ : Finset (L.Formula ℕ)}[∀i, DecidableEq (L.Functions i)][∀i, DecidableEq (L.Relations i)] {A B a: L.Formula ℕ} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {B ⟹ (A ∨' a)}) := by
-    intro h
-    #check Derivation.right_implication 
-    apply Derivation.right_implication B (A ∨' a) (Γ ∪ {B}) (Δ ∪ {(A ∨' a)}) Δ _ (by simp[Finset.union_comm]) rfl rfl
-    #check Derivation.right_disjunction 
-    apply Derivation.right_disjunction A a (Δ ∪ {A, a}) Δ _ rfl rfl 
-    apply right_weakening a (Δ ∪ {A}) _ (by simp[Finset.insert_eq]) 
-    #check iff_to_right A B (Δ ∪ {A ⇔ B}) Δ 
+  noncomputable def extend_iff {L : Language}{Th : L.Theory}{Γ Δ : Finset (L.Formula ℕ)}[∀i, DecidableEq (L.Functions i)][∀i, DecidableEq (L.Relations i)] {A B a: L.Formula ℕ} (h : Derivation 𝐏𝐀 {} {∼A} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {(A ∨' a) ⇔ B}) := by
+    intro d
+    apply split_iff A B (Δ ∪ {A ⇔ B}) Δ at d
+    apply neg_add_right h A a d.left 
+    
     sorry
     
 
@@ -367,155 +382,10 @@ namespace Conservativity
       have ih : Derivation 𝐏𝐀 Δ (Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ] ⇔ φ)}) := by
         apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml])
       
-      let tau_phi : ℒ.Fml := formula_substitution (ℒ.enc φ) (build_tau (a :: lst))
-
-      #check iff_from_sides 
-      apply iff_from_sides (build_tau (a :: lst)/[ℒ.enc φ]) (bf_empty_to_bf_N φ) (Γ ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ] ⟹ φ)}) (Γ ∪ {(bf_empty_to_bf_N φ) ⟹ build_tau (a :: lst)/[ℒ.enc φ]}) Γ _ rfl _ rfl (by simp; exact h₂)
-      
-      --left_to_right
-
-      sorry
-      
-      --right_to_left
-      simp[build_tau]
-      apply Derivation.right_implication φ (bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ])) ({bf_empty_to_bf_N φ} ∪ Δ) (Γ ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ])}) Γ _ rfl rfl rfl    
-      
-      
-      simp[tau_phi,build_tau,Term.bdEqual,subst_disj_distr,subst_conj_distr,numeral_no_subst,forall_sent_trans_subst_self,to_N_disj_distr,to_N_conj_distr,bf_empty_to_bf_N,sent_term_to_formula_term] 
-      #check Derivation.right_disjunction 
-      
-      apply Derivation.right_disjunction ((bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'bf_empty_to_bf_N a)) (bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])) (Γ ∪ {(bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'bf_empty_to_bf_N a), (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ]))}) Γ _ rfl (by simp[bf_empty_to_bf_N, Sentence.to_fml]) 
-      
-      #check right_weakening (bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'bf_empty_to_bf_N a) (Γ ∪ {bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'bf_empty_to_bf_N a, bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])}) (Γ ∪ {bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])}) 
-      
+      simp[build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr] at h₂  
       
       sorry
-      
 
-      
-      
-      
-      
-      
-  /-have if_der : Derivation 𝐏𝐀 Δ (Γ ∪ {bf_empty_to_bf_N φ ⟹ bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ])}) := by
-        #check iff_to_right (bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ])) (bf_empty_to_bf_N φ) (Γ ∪ {bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ] ⇔ φ)})-/
-      
-      
-      
-       
-      
-      
-      
-      /-  
-      
-      
-
-      have if_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(φ) ⟹ (build_tau lst)/[ℒ.enc φ]}) := iff_to_right ((build_tau lst)/[ℒ.enc φ]) (φ.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) Γ iff_der rfl (by simp)
-
-      #check split_if 
-
-      apply split_if (φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) Γ if_der rfl (by rw[Finset.union_comm,Sentence.to_fml]) rfl
--/
-      
-
-      
-
-/-     
-      simp at h₁
-      
-      let tau_phi : ℒ.Fml := formula_substitution (ℒ.enc φ) (build_tau (a :: lst))
-      
-      #check iff_from_sides 
-      apply iff_from_sides tau_phi (bf_empty_to_bf_N φ) (Γ ∪ {tau_phi ⟹ φ}) (Γ ∪ {(bf_empty_to_bf_N φ) ⟹ tau_phi}) Γ _ rfl _ rfl (by simp; exact h₂)
-      
-      -- case left_to_right
-      sorry
-      -- case right_to_left
-     
---      apply right_to_left
-      simp[tau_phi]
-      
-      apply Derivation.right_implication φ (bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ])) ({bf_empty_to_bf_N φ} ∪ Δ) (Γ ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ])}) Γ _ rfl rfl rfl    
-      
-      
-      simp[tau_phi,build_tau,Term.bdEqual,subst_disj_distr,subst_conj_distr,numeral_no_subst,forall_sent_trans_subst_self,to_N_disj_distr,to_N_conj_distr] 
-      apply Derivation.right_disjunction ((bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'bf_empty_to_bf_N a)) (bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])) (Γ ∪ {(bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'bf_empty_to_bf_N a), (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ]))}) Γ _ rfl (by simp[bf_empty_to_bf_N, Sentence.to_fml]) 
-  
--- (equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) (S ∪ {(equal (ℒ.enc φ) (ℒ.enc φ) ∧' φ.to_fml), (build_tau lst)/[ℒ.enc φ]}) _ _
-      
-      by_cases h₃ : φ = a
-      simp[h₃]
-      #check right_weakening
-        
-      apply right_weakening (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc a])) (Γ ∪ {bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))∧' bf_empty_to_bf_N a}) _ (by simp[Finset.insert_eq,Finset.union_left_comm,Finset.union_assoc])   
-      
-      #check Derivation.right_conjunction 
-      apply Derivation.right_conjunction (bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))) (bf_empty_to_bf_N a) (Γ ∪ {bf_empty_to_bf_N (equal (ℒ.enc a) (ℒ.enc a))}) (Γ ∪ {bf_empty_to_bf_N a}) (Γ) _ (by simp) _ (by simp) (by simp)
-      #check Calculus.iax (ℒ.enc a) 
-      apply Calculus.iax (sent_term_to_formula_term (ℒ.enc a)) (by simp[Term.bdEqual, bf_empty_to_bf_N]) 
-      
-      have a_in_both : (a.to_fml) ∈ ({a.to_fml} ∪ Δ) ∧ (a.to_fml) ∈ (Γ ∪ {a.to_fml}) := And.intro (by simp) (by simp)        
-      #check Derivation.lax 
-      apply Derivation.lax (Exists.intro (a.to_fml) a_in_both)
-
-      #check right_weakening 
-
-      apply right_weakening (bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧' bf_empty_to_bf_N a) (Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ])}) _ (by rw[Finset.union_right_comm]; simp[Finset.insert_eq])  
-      
-      --case neg
-      simp[h₃] at h₁
-      have ih : Derivation 𝐏𝐀 Δ (Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ] ⇔ φ)}) := by
-        apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml])
-      
-      have if_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) := iff_to_right ((build_tau lst)/[ℒ.enc φ]) (φ.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) Γ iff_der rfl  
-      
-      sorry
-      sorry   -/   
- /-     
-      -- case neg
-      have union_eq₂ : Γ ∪ {bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'(bf_empty_to_bf_N a), (bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ]))} = Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ])} ∪ {bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'(bf_empty_to_bf_N a)} := by
-        sorry
-
-        rw[Finset.union_assoc]
-        rw[Finset.union_comm {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ])}  {bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧'(bf_empty_to_bf_N a)}] 
-        rfl
-
-      
-      apply right_weakening (bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a))∧' bf_empty_to_bf_N a) (Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ])}) 
-      
-      simp[h₃] at h₁
-      /-have phi_disq_in_set : ((sub (ℒ.enc φ) (build_tau lst)) ⇔ φ) ∈ {sub (ℒ.enc φ) (build_tau lst)} := by
-        sorry
--/    
-      have ih : Derivation 𝐏𝐀 Δ (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) := by
-        apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml]) 
-      
-      have if_der : Derivation 𝐏𝐀 Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) := iff_to_right ((build_tau lst)/[ℒ.enc φ]) (φ.to_fml) (Γ ∪ {(build_tau lst)/[ℒ.enc φ] ⇔ (φ.to_fml)}) Γ iff_der rfl (by simp)
-
-      #check split_if 
-
-      apply split_if (φ.to_fml) ((build_tau lst)/[ℒ.enc φ]) Δ (Γ ∪ {(φ.to_fml) ⟹ (build_tau lst)/[ℒ.enc φ]}) Γ if_der rfl (by rw[Finset.union_comm,Sentence.to_fml]) rfl
--/
-      
-      
-      
-      
-
-/- 
-TODO :
-1. Introduce theoretically sensible meta-rules for the above derivation.
--/
-        
-        
-      
-      
-      /-
-      let A₃ := ((var (Sum.inl 0) =' ℒ.enc a)∧'a)/[ℒ.enc a]
-      let B₃ := build_tau lst/[ℒ.enc a]
-      let S₃ := S₁ ∪ {A₃, B₃}
-      -/
-
-      -- Case Neg
 
   open SyntaxAxioms
   open BoundedFormula
