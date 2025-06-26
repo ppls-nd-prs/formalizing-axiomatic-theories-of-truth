@@ -242,6 +242,8 @@ namespace Conservativity
 
   def subst_conj_distr {A B: (L.Formula (Fin 1))} : (A ∧' B)/[t] = (A/[t] ∧' B/[t]) := by trivial
 
+  def subst_if_distr {A B: (L.Formula (Fin 1))} : (A ⟹ B)/[t] = (A/[t] ⟹ B/[t]) := by trivial
+
   def to_N_disj_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ∨' B) = (bf_empty_to_bf_N A) ∨' (bf_empty_to_bf_N B) := by trivial
 
   def to_N_conj_distr {A B : (L.Sentence)} : bf_empty_to_bf_N (A ∧' B) = (bf_empty_to_bf_N A) ∧' (bf_empty_to_bf_N B) := by trivial
@@ -346,9 +348,9 @@ namespace Conservativity
     rw[Finset.union_comm] at d 
     exact d  
 
-  def right_instantiation {t : L.Term _} {A : L.BoundedFormula ℕ 0} {h : B = A↓} : Derivation Th Δ (S ∪ {(∀'B)}) → Derivation Th Δ (S ∪ {A/[t]}) := by sorry
+  def right_instantiation {t : L.Term _} {A : L.BoundedFormula (Fin 1) 0} {h : B = A↓} : Derivation Th Δ (S ∪ {bf_empty_to_bf_N (∀'B)}) → Derivation Th Δ (S ∪ {bf_empty_to_bf_N A/[t]}) := by sorry
 
-  def derivable_num_not_eq {S : Finset (ℒ.Formula ℕ)}: (n m : ℕ) → (h₁ : n ≠ m) → Derivation 𝐏𝐀 Δ (S ∪ {∼(numeral n =' numeral m)})
+  def derivable_num_not_eq {S : Finset (ℒ.Formula ℕ)}: (n m : ℕ) → (h₁ : n ≠ m) → Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N (∼(numeral n =' numeral m))})
     | .zero, .zero, h₁ => by
       trivial
     | .zero, .succ k, h₁ => by
@@ -366,7 +368,10 @@ namespace Conservativity
         apply And.intro
         simp[Matrix.vec_single_eq_const]
         trivial
---      apply right_instantiation h₂ 
+      
+      have step3 : Derivation 𝐏𝐀 Δ (S ∪ {∼(null =' S(numeral k))}) := by
+        apply @right_instantiation _ _ _ (∼(null =' S((var ∘ Sum.inr) 0))) _ _ _ (numeral k) (∼(null =' S(#0))) _  at h₂ 
+        simp[Term.bdEqual,LPA.numeral,PA.Induction.formula_substitution,BoundedFormula.not,subst_if_distr,term_substitution,null] at h₂ 
       sorry
     | _, _, _ => sorry
 
