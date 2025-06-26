@@ -336,7 +336,7 @@ namespace Conservativity
       sorry
     | _, _, _, _ => sorry
 
-  noncomputable def extend_iff {L : Language}{Th : L.Theory}{Γ Δ : Finset (L.Formula ℕ)}[∀i, DecidableEq (L.Functions i)][∀i, DecidableEq (L.Relations i)] {A B a: L.Formula ℕ} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {B ⟹ (A ∨' a)}) := by
+  noncomputable def extend_iff {A B a: L.Formula ℕ} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {B ⟹ (A ∨' a)}) := by
     intro d
     apply Derivation.right_implication B (A ∨' a) ({B} ∪ Γ) (Δ ∪ {A ∨' a}) Δ _ rfl rfl rfl
     apply Derivation.right_disjunction A a (Δ ∪ {A, a}) Δ _ rfl rfl 
@@ -346,9 +346,33 @@ namespace Conservativity
     rw[Finset.union_comm] at d 
     exact d  
 
-  def if_first {a φ : ℒ.Sentence} (h₁ : φ = a) (h₂ : bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ] ⇔ φ) ∈ Δ) : Derivation 𝐏𝐀 Γ Δ := by sorry 
+  def right_instantiation {t : L.Term _} {A : L.BoundedFormula ℕ 0} {h : B = A↓} : Derivation Th Δ (S ∪ {(∀'B)}) → Derivation Th Δ (S ∪ {A/[t]}) := by sorry
 
-  noncomputable def pa_proves_all_tau_disq {φ : ℒ.Sentence} : (l : List ℒ.Sentence) → φ ∈ l → (bf_empty_to_bf_N ((build_tau l)/[ℒ.enc φ] ⇔ φ)) ∈ Γ → Derivation 𝐏𝐀 Δ Γ
+  def derivable_num_not_eq {S : Finset (ℒ.Formula ℕ)}: (n m : ℕ) → (h₁ : n ≠ m) → Derivation 𝐏𝐀 Δ (S ∪ {∼(numeral n =' numeral m)})
+    | .zero, .zero, h₁ => by
+      trivial
+    | .zero, .succ k, h₁ => by
+      simp[numeral]
+      have h₂ : Derivation 𝐏𝐀 Δ (S ∪ {∀' ∼(null =' S(&0))}) := by
+        apply Derivation.tax
+        apply Exists.intro (∀' ∼(null =' S(&0)))
+        apply And.intro
+        simp[PA.peano_arithmetic]
+        apply Or.intro_left
+        apply PA.peano_axioms.first
+        simp
+        apply Or.intro_right
+        simp[bf_empty_to_bf_N,Term.bdEqual,sent_term_to_formula_term,null,not,Matrix.empty_eq,BoundedFormula.not]
+        apply And.intro
+        simp[Matrix.vec_single_eq_const]
+        trivial
+--      apply right_instantiation h₂ 
+      sorry
+    | _, _, _ => sorry
+
+  def if_first {a φ : ℒ.Sentence}{S : Finset (ℒ.Formula ℕ)} (h₁ : φ = a) (h₂ : Δ = S ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ] ⇔ φ)}) : Derivation 𝐏𝐀 Γ Δ := by sorry 
+
+  noncomputable def pa_proves_all_tau_disq {φ : ℒ.Sentence} {S : Finset (ℒ.Formula ℕ)} : (l : List ℒ.Sentence) → φ ∈ l → Γ = S ∪ {bf_empty_to_bf_N ((build_tau l)/[ℒ.enc φ] ⇔ φ)} → Derivation 𝐏𝐀 Δ Γ
     | .nil, h₁, _ => by
       simp at h₁
     | .cons a lst, h₁, h₂ => by
@@ -356,10 +380,18 @@ namespace Conservativity
       apply if_first h₃ h₂
       
       simp[h₃] at h₁
-      have ih : Derivation 𝐏𝐀 Δ (Γ ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ] ⇔ φ)}) := by
-        apply pa_proves_all_tau_disq lst h₁ (by simp[Sentence.to_fml])
+      have ih : Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ] ⇔ φ)}) := by
+        apply pa_proves_all_tau_disq lst h₁ rfl
       
       simp[build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr] at ih
+      
+      simp[build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr] at h₂
+      
+      
+      have step1 : Derivation 𝐏𝐀 Δ (S ∪ {(bf_empty_to_bf_N φ) ⟹ (bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])) ∨' (bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a)) ∧' (bf_empty_to_bf_N a))}) := by
+        exact extend_iff ih
+    
+      
       
       sorry
 
