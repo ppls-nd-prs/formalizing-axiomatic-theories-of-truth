@@ -387,10 +387,36 @@ namespace FirstOrder.Language.BoundedFormula
     -- d₁
     
     sorry
-    -- d₂
+    -- d₂ : there is a problem here: we can only derive it when a ∉ lst
     sorry
     -- right to left
     sorry
+
+  def pa_proves_left_to_right_when_phi_not_in_l {φ : ℒ.Sentence} : (l : List ℒ.Sentence) → φ ∉ l → Derivation 𝐏𝐀 Δ (Γ ∪ {bf_empty_to_bf_N ((build_tau l)/[ℒ.enc φ] ⟹ φ)})
+    | .nil, h₁ => by
+      simp[build_tau,bf_empty_to_bf_N]
+      apply Calculus.right_implication_intro
+      apply Calculus.left_bot_intro
+    | .cons a lst, h₁ => by
+      simp[build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr]
+      apply Calculus.right_implication_intro
+      apply Calculus.left_disjunction_intro
+      -- d₁
+      have step1: φ ≠ a := by
+        simp at h₁
+        exact h₁.left
+      apply Calculus.left_conjunction_intro
+      rw[Finset.insert_eq]
+      let S₁ := Δ ∪ ({bf_empty_to_bf_N (BoundedFormula.equal (ℒ.enc φ) (ℒ.enc a))})
+      rw[←Finset.union_assoc]
+      apply Calculus.left_weakening_intro 
+--    apply Calculus.left_double_negation_elimination
+--    apply Calculus.left_negation_intro
+      sorry
+    
+      -- d₂
+      sorry
+      
 
   noncomputable def pa_proves_all_tau_disq {φ : ℒ.Sentence} {S : Finset (ℒ.Formula ℕ)} : (l : List ℒ.Sentence) → φ ∈ l → Γ = S ∪ {bf_empty_to_bf_N ((build_tau l)/[ℒ.enc φ] ⇔ φ)} → Derivation 𝐏𝐀 Δ Γ
     | .nil, h₁, _ => by

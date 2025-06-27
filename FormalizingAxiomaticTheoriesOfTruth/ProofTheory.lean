@@ -131,11 +131,13 @@ namespace Calculus
     axiom left_weakening : ∀Th : L.Theory, ∀Γ Δ : Finset (L.Formula ℕ), ∀φ : L.Formula ℕ, (Th ⊢ Γ ⟶ Δ) → (Th ⊢ {φ} ∪ Γ ⟶ Δ)
 
     variable {Th : L.Theory}{Γ Δ : Finset (L.Formula ℕ)}{A B : L.Formula ℕ}
+    def left_weakening_intro : Derivation Th Γ Δ → Derivation Th (Γ ∪ {A}) Δ := sorry
     def iax (t : L.Term (ℕ ⊕ Fin 0)) (h : t =' t ∈ Δ) : Derivation Th Γ Δ := sorry
     def i_two_for_one (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A/[t₁] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A/[t₂] ∈ Δ) : Derivation Th Γ Δ := sorry --might not need this
     def i_one_for_two (S A) (t₁ t₂ : L.Term (ℕ ⊕ Fin 0)) (h₁ : A/[t₂] ∈ S) (h₂ : t₁ =' t₂ ∈ Γ) (d₁ : Derivation Th Γ S) (h₂ : A/[t₂] ∈ Δ) : Derivation Th Γ Δ := sorry --might not need this
     def left_negation (A S₁ S₂) (d₁ : Derivation Th S₁ S₂) (h₁ : Γ = S₁ ∪ {∼A}) : Derivation Th Γ Δ := sorry
     def right_negation (A S₁ S₂) (d₁ : Derivation Th S₁ S₂) (h₂ : Δ = S₂ ∪ {∼A}) : Derivation Th Γ Δ := sorry
+    def right_negation_intro : Derivation Th (Γ ∪ {A}) Δ → Derivation Th Γ (Δ ∪ {∼A}) := sorry 
     def cut (A S₁ S₂ S₃ S₄) (d₁ : Derivation Th S₁ (S₂ ∪ {A})) (d₂ : Derivation Th ({A} ∪ S₃) S₄) (h₁ : Γ = S₁ ∪ S₃) (h₂ : Δ = S₂ ∪ S₄) : Derivation Th Γ Δ := sorry
     def iff_intro : Derivation Th Δ (Γ ∪ {A ⟹ B}) → Derivation Th Δ (Γ ∪ {B ⟹ A}) → Derivation Th Δ (Γ ∪ {A ⇔ B}) := sorry
     def or_comm : Derivation Th Δ (Γ ∪ {A ∨' B}) → Derivation Th Δ (Γ ∪ {B ∨' A}) := sorry
@@ -145,7 +147,10 @@ namespace Calculus
     def left_disjunction_intro : Derivation Th (Δ ∪ {A}) Γ → Derivation Th (Δ ∪ {B}) Γ → Derivation Th (Δ ∪ {A ∨' B}) Γ := by
       intro d₁ d₂
       apply Derivation.left_disjunction A B (Δ ∪ {A}) (Δ ∪ {B}) Δ d₁ rfl d₂ rfl rfl 
-      
+    def left_bot_intro : Derivation Th (Δ ∪ {⊥}) Γ := by
+      apply Derivation.left_bot (by simp)
+    def left_conjunction_intro : Derivation Th (Δ ∪ {A, B}) Γ → Derivation Th (Δ ∪ {A ∧' B}) Γ := fun d₁ => Derivation.left_conjunction A B (Δ ∪ {A, B}) Δ d₁ rfl rfl 
+
     
 
   end MetaRules
