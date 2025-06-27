@@ -505,48 +505,42 @@ namespace FirstOrder.Language.BoundedFormula
     sorry
     -- use that applying the substitution to (i) 𝐓𝐁 yields 𝐏𝐀 ∪ {x | ∃ ψ_1 ∈ build_relevant_phis (Derivation.tax h₁ h₂), build_tau (build_relevant_phis (Derivation.tax h₁ h₂))/[⌜ψ_1⌝] ⇔ ψ_1 = x}) and (ii) Finset.image ϕ.onFormula Γ for an arbitrary Γ yields Γ.    
   | .left_conjunction A B S₁ S₂ d₂ h₁ h₂ => by
-    let tau := BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))
-
-    have step1 : (S₁/ₜ[fin_one_to_N (build_tau (build_relevant_phis d₁))]) = (S₂/ₜ[tau] ∪ {A/ₜ[tau], B/ₜ[tau]}) := by 
-      rw[h₁,Finset.insert_eq,Finset.insert_eq]
-      rw[distr_t_sub_over_union,distr_t_sub_over_union]
-      simp only [tau]
-      rfl  
-    
-    apply Derivation.left_conjunction (A/ₜ[tau]) (B/ₜ[tau]) (S₂/ₜ[tau] ∪ {A/ₜ[tau], B/ₜ[tau]}) (S₂/ₜ[tau]) _  rfl (by rw[h₂, distr_t_sub_over_union, in_finset, distr_t_sub_over_conjunction]) 
-    rw[←step1]
-    apply pa_plus_der_general d₁ d₂  
+    rw[h₂,distr_t_sub_over_union, in_finset, distr_t_sub_over_conjunction]
+    apply Calculus.left_conjunction_intro 
+    rw[Finset.insert_eq] 
+    rw[←in_finset,←in_finset,←distr_t_sub_over_union,←distr_t_sub_over_union,←Finset.insert_eq,←h₁]
+    apply pa_plus_der_general d₁ d₂
   | _ => sorry
   
-  lemma tb_replacement {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : 𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d)] = (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) := 
+  lemma tb_replacement {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : 𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d)] = (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) := 
     -- make use of : new def theories and def t-replacement
     sorry
 
-  noncomputable def pa_plus_der {φ : ℒ.Fml} : (d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d₁))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d₁)}) {} {φ} := by
+  noncomputable def pa_plus_der {φ : ℒ.Fml} : (d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d₁))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d₁)}) {} {φ} := by
   intro d₂
   apply pa_plus_der_general d₂ at d₂
   simp only [empty_replacement, homomorph_replacement, tb_replacement] at d₂ 
   exact d₂  
 
-  noncomputable def pa_plus_to_pa {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} {Γ Δ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ Δ) → (Derivation 𝐏𝐀 Γ Δ)
+  noncomputable def pa_plus_to_pa {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} {Γ Δ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ Δ) → (Derivation 𝐏𝐀 Γ Δ)
     | @Derivation.tax _ _ _ _ _ _ _ h => by
-      have hₐ : h.choose ∈ 𝐏𝐀 ∪ {x | ∃ ψ ∈ build_relevant_phis d, build_tau (build_relevant_phis d)/[⌜ψ⌝] ⇔ ψ = x} ∧ (h.choose ∈ Δ) := by
+      have hₐ : h.choose ∈ 𝐏𝐀 ∪ {x | ∃ ψ ∈ build_relevant_phis d, build_tau (build_relevant_phis d)/[ℒ.enc ψ] ⇔ ψ = x} ∧ ((bf_empty_to_bf_N h.choose) ∈ Δ) := by
         apply Exists.choose_spec at h
         exact h
-      have h₁ : h.choose ∈ 𝐏𝐀 ∪ {x | ∃ ψ ∈ build_relevant_phis d, build_tau (build_relevant_phis d)/[⌜ψ⌝] ⇔ ψ = x} := hₐ.left
-      have h₂ : h.choose ∈ Δ := hₐ.right
+      have h₁ : h.choose ∈ 𝐏𝐀 ∪ {x | ∃ ψ ∈ build_relevant_phis d, build_tau (build_relevant_phis d)/[ℒ.enc ψ] ⇔ ψ = x} := hₐ.left
+      have h₂ : bf_empty_to_bf_N h.choose ∈ Δ := hₐ.right
       by_cases h₃ : h.choose ∈ 𝐏𝐀
-      have h₄ : ∃f, f ∈ 𝐏𝐀 ∧ f ∈ Δ := by
+      have h₄ : ∃f, f ∈ 𝐏𝐀 ∧ (bf_empty_to_bf_N f) ∈ Δ := by
         apply Exists.intro (h.choose) (And.intro h₃ h₂)
         
       apply Derivation.tax h₄
       simp[h₃] at h₁
       
-      have step1 : h₁.choose ∈ build_relevant_phis d ∧ build_tau (build_relevant_phis d)/[⌜h₁.choose⌝] ⇔ h₁.choose = h.choose := by
+      have step1 : h₁.choose ∈ build_relevant_phis d ∧ build_tau (build_relevant_phis d)/[ℒ.enc h₁.choose] ⇔ h₁.choose = h.choose := by
         apply Exists.choose_spec at h₁
         exact h₁
      
-      have step2 : (build_tau (build_relevant_phis d)/[⌜h₁.choose⌝] ⇔ h₁.choose) ∈ Δ := by
+      have step2 : (build_tau (build_relevant_phis d)/[ℒ.enc h₁.choose] ⇔ h₁.choose) ∈ Δ := by
         simp[(And.right step1)]
         exact h₂
       
@@ -581,4 +575,4 @@ namespace FirstOrder.Language.BoundedFormula
     intro h
     apply Nonempty.intro (translation φ h)
 
-end Conservativity
+end BoundedFormula
