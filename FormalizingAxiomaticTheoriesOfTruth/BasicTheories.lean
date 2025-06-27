@@ -72,7 +72,7 @@ inductive syntax_theory_l : ℒ.Theory where
   | denote_representation {t} : syntax_theory_l (denote_repres t)
 
 open L_T
-def syntax_theory : ℒₜ.Theory := ϕ.onTheory syntax_theory_l
+def syntax_theory : ℒₜ.Theory := syntax_theory_l
 end SyntaxTheory
 
 namespace PA
@@ -180,7 +180,7 @@ open Languages
   open SyntaxTheory
   open BoundedFormula
   open Induction
-  def pat : ℒₜ.Theory := ϕ.onTheory peano_axioms ∪ {φ : ℒₜ.Sentence | ∃ψ : ℒₜ.Formula (Fin 1), φ = ψ/[L_T.null] ∧' ∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory
+  def pat : ℒₜ.Theory := peano_axioms ∪ {φ : ℒₜ.Sentence | ∃ψ : ℒₜ.Formula (Fin 1), φ = ψ/[L_T.null] ∧' ∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory
 
   notation "𝐏𝐀𝐓" => pat
 end PAT

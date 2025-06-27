@@ -63,7 +63,7 @@ namespace Conservativity
   @subs_fml_for_t_in_fml 0 
 
   @[simp]
-  def subs_fml_for_t_in_fml_finset (s : Finset ℒₜ.Fml) (φ: ℒ.Fml)  : Finset (ℒ.Fml) := s.image (subs_fml_for_t_in_fml_0 φ)
+  def subs_fml_for_t_in_fml_finset {n : ℕ} (s : Finset (ℒₜ.BoundedFormula ℕ n)) (φ: ℒ.BoundedFormula ℕ n) : Finset (ℒ.BoundedFormula ℕ n) := s.image (subs_fml_for_t_in_fml φ)
   
   open PA.Induction
 
@@ -106,12 +106,12 @@ namespace Conservativity
   def subs_r_for_fml_in_set (s : ℒₜ.Theory) (φ : ℒ.Formula (Fin 1)) : ℒ.Theory := s.image (subs_fml_for_t_in_sent φ)     
 
 
-  notation φ"/ₜ["ψ"]" => subs_fml_for_t_in_fml_0 ψ φ
+  notation φ"/ₜ["ψ"]" => subs_fml_for_t_in_fml ψ φ
   notation φ"/tsent["ψ"]" => subs_fml_for_t_in_sent ψ φ
   notation Γ"/ₜₛ["φ"]" => subs_r_for_fml_in_set Γ φ
   notation Γ"/ₜ["φ"]" => subs_fml_for_t_in_fml_finset Γ φ
 
-  lemma empty_replacement : ∀φ, ∅/ₜ[φ] = ∅ := by 
+  lemma empty_replacement : ∀φ : ℒ.Fml, ∅/ₜ[φ] = ∅ := by 
     intro φ 
     simp
   
@@ -125,38 +125,54 @@ namespace Conservativity
     simp
     apply Exists.intro φ (And.intro h (by rfl))
 
-  lemma homomorph_replacement : ∀φ, ∀ψ, {ϕ.onFormula φ}/ₜ[ψ] = {φ} := by
-    intro φ ψ
-    simp[LHom.onFormula]
-    cases φ with
-    | falsum => 
-      rfl
-    | equal t₁ t₂ =>   
-      cases t₁ with
-      | var n₁ => 
-        cases t₂ with
-        | var n₂ =>
-          rfl
-        | func f ts => 
-          cases f with
-          | succ =>
-            simp
-            sorry
-            -- problems with term equality in recursion case
-            /-match (ts i) with
-            | .var v => sorry
-            | .func f₂ ts₂ => sorry-/
-          | _ => sorry
-      | func f ts => 
-        cases t₂ with
-        | var n₂ => 
-          simp[LHom.onFormula]  
-          sorry
-        | func f₂ ts₂ =>
-          simp[LHom.onFormula]
-          sorry
-        
-    | _ => sorry
+  def term_translation : (t₁ : ℒ.Term (α ⊕ Fin n)) → to_l_term (to_lt_term t₁) = t₁
+    | .var v => match v with
+      | .inl m => by simp[to_l_term,to_lt_term]
+      | .inr m => by simp[to_l_term,to_lt_term]
+    | .func f ts => by
+      simp[to_lt_term,to_l_term]
+      apply And.intro
+      match f with
+      | .null => trivial
+      | .succ => trivial
+      | .add => trivial
+      | .mult => trivial
+      | .neg => trivial
+      | .conj => trivial
+      | .disj => trivial
+      | .cond => trivial
+      | .forall => trivial
+      | .exists => trivial
+      | .denote => trivial
+      | .subs => trivial
+      simp[term_translation]     
+
+  def homomorph_replacement : {n : ℕ} → (φ : ℒ.BoundedFormula ℕ n) → (ψ : ℒ.BoundedFormula ℕ n) → (to_lt_bf φ)/ₜ[ψ] = φ
+    | _, .falsum, _ => by
+      simp[to_lt_bf]
+    | _, .equal t₁ t₂, _ => by
+      simp[to_lt_bf]
+      apply And.intro
+      apply term_translation
+      apply term_translation
+    | _, @BoundedFormula.rel ℒ ℕ n l R ts, _ => by
+      match l, R with
+      | 1, .sentencelt => simp[to_lt_bf,to_lt_rel,term_translation]
+      | 1, .formlt => simp[to_lt_bf,to_lt_rel,term_translation]
+      | 1, .sentencel => simp[to_lt_bf,to_lt_rel,term_translation]
+      | 1, .forml => simp[to_lt_bf,to_lt_rel,term_translation]
+      | 1, .clterm => simp[to_lt_bf,to_lt_rel,term_translation]
+      | 1, .term => simp[to_lt_bf,to_lt_rel,term_translation]
+      | 1, .const => simp[to_lt_bf,to_lt_rel,term_translation]
+      | 1, .var => simp[to_lt_bf,to_lt_rel,term_translation]
+    | _, .imp φ₁ ψ₁, ψ => by
+      simp[to_lt_bf]
+      apply And.intro
+      apply homomorph_replacement φ₁ ψ 
+      apply homomorph_replacement ψ₁ ψ
+    | _, .all φ₁, ψ => by
+      simp[to_lt_bf]
+      apply homomorph_replacement φ₁ 
 
   def no_t_to_l_sent {n : ℕ} (φ : ℒₜ.BoundedFormula Empty n) (h : ¬ contains_T φ) : ℒ.BoundedFormula Empty n :=
   match n, φ with
@@ -178,24 +194,26 @@ namespace Conservativity
   | _, .imp ψ1 ψ2 => .imp (no_t_to_l_sent ψ1 (by simp at h; exact h.left)) (no_t_to_l_sent ψ2 (by simp at h; exact h.right))
   | _, .all ψ => .all (no_t_to_l_sent ψ (by assumption)) 
 
-  noncomputable def build_relevant_phis {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence
-    | @Derivation.tax _ _ _ _ _ _ _ h =>
-      match h.choose with
+  noncomputable def build_relevant_phis_list {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence
+    | Derivation.tax φ _ _  =>
+      match φ with
       | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) => 
         if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ (ts₁ 0) = L_T.numeral (sent_tonat f₁) ∧ (ts₂ 0) = L_T.numeral (sent_tonat f₂) then [(no_t_to_l_sent f₁ h.left)] else []
       | _ => []
     | .lax _ => []
-    | .left_conjunction _ _ _ _ d₁ _ _ => build_relevant_phis d₁
-    | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis d₁) ∪ (build_relevant_phis d₂)
-    | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis d₁) ∪ (build_relevant_phis d₂)
+    | .left_conjunction _ _ _ _ d₁ _ _ => build_relevant_phis_list d₁
+    | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
+    | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
     | .left_bot _ => []
-    | .right_conjunction _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis d₁) ∪ (build_relevant_phis d₂)
-    | .right_disjunction _ _ _ _ d₁ _ _ => build_relevant_phis d₁
-    | .right_implication _ _ _ _ _ d₁ _ _ _ => build_relevant_phis d₁
-    | .left_forall _ _ _ _ _ _ d₁ _ _  => build_relevant_phis d₁
-    | .left_exists _ _ _ _ d₁ _ => build_relevant_phis d₁
-    | .right_forall _ _ _ _ d₁ _ => build_relevant_phis d₁
-    | .right_exists _ _ _ _ _ _ d₁ _ _ => build_relevant_phis d₁
+    | .right_conjunction _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
+    | .right_disjunction _ _ _ _ d₁ _ _ => build_relevant_phis_list d₁
+    | .right_implication _ _ _ _ _ d₁ _ _ _ => build_relevant_phis_list d₁
+    | .left_forall _ _ _ _ _ _ d₁ _ _  => build_relevant_phis_list d₁
+    | .left_exists _ _ _ _ d₁ _ => build_relevant_phis_list d₁
+    | .right_forall _ _ _ _ d₁ _ => build_relevant_phis_list d₁
+    | .right_exists _ _ _ _ _ _ d₁ _ _ => build_relevant_phis_list d₁
+
+  noncomputable def build_relevant_phis {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence := fun d => (build_relevant_phis_list d).dedup
 
 end Conservativity
 
@@ -371,13 +389,12 @@ namespace FirstOrder.Language.BoundedFormula
     | .zero, .succ k, h₁ => by
       simp[numeral]
       have h₂ : Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N (∀' ∼(null =' S(&0)))}) := by
-        apply Derivation.tax
-        apply Exists.intro (∀' ∼(null =' S(&0)))
-        apply And.intro
+        apply Derivation.tax (∀' ∼(null =' S(&0)))
         simp[PA.peano_arithmetic]
         apply Or.intro_left
         apply PA.peano_axioms.first
         simp  
+        trivial
 
       have step3 : Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N (∼(null =' S(numeral k)))}) := by
         apply @right_instantiation _ _ _ (∼(null =' S((var ∘ Sum.inr) 0))) _ _ _ (numeral k) (∼(null =' S(#0))) (by simp[Term.bdEqual,LPA.null,BoundedFormula.not,Term.fin_one_to_bv,Matrix.empty_eq,fin_one_to_bv,Matrix.vec_single_eq_const]; rfl) at h₂
@@ -492,16 +509,19 @@ namespace FirstOrder.Language.BoundedFormula
   open SyntaxAxioms
   open BoundedFormula
   open PAT 
+  open L_T
 
   def distr_t_sub_over_union {A B : Finset (ℒₜ.Fml)} {φ : ℒ.Fml} : (A ∪ B)/ₜ[φ] = (A/ₜ[φ]) ∪ (B/ₜ[φ]) := by
     simp[Finset.image_union]
+  def distr_t_sub_over_union_set {A B : ℒₜ.Theory} {φ : ℒ.Formula (Fin 1)} : (A ∪ B)/ₜₛ[φ] = (A/ₜₛ[φ]) ∪ (B/ₜₛ[φ]) := by
+    simp[Set.image_union]
   def in_finset {A : ℒₜ.Fml} {φ : ℒ.Fml} : {A}/ₜ[φ] = {A/ₜ[φ]} := by
      trivial
   def distr_t_sub_over_conjunction {A B : ℒₜ.Fml} {φ : ℒ.Fml} : (A ∧' B)/ₜ[φ] = (A/ₜ[φ]) ∧' (B/ₜ[φ]) := by
     trivial
 
-  noncomputable def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} {φ : ℒ.Fml} (d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}): Derivation 𝐓𝐁 Δ₁ Γ₁ → (Derivation (𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d₁)]) (Δ₁/ₜ[BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))]) (Γ₁/ₜ[BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))]))
-  | @Derivation.tax _ _ _ _ _ _ _ h => by
+  noncomputable def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} {φ : ℒ.Fml} (d₁ : Derivation 𝐓𝐁 {} {to_lt_bf φ}): Derivation 𝐓𝐁 Δ₁ Γ₁ → (Derivation (𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d₁)]) (Δ₁/ₜ[BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))]) (Γ₁/ₜ[BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))]))
+  | Derivation.tax φ h₁ h₂ => by
     sorry
     -- use that applying the substitution to (i) 𝐓𝐁 yields 𝐏𝐀 ∪ {x | ∃ ψ_1 ∈ build_relevant_phis (Derivation.tax h₁ h₂), build_tau (build_relevant_phis (Derivation.tax h₁ h₂))/[⌜ψ_1⌝] ⇔ ψ_1 = x}) and (ii) Finset.image ϕ.onFormula Γ for an arbitrary Γ yields Γ.    
   | .left_conjunction A B S₁ S₂ d₂ h₁ h₂ => by
@@ -512,67 +532,78 @@ namespace FirstOrder.Language.BoundedFormula
     apply pa_plus_der_general d₁ d₂
   | _ => sorry
   
-  lemma tb_replacement {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : 𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d)] = (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) := 
-    -- make use of : new def theories and def t-replacement
+  lemma tb_replacement {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {to_lt_bf φ}} : 𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d)] = (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) := by
+    apply Set.eq_of_subset_of_subset
+    -- tb sub pa+
+    rw[Set.subset_def]
+    intro x
+    intro h
+    simp only [TB.tarski_biconditionals] at h
+    rw[distr_t_sub_over_union_set] at h
+    simp only [Set.mem_union] at h
+    simp only [pat] at h
+    rw[distr_t_sub_over_union_set,distr_t_sub_over_union_set] at h
+    simp only [Set.mem_union] at h
+    cases h with
+    | inl p => sorry
+    | inr p => 
+      simp
+      apply Or.intro_right
+      simp at p
+      apply Exists.choose_spec at p
+      apply Exists.intro (p.left.choose) 
+      sorry
+    -- pa+ sub tb
     sorry
 
-  noncomputable def pa_plus_der {φ : ℒ.Fml} : (d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d₁))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d₁)}) {} {φ} := by
+  noncomputable def pa_plus_der {φ : ℒ.Fml} : (d₁ : Derivation 𝐓𝐁 {} {to_lt_bf φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d₁))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d₁)}) {} {φ} := by
   intro d₂
   apply pa_plus_der_general d₂ at d₂
-  simp only [empty_replacement, homomorph_replacement, tb_replacement] at d₂ 
+  rw[in_finset] at d₂
+  simp only [empty_replacement, homomorph_replacement, tb_replacement] at d₂
   exact d₂  
 
-  noncomputable def pa_plus_to_pa {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} {Γ Δ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ Δ) → (Derivation 𝐏𝐀 Γ Δ)
-    | @Derivation.tax _ _ _ _ _ _ _ h => by
-      have hₐ : h.choose ∈ 𝐏𝐀 ∪ {x | ∃ ψ ∈ build_relevant_phis d, build_tau (build_relevant_phis d)/[ℒ.enc ψ] ⇔ ψ = x} ∧ ((bf_empty_to_bf_N h.choose) ∈ Δ) := by
-        apply Exists.choose_spec at h
-        exact h
-      have h₁ : h.choose ∈ 𝐏𝐀 ∪ {x | ∃ ψ ∈ build_relevant_phis d, build_tau (build_relevant_phis d)/[ℒ.enc ψ] ⇔ ψ = x} := hₐ.left
-      have h₂ : bf_empty_to_bf_N h.choose ∈ Δ := hₐ.right
-      by_cases h₃ : h.choose ∈ 𝐏𝐀
-      have h₄ : ∃f, f ∈ 𝐏𝐀 ∧ (bf_empty_to_bf_N f) ∈ Δ := by
-        apply Exists.intro (h.choose) (And.intro h₃ h₂)
-        
-      apply Derivation.tax h₄
+  noncomputable def pa_plus_to_pa {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {to_lt_bf φ}} {Γ Δ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ Δ) → (Derivation 𝐏𝐀 Γ Δ)
+    | Derivation.tax φ h₁ h₂ => by
+      by_cases h₃ : φ ∈ 𝐏𝐀 
+      -- pos
+      apply Derivation.tax φ h₃ h₂
+      -- neg
       simp[h₃] at h₁
-      
-      have step1 : h₁.choose ∈ build_relevant_phis d ∧ build_tau (build_relevant_phis d)/[ℒ.enc h₁.choose] ⇔ h₁.choose = h.choose := by
-        apply Exists.choose_spec at h₁
-        exact h₁
-     
-      have step2 : (build_tau (build_relevant_phis d)/[ℒ.enc h₁.choose] ⇔ h₁.choose) ∈ Δ := by
-        simp[(And.right step1)]
-        exact h₂
-      
-      have step3 : Derivation 𝐏𝐀 Γ Δ := by 
-        apply pa_proves_all_tau_disq (build_relevant_phis d) (step1.left) step2 
-        
-      exact step3
-    | .iax t h  => Derivation.iax t h
-    | .i_one_for_two S φ t₁ t₂ h₁ h₂ d₁ h₃ h₄ => .i_one_for_two S φ t₁ t₂ h₁ h₂ (pa_plus_to_pa d₁) h₃ h₄
-    | .i_two_for_one S φ t₁ t₂ h₁ h₂ d₁ h₃ h₄ => .i_two_for_one S φ t₁ t₂ h₁ h₂ (pa_plus_to_pa d₁) h₃ h₄
+      apply Exists.choose_spec at h₁
+      apply pa_proves_all_tau_disq (build_relevant_phis d) (h₁.left)  
+      rw[←h₁.right] at h₂
+      exact h₂
+      simp only [build_relevant_phis]
+      apply List.nodup_dedup     
     | .lax h => .lax h
     | .left_bot h => .left_bot h
-    | .left_conjunction A B S d₁ h₁ h₂ h₃ => .left_conjunction A B S (pa_plus_to_pa d₁) h₁ h₂ h₃
+    | .left_conjunction A B S₁ S₂ d₁ h₂ h₃ => by
+      rw[h₃]
+      apply Calculus.left_conjunction_intro
+      rw[h₂] at d₁
+      apply pa_plus_to_pa d₁
+      --Calculus.left_conjunction_intro (pa_plus_to_pa d₁) 
     | .left_disjunction A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ => .left_disjunction A B S₁ S₂ S₃ (pa_plus_to_pa d₁) h₁ (pa_plus_to_pa d₂) h₂ h₃
     | .left_implication A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ => .left_implication A B S₁ S₂ S₃ (pa_plus_to_pa d₁) h₁ (pa_plus_to_pa d₂) h₂ h₃
-    | .left_negation A S₁ S₂ d₁ h₁ h₂ => .left_negation A S₁ S₂ (pa_plus_to_pa d₁) h₁ h₂
     | .right_conjunction A B S₁ S₂ S₃ d₁ h₁ d₂ h₂ h₃ => .right_conjunction A B S₁ S₂ S₃ (pa_plus_to_pa d₁) h₁ (pa_plus_to_pa d₂) h₂ h₃
-    | .right_disjunction A B S d₁ h₁ => .right_disjunction A B S (pa_plus_to_pa d₁) h₁
+    | .right_disjunction A B S₁ S₂ d₁ h₁ h₂ => by
+      rw[h₂]
+      apply Calculus.right_disjunction_intro
+      rw[h₁] at d₁
+      apply pa_plus_to_pa d₁
     | .right_implication A B S₁ S₂ S₃ d₁ h₁ h₂ h₃ => .right_implication A B S₁ S₂ S₃ (pa_plus_to_pa d₁) h₁ h₂ h₃
-    | .right_negation A S₁ S₂ d₁ h₁ h₂ => .right_negation A S₁ S₂ (pa_plus_to_pa d₁) h₁ h₂
-    | .left_forall A B h₁ t S d₁ h₂ h₃ => .left_forall A B h₁ t S (pa_plus_to_pa d₁) h₂ h₃
+    | .left_forall A B h₁ t S₁ S₂ d₁ h₂ h₃ => .left_forall A B h₁ t S₁ S₂ (pa_plus_to_pa d₁) h₂ h₃
     | .left_exists A B S₁ h₁ d₁ h₂ => .left_exists A B S₁ h₁ (pa_plus_to_pa d₁) h₂
     | .right_forall A B S h₁ d₁ h₂ => .right_forall A B S h₁ (pa_plus_to_pa d₁) h₂
-    | .right_exists A B t S h₁ d₁ h₂ => .right_exists A B t S h₁ (pa_plus_to_pa d₁) h₂
-    | .cut A S₁ S₂ S₃ S₄ d₁ d₂ h₁ h₂ => .cut A S₁ S₂ S₃ S₄ (pa_plus_to_pa d₁) (pa_plus_to_pa d₂) h₁ h₂
+    | .right_exists A B t S₁ S₂ h₁ d₁ h₂ h₃ => .right_exists A B t S₁ S₂ h₁ (pa_plus_to_pa d₁) h₂ h₃
   
-  noncomputable def translation (φ : ℒ.Fml) (d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}) : (Derivation 𝐏𝐀 {} {φ}) := pa_plus_to_pa (pa_plus_der d)
+  noncomputable def translation (φ : ℒ.Fml) (d : Derivation 𝐓𝐁 {} {to_lt_bf φ}) : (Derivation 𝐏𝐀 {} {φ}) := pa_plus_to_pa (pa_plus_der d)
 
   theorem conservativity_of_tb : ∀φ : ℒ.Fml, (𝐓𝐁 ⊢ φ) → (𝐏𝐀 ⊢ φ) := by
-    simp[formula_provable,sequent_provable]    
     intro φ
+    simp only [formula_provable,sequent_provable,emptyFormList] 
     intro h
-    apply Nonempty.intro (translation φ h)
+    apply Nonempty.intro (translation φ (Classical.choice h))
 
 end BoundedFormula

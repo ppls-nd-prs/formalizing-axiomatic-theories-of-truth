@@ -644,18 +644,27 @@ end TermEncoding
       | .formlt => .formlt
       | .sentencelt => .sentencelt
 
-  def ϕ : LHom ℒ ℒₜ where
-      onFunction := to_lt_func
-      onRelation := to_lt_rel
+  def to_lt_term : ℒ.Term (α ⊕ Fin n) → ℒₜ.Term (α ⊕ Fin n)
+    | .var v => match v with
+      | .inl m => #m
+      | .inr m => &m
+    | .func f ts => .func (to_lt_func f) fun i => to_lt_term (ts i)
+
+  def to_lt_bf : {n : ℕ} → ℒ.BoundedFormula α n → ℒₜ.BoundedFormula α n
+    | _, .falsum => .falsum
+    | _, .equal t₁ t₂ => .equal (to_lt_term t₁) (to_lt_term t₂) 
+    | _, .rel R ts => .rel (to_lt_rel R) fun i => to_lt_term (ts i)
+    | _, .imp φ ψ => .imp (to_lt_bf φ) (to_lt_bf ψ)
+    | _, .all φ => .all (to_lt_bf φ)
 
   instance : Coe (Formula ℒ ℕ) (Formula ℒₜ ℕ) where
-    coe := LHom.onFormula ϕ
+    coe := to_lt_bf
   instance : Coe (Sentence ℒ) (Sentence ℒₜ) where
-    coe := LHom.onSentence ϕ
+    coe := to_lt_bf
   instance : Coe (Term ℒ (Empty ⊕ Fin 0)) (Term ℒₜ (Empty ⊕ Fin 0)) where
-    coe := LHom.onTerm ϕ
+    coe := to_lt_term
   instance : Coe (Theory ℒ) (Theory ℒₜ) where
-    coe := LHom.onTheory ϕ
+    coe := fun t => t.image to_lt_bf
 
 end Languages
 
