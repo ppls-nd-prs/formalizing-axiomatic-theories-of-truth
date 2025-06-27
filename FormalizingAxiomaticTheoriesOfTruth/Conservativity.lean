@@ -314,7 +314,7 @@ namespace Conservativity
     rw[Finset.insert_eq]
     rw[Finset.insert_eq]
     rw[Finset.union_comm]
-  
+
   def tonat_inj (φ ψ : L.Formula ℕ) : φ ≠ ψ → (formula_tonat φ) ≠ (formula_tonat ψ) := by  
   sorry
 
@@ -338,6 +338,12 @@ namespace FirstOrder.Language.Term
       | .inr m => match m with
         | .mk k isLt => .var (.inr ⟨k,(Nat.lt_trans isLt (Nat.lt_succ_self n))⟩)
     | .func f ts => .func f (fun i => fin_one_to_bv (ts i))
+  
+  def fin_one_to_N : L.Term ((Fin 1) ⊕ Fin n) → L.Term (ℕ ⊕ Fin n)
+    | .var v => match v with
+      | .inl m => .var (.inl m)
+      | .inr m => .var (.inr m)
+    | .func f ts => .func f fun i => fin_one_to_N (ts i)
 end FirstOrder.Language.Term
 
 namespace FirstOrder.Language.BoundedFormula
@@ -348,6 +354,13 @@ open Term
     | _, .rel R ts => .rel R (fun i => Term.fin_one_to_bv (ts i))
     | _, .imp φ ψ => .imp (fin_one_to_bv φ) (fin_one_to_bv ψ)
     | _, .all φ => .all (fin_one_to_bv φ)
+  
+  def fin_one_to_N : {n : ℕ} → L.BoundedFormula (Fin 1) n → L.BoundedFormula ℕ n 
+    | _, .falsum => .falsum
+    | _, .equal t₁ t₂ => .equal (Term.fin_one_to_N t₁) (Term.fin_one_to_N t₂)
+    | _, .rel R ts => .rel R (fun i => Term.fin_one_to_N (ts i))
+    | _, .imp φ ψ => .imp (fin_one_to_N φ) (fin_one_to_N ψ)
+    | _, .all φ => .all (fin_one_to_N φ)
 namespace FirstOrder.Language.BoundedFormula
 
   def right_instantiation {t : L.Term (Empty ⊕ Fin 0)} {A : L.BoundedFormula (Fin 1) 0} {h : B = fin_one_to_bv A} : Derivation Th Δ (S ∪ {bf_empty_to_bf_N (∀'B)}) → Derivation Th Δ (S ∪ {bf_empty_to_bf_N (A/[t])}) := by sorry
@@ -480,7 +493,7 @@ namespace FirstOrder.Language.BoundedFormula
   open BoundedFormula
   open PAT 
 
-  noncomputable def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} {φ : ℒ.Fml} (d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}): Derivation 𝐓𝐁 Δ₁ Γ₁ → (Derivation (𝐓𝐁/ₜₛ[build_tau_sent (build_relevant_phis d₁)]) (Δ₁/ₜ[build_tau (build_relevant_phis d₁)]) (Γ₁/ₜ[build_tau (build_relevant_phis d₁)]))
+  noncomputable def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} {φ : ℒ.Fml} (d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}): Derivation 𝐓𝐁 Δ₁ Γ₁ → (Derivation (𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d₁)]) (Δ₁/ₜ[BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))]) (Γ₁/ₜ[BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))]))
   | @Derivation.tax _ _ _ _ _ _ _ h => by
     sorry
     -- use that applying the substitution to (i) 𝐓𝐁 yields 𝐏𝐀 ∪ {x | ∃ ψ_1 ∈ build_relevant_phis (Derivation.tax h₁ h₂), build_tau (build_relevant_phis (Derivation.tax h₁ h₂))/[⌜ψ_1⌝] ⇔ ψ_1 = x}) and (ii) Finset.image ϕ.onFormula Γ for an arbitrary Γ yields Γ.    
