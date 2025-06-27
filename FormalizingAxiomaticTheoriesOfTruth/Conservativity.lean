@@ -493,20 +493,29 @@ namespace FirstOrder.Language.BoundedFormula
   open BoundedFormula
   open PAT 
 
+  def distr_t_sub_over_union {A B : Finset (ℒₜ.Fml)} {φ : ℒ.Fml} : (A ∪ B)/ₜ[φ] = (A/ₜ[φ]) ∪ (B/ₜ[φ]) := by
+    simp[Finset.image_union]
+  def in_finset {A : ℒₜ.Fml} {φ : ℒ.Fml} : {A}/ₜ[φ] = {A/ₜ[φ]} := by
+     trivial
+  def distr_t_sub_over_conjunction {A B : ℒₜ.Fml} {φ : ℒ.Fml} : (A ∧' B)/ₜ[φ] = (A/ₜ[φ]) ∧' (B/ₜ[φ]) := by
+    trivial
+
   noncomputable def pa_plus_der_general {Δ₁ Γ₁ : Finset ℒₜ.Fml} {φ : ℒ.Fml} (d₁ : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}): Derivation 𝐓𝐁 Δ₁ Γ₁ → (Derivation (𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d₁)]) (Δ₁/ₜ[BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))]) (Γ₁/ₜ[BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))]))
   | @Derivation.tax _ _ _ _ _ _ _ h => by
     sorry
     -- use that applying the substitution to (i) 𝐓𝐁 yields 𝐏𝐀 ∪ {x | ∃ ψ_1 ∈ build_relevant_phis (Derivation.tax h₁ h₂), build_tau (build_relevant_phis (Derivation.tax h₁ h₂))/[⌜ψ_1⌝] ⇔ ψ_1 = x}) and (ii) Finset.image ϕ.onFormula Γ for an arbitrary Γ yields Γ.    
-  | .left_conjunction A B S d₂ h₁ h₂ h₃ => by
-    let tau := build_tau (build_relevant_phis d₁)
-    have step1 : A/ₜ[tau] ∈ S/ₜ[tau] := by
-      apply  (in_replacement_finset S A (tau)) 
-      exact h₁
-    have step2 :  B/ₜ[tau] ∈ S/ₜ[tau] := by
-      apply  (in_replacement_finset S B (tau)) 
-      exact h₂
-    have step3 : Δ₁/ₜ[tau] = (S/ₜ[tau] \ {A/ₜ[tau]}) \ {B/ₜ[tau]} ∪ {A/ₜ[tau]∧'B/ₜ[tau]} := sorry
-    apply Derivation.left_conjunction (A/ₜ[tau]) (B/ₜ[tau]) (S/ₜ[tau]) (pa_plus_der_general d₁ d₂) step1 step2 step3     
+  | .left_conjunction A B S₁ S₂ d₂ h₁ h₂ => by
+    let tau := BoundedFormula.fin_one_to_N (build_tau (build_relevant_phis d₁))
+
+    have step1 : (S₁/ₜ[fin_one_to_N (build_tau (build_relevant_phis d₁))]) = (S₂/ₜ[tau] ∪ {A/ₜ[tau], B/ₜ[tau]}) := by 
+      rw[h₁,Finset.insert_eq,Finset.insert_eq]
+      rw[distr_t_sub_over_union,distr_t_sub_over_union]
+      simp only [tau]
+      rfl  
+    
+    apply Derivation.left_conjunction (A/ₜ[tau]) (B/ₜ[tau]) (S₂/ₜ[tau] ∪ {A/ₜ[tau], B/ₜ[tau]}) (S₂/ₜ[tau]) _  rfl (by rw[h₂, distr_t_sub_over_union, in_finset, distr_t_sub_over_conjunction]) 
+    rw[←step1]
+    apply pa_plus_der_general d₁ d₂  
   | _ => sorry
   
   lemma tb_replacement {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {ϕ.onFormula φ}} : 𝐓𝐁/ₜₛ[build_tau (build_relevant_phis d)] = (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) := 
