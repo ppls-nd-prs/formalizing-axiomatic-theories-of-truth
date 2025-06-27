@@ -320,24 +320,6 @@ namespace Conservativity
   def tonat_inj (φ ψ : L.Formula ℕ) : φ ≠ ψ → (formula_tonat φ) ≠ (formula_tonat ψ) := by  
   sorry
 
-  def neq_num_derivable {Δ Γ : Finset (ℒ.Formula ℕ)}:  (n m : ℕ) → (h : n ≠ m) → (∼(LPA.numeral n =' LPA.numeral m) ∈ Γ) → Derivation 𝐏𝐀 Δ Γ
-    | .zero, .zero, h₁, h₂ => by
-      simp at h₁
-    | .zero, .succ m, h₁, h₂ => by
-      simp[numeral] at h₂ 
-      have h₃ : (∀' ∼(LPA.null =' S(&0))) ∈ 𝐏𝐀 := by
-        simp[PA.peano_arithmetic]
-        apply Or.intro_left
-        apply PA.peano_axioms.first
-      have h₅ : Derivation 𝐏𝐀 Δ (Γ ∪ {∀' ∼(LPA.null =' S(&0))}) := by
---        apply Derivation.tax ...
-        sorry
-      have h₄ : Derivation 𝐏𝐀 Δ (Γ ∪ {∼(null =' S(numeral m))}) := by
---        apply universal_instantiation_right
-        sorry
-      sorry
-    | _, _, _, _ => sorry
-
   noncomputable def extend_iff_right {A B a: L.Formula ℕ} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {B ⟹ (A ∨' a)}) := by
     intro d
     apply Derivation.right_implication B (A ∨' a) ({B} ∪ Γ) (Δ ∪ {A ∨' a}) Δ _ rfl rfl rfl
@@ -392,9 +374,23 @@ namespace FirstOrder.Language.BoundedFormula
       exact step3
     | _, _, _ => sorry
 
+--def derivable_left_to_right {h : a ≠ φ}{S : Finset (ℒ.Formula ℕ)} : Derivation 𝐏𝐀 Δ (S ∪ {}
+
 --  def extend_iff_left : Derivation 𝐏𝐀 Δ {}
 
-  def if_first {a φ : ℒ.Sentence}{S : Finset (ℒ.Formula ℕ)} (h₁ : φ = a) (h₂ : Δ = S ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ] ⇔ φ)}) : Derivation 𝐏𝐀 Γ Δ := by sorry 
+  def if_first {lst : List (ℒ.Sentence)} {a φ : ℒ.Sentence}{S : Finset (ℒ.Formula ℕ)} (h₁ : φ = a) (h₂ : Δ = S ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ] ⇔ φ)}) {h₃ : lst.Nodup} {h₄ : ¬ a ∈ lst} : Derivation 𝐏𝐀 Γ Δ := by 
+    simp[h₂,h₁,build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr]
+    apply Calculus.iff_intro 
+    --left to right
+    apply Calculus.right_implication_intro 
+    apply Calculus.left_disjunction_intro 
+    -- d₁
+    
+    sorry
+    -- d₂
+    sorry
+    -- right to left
+    sorry
 
   noncomputable def pa_proves_all_tau_disq {φ : ℒ.Sentence} {S : Finset (ℒ.Formula ℕ)} : (l : List ℒ.Sentence) → φ ∈ l → Γ = S ∪ {bf_empty_to_bf_N ((build_tau l)/[ℒ.enc φ] ⇔ φ)} → Derivation 𝐏𝐀 Δ Γ
     | .nil, h₁, _ => by
@@ -407,14 +403,27 @@ namespace FirstOrder.Language.BoundedFormula
       have ih : Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ] ⇔ φ)}) := by
         apply pa_proves_all_tau_disq lst h₁ rfl
       
-      simp[build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr] at ih
-      
       simp[build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr] at h₂
-      
-      
-      have step1 : Derivation 𝐏𝐀 Δ (S ∪ {(bf_empty_to_bf_N φ) ⟹ (bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])) ∨' (bf_empty_to_bf_N (equal (ℒ.enc φ) (ℒ.enc a)) ∧' (bf_empty_to_bf_N a))}) := by
-        exact extend_iff_right ih
 
+      simp only [h₂]
+      
+      apply Calculus.iff_intro 
+      -- left to right
+      sorry
+      -- right to left
+      simp[build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr] at ih
+    
+      
+      have step1 : Derivation 𝐏𝐀 Δ (S ∪ {(bf_empty_to_bf_N φ) ⟹ (bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])) ∨' (bf_empty_to_bf_N (BoundedFormula.equal (ℒ.enc φ) (ℒ.enc a))) ∧' (bf_empty_to_bf_N a)}) := by
+        exact extend_iff_right ih
+      
+      apply Calculus.right_implication_intro  
+      apply Calculus.or_comm 
+      apply Calculus.right_implication_elim at step1
+      exact step1
+     
+      
+      
 --      have step2 : Derivation 𝐏𝐀 Δ (S ∪ 
     
       
