@@ -597,19 +597,21 @@ namespace Languages
 namespace TermEncoding
   variable {L : Language}[∀i, Encodable (L.Functions i)][∀i, Encodable (L.Relations i)]
   /-- Encodes terms as natural numbers -/
-  def term_tonat : Term L (ℕ ⊕ Fin 0) → ℕ :=
+  def formula_term_tonat : Term L (ℕ ⊕ Fin 0) → ℕ :=
     fun t => Encodable.encodeList (Term.listEncode t)
   def sentence_term_tonat : Term L (Empty ⊕ Fin 0) → ℕ :=
     fun t => Encodable.encodeList (Term.listEncode t)
 
  /-- Encodes BoundedFormulas as natural numbers -/
-  def sent_tonat : BoundedFormula L Empty 0 → ℕ := 
+  def sentence_tonat : BoundedFormula L Empty 0 → ℕ := 
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
   def formula_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
-  scoped notation "⌜" φ "⌝" => L_T.numeral (formula_tonat φ)
-  scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat t₁)
+  scoped notation "⌜" φ "⌝" => LPA.numeral (formula_tonat φ)
+  scoped notation "⌜" φ "⌝" => LPA.numeral (sentence_tonat φ)
+  scoped notation "⌜" t₁ "⌝" => LPA.numeral (formula_term_tonat t₁)
+  scoped notation "⌜" t₁ "⌝" => LPA.numeral (sentence_term_tonat t₁)
 
 end TermEncoding
 
