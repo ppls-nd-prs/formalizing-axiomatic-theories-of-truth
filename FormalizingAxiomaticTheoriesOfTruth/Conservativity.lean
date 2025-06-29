@@ -225,44 +225,6 @@ namespace Conservativity
   | _, .all ψ => .all (no_t_to_l_sent ψ (by assumption)) 
 
 -- (((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜falsum⌝)) ⟹ ⊥) ⟹ ⊥)
-end Conservativity
-
-namespace FirstOrder.Language.Term
-  variable {L : Language}{α : Type}
-  @[simp]
-  def contains_no_free_var {n : ℕ} : L.Term (α ⊕ Fin n) → Prop
-  | .var v => match v with
-    | .inl _ => False
-    | .inr _ => True
-  | .func _ ts => Πi, ((fun j => contains_no_free_var (ts j)) i)
-
-  def contains_no_free_var_dec : (t : L.Term (α ⊕ Fin n)) → Decidable (contains_no_free_var t)
-  | .var v => match v with
-    | .inl _ => Decidable.isFalse (False.elim)
-    | .inr _ => Decidable.isTrue (True.intro)
-  | @Term.func L (α ⊕ Fin n) l f ts => match l with
-    | .zero => by
-      simp
-      apply Decidable.isTrue (True.intro)
-    | .succ m => by
-      simp
-      simp[Fin.forall_iff]
-      
-      
-      
-      sorry
-
-end FirstOrder.Language.Term
-  
-namespace FirstOrder.Language.BoundedFormula
-variable {L : Language}
-  def contains_free_var : {n : ℕ} → L.BoundedFormula ℕ n → Prop
-  | _, .falsum => False
-  | _, .equal t₁ t₂ => Term.contains_free_var t₁ ∨ Term.contains_free_var t₂
-  | _, .rel R ts => Πi, ((fun j => Term.contains_free_var (ts j)) i)
-  | _, .imp φ ψ => (contains_free_var φ) ∨ (contains_free_var ψ)
-  | _, .all φ => contains_free_var φ
-namespace FirstOrder.Language.BoundedFormula
 
   noncomputable def build_relevant_phis_list {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence
     | Derivation.tax _ _ _ _ φ _ _  =>
@@ -270,10 +232,7 @@ namespace FirstOrder.Language.BoundedFormula
       | ((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥) ⟹ ⊥ => 
         if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
       | _ => []
-    | .lax φ _ _ =>
-     match φ with
-      | ((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥) ⟹ ⊥ => 
-        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
+    | .lax _ _ _ _ => []
     | .left_conjunction _ _ _ _ d₁ _ _ => build_relevant_phis_list d₁
     | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
     | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
@@ -304,7 +263,11 @@ namespace FirstOrder.Language.BoundedFormula
 
 #check @Derivation.tax 
 
-  def used_for_tb_der_used_for_restr_tb_der {φ : ℒₜ.Sentence} {h : ¬contains_T φ} : (d : Derivation 𝐓𝐁 Γ (Δ ∪ {T(to_lt_term ⌜φ⌝) ⇔ φ})) → (no_t_to_l_sent φ) ∈ (build_relevant_phis_list d) := sorry
+  def used_for_tb_der_used_for_restr_tb_der {φ : ℒₜ.Sentence} {h : ¬contains_T φ} : (d : Derivation 𝐓𝐁 Γ (Δ ∪ {bf_empty_to_bf_N (T(to_lt_term ⌜φ⌝) ⇔ φ)})) → (no_t_to_l_sent φ h) ∈ (build_relevant_phis_list d)
+  | .tax 𝐓𝐁 Γ ((Δ ∪ {bf_empty_to_bf_N (T(to_lt_term ⌜φ⌝) ⇔ φ)})) spul4 spul5 spul6 spul7  => by
+    
+    sorry
+  | _ => sorry
 
   def in_tax_in_restr {A} {Γ Δ} {S} {h₁ : A ∈ TB.biconditional_set} {h₂ : Δ = S ∪ {bf_empty_to_bf_N A}} {h₃ : A ∈ 𝐓𝐁} : A ∈ (restricted_biconditional_set (Derivation.tax 𝐓𝐁 Γ Δ S A h₃ h₂)) := by
   simp[Set.mem_def]
