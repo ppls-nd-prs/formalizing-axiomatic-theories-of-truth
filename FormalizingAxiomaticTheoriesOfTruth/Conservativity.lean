@@ -224,13 +224,19 @@ namespace Conservativity
   | _, .imp ψ1 ψ2 => .imp (no_t_to_l_sent ψ1 (by simp at h; exact h.left)) (no_t_to_l_sent ψ2 (by simp at h; exact h.right))
   | _, .all ψ => .all (no_t_to_l_sent ψ (by assumption)) 
 
+-- (((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜falsum⌝)) ⟹ ⊥) ⟹ ⊥)
+
   noncomputable def build_relevant_phis_list {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence
-    | Derivation.tax φ _ _  =>
+    | Derivation.tax _ _ _ _ φ _ _  =>
       match φ with
-      | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) => 
-        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ (ts₁ 0) = to_lt_term ⌜f₁⌝ ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
+      | ((rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ rel L_T.Rel.t ts₂) ⟹ ⊥) ⟹ ⊥ => 
+        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
       | _ => []
-    | .lax _ => []
+    | .lax φ _ _ => 
+      match φ with
+      | ((rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ rel L_T.Rel.t ts₂) ⟹ ⊥) ⟹ ⊥ => 
+        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
+      | _ => []
     | .left_conjunction _ _ _ _ d₁ _ _ => build_relevant_phis_list d₁
     | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
     | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
@@ -253,11 +259,33 @@ namespace Conservativity
   open TB
   open PA.Induction
   inductive restricted_biconditional_set {Γ Δ} (d : Derivation 𝐓𝐁 Γ Δ) : ℒₜ.Theory where
-  | intro {ψ : ℒ.Sentence} (h : ψ ∈ (build_relevant_phis d)) : restricted_biconditional_set d (T(to_lt_term ⌜ψ⌝) ⇔ ψ)
+  | intro (ψ : ℒₜ.Sentence) (h₁ : ¬contains_T ψ) (h : (no_t_to_l_sent ψ h₁) ∈ (build_relevant_phis d)) : restricted_biconditional_set d (T(to_lt_term ⌜ψ⌝) ⇔ ψ)
 
   def restricted_tarski_biconditionals {Γ Δ} (d : Derivation 𝐓𝐁 Γ Δ) : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ (biconditional_set ∩ (restricted_biconditional_set d))
 
   notation "𝐓𝐁("d")" => restricted_tarski_biconditionals d
+
+#check @Derivation.tax 
+
+  def used_for_tb_der_used_for_restr_tb_der {φ : ℒₜ.Sentence} {h : ¬contains_T φ} : (d : Derivation 𝐓𝐁 Γ (Δ ∪ {T(to_lt_term ⌜φ⌝) ⇔ φ})) → (no_t_to_l_sent φ) ∈ (build_relevant_phis_list d) := sorry
+
+  def in_tax_in_restr {A} {Γ Δ} {S} {h₁ : A ∈ TB.biconditional_set} {h₂ : Δ = S ∪ {bf_empty_to_bf_N A}} {h₃ : A ∈ 𝐓𝐁} : A ∈ (restricted_biconditional_set (Derivation.tax 𝐓𝐁 Γ Δ S A h₃ h₂)) := by
+  simp[Set.mem_def]
+  cases h₁ with
+  | intro ψ h₄ => 
+    apply restricted_biconditional_set.intro ψ h₄ 
+    match ψ with
+    | .falsum => 
+      simp only [build_relevant_phis,List.dedup]
+      unfold build_relevant_phis_list
+      
+      
+      
+      sorry
+    | _ => sorry
+    
+    
+--  apply restricted_biconditional_set.intro 
 
 end Conservativity
 
@@ -564,7 +592,7 @@ namespace FirstOrder.Language.BoundedFormula
   def distr_t_sub_over_conjunction {A B : ℒₜ.Fml} {φ : ℒ.Fml} : (A ∧' B)/ₜ[φ] = (A/ₜ[φ]) ∧' (B/ₜ[φ]) := by
     trivial
   def distr_tsent_sub_over_iff {A B : ℒₜ.Sentence} {φ : ℒ.Formula (Fin 1)} : (A ⇔ B)/tsent[φ] = (A/tsent[φ] ⇔ B/tsent[φ]) := by trivial
-
+  
   noncomputable def to_restricted : (d : Derivation 𝐓𝐁 Γ Δ) → Derivation 𝐓𝐁(d) Γ Δ 
     | .tax A h₁ h₂ => by
       simp only [restricted_tarski_biconditionals,build_relevant_phis] 
@@ -579,26 +607,35 @@ namespace FirstOrder.Language.BoundedFormula
       apply Derivation.tax A
       simp [h₃]
       apply And.intro
+      -- left
+      simp[h₃] at h₁
+      exact h₁
+      -- right
       match A with
       | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) => 
-        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![L_T.numeral (sent_tonat f₁)] ∧ ts₁ = ts₂ 
+        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ 
         then 
-          simp only [Set.mem_def]
-          #check h.right.left
-          rw[←h.right.left,←h.right.right.right,h.right.right.left]
--- (φ : ℒ.Sentence) (h : ¬contains_T) : L_T.numeral (sent_tonat f₁) = TB.sentence_encoding f₁
-          rw[lt_encoding_tactics_eq f₁ h.right] 
-          apply TB.biconditional_set.intro (no_t_to_l_sent f₁ (h.left)) 
+          simp only [←h.right.left,←h.right.right.right,h.right.right.left]
+          apply restricted_biconditional_set.intro f₁ h.left 
+          match f₁ with
+          | .falsum => 
+            simp[build_relevant_phis,build_relevant_phis_list,no_t_to_l_sent,to_lt_term,LPA.numeral,L_T.Rel.t]
+            sorry
+          | _ => sorry
+        else 
+          simp[h₃] at h₁
           sorry
-        else sorry
-      | _ => sorry
+          --exact h₁          
+      | ψ => 
+        
+        sorry
       
 --      simp [h₁] give maxRecursionDepth error
       sorry
     | .left_conjunction A B S₁ S₂ d₁ h₁ h₂ => by
       apply to_restricted at d₁
-      simp only [h₂,restricted_tarski_biconditionals,build_relevant_phis,build_relevant_phis_list]
-      simp only [h₁,restricted_tarski_biconditionals,build_relevant_phis] at d₁
+      simp only [h₂,restricted_tarski_biconditionals,restricted_biconditional_set]
+      simp only [h₁,restricted_tarski_biconditionals] at d₁
       exact Calculus.left_conjunction_intro d₁
     | _ => sorry
 

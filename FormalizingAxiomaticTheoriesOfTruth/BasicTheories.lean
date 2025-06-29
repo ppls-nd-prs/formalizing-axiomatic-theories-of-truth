@@ -196,7 +196,7 @@ open SyntaxTheory
 open TermEncoding
 
   inductive biconditional_set : ℒₜ.Theory where
-  | intro (ψ : ℒ.Sentence) : biconditional_set (T(to_lt_term ⌜ψ⌝) ⇔ ψ)
+  | intro (ψ : ℒₜ.Sentence) (h : ¬contains_T ψ) : biconditional_set (T(to_lt_term ⌜ψ⌝) ⇔ ψ)
 
   def tarski_biconditionals : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ biconditional_set 
 
