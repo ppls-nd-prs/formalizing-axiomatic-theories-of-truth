@@ -103,8 +103,8 @@ namespace Calculus
 
   /-- G3c sequent calculus -/
   inductive Derivation : L.Theory → (Finset (Formula L ℕ)) → (Finset (Formula L ℕ)) → Type _ where
-    | tax (Th Γ Δ S) (A) (h₁ : A ∈ Th) (h₂ : Δ = S ∪ {bf_empty_to_bf_N A}) : Derivation Th Γ Δ
-    | lax {Th Γ Δ} (A) (h₁ : IsAtomic A) (h₁ : A ∈ Γ) (h₂ : Δ = S ∪ {A}) : Derivation Th Γ Δ
+    | tax {Th Γ Δ S} (A) (h₁ : A ∈ Th) (h₂ : Δ = S ∪ {bf_empty_to_bf_N A}) : Derivation Th Γ Δ
+    | lax {Th Γ Δ} (h : ∃f, f ∈ Γ ∧ f ∈ Δ) : Derivation Th Γ Δ
     | left_conjunction (A B S₁ S₂) {Th Γ Δ} (d₁ : Derivation Th S₁ Δ) (h₁ : S₁ = S₂ ∪ {A, B}) (h₂ : Γ = S₂ ∪ {A ∧' B}): Derivation Th Γ Δ
     | left_disjunction (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ Δ) (h₁ : S₁ = S₃ ∪ {A}) (d₂ : Derivation Th S₂ Δ) (h₂ : S₂ = S₃ ∪ {B}) (h₅ : Γ = S₃ ∪ {A ∨' B}) : Derivation Th Γ Δ
     | left_implication (A B S₁ S₂ S₃) {Th Γ Δ} (d₁ : Derivation Th S₁ S₂) (h₁ : S₂ = Δ ∪ {A}) (d₂ : Derivation Th S₃ Δ) (h₂ : S₃ = {B} ∪ S₁) (h₃ : Γ = S₁ ∪ {A ⟹ B}): Derivation Th Γ Δ
