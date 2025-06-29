@@ -229,14 +229,10 @@ namespace Conservativity
   noncomputable def build_relevant_phis_list {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence
     | Derivation.tax _ _ _ _ φ _ _  =>
       match φ with
-      | ((rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ rel L_T.Rel.t ts₂) ⟹ ⊥) ⟹ ⊥ => 
+      | ((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥) ⟹ ⊥ => 
         if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
       | _ => []
-    | .lax φ _ _ => 
-      match φ with
-      | ((rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ rel L_T.Rel.t ts₂) ⟹ ⊥) ⟹ ⊥ => 
-        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
-      | _ => []
+    | .lax φ _ _ => []
     | .left_conjunction _ _ _ _ d₁ _ _ => build_relevant_phis_list d₁
     | .left_disjunction _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
     | .left_implication _ _ _ _ _ d₁ _ d₂ _ _ => (build_relevant_phis_list d₁) ∪ (build_relevant_phis_list d₂)
@@ -277,7 +273,9 @@ namespace Conservativity
     match ψ with
     | .falsum => 
       simp only [build_relevant_phis,List.dedup]
+      simp [BoundedFormula.iff,BoundedFormula.instMin,BoundedFormula.not,sentence_tonat]
       unfold build_relevant_phis_list
+      
       
       
       
