@@ -576,6 +576,12 @@ namespace FirstOrder.Language.BoundedFormula
       sorry
     | _, _, _ => sorry
 
+/-
+match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜falsum⌝)) ⟹ ⊥) ⟹ ⊥, ⋯, ⋯ with
+| ((rel Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ rel Rel.t ts₂) ⟹ falsum) ⟹ falsum, h₁, h₂ =>
+ if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [no_t_to_l_sent f₁ ⋯] else []
+-/
+
   noncomputable def to_restricted : (d : Derivation 𝐓𝐁 Γ Δ) → Derivation 𝐓𝐁(d) Γ Δ
     | .tax A h₁ h₂ => by
       simp only [restricted_tarski_biconditionals,build_relevant_phis]
@@ -595,21 +601,19 @@ namespace FirstOrder.Language.BoundedFormula
       exact h₁
       -- right
       simp[h₃] at h₁
-      cases h₁ with
-      | intro a h =>
-      match T(to_lt_term ⌜a⌝) ⇔ a with
+      match A with
       | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) =>
         if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂
         then
+          simp only [←h.right.left,←h.right.right.right,h.right.right.left]
           apply restricted_biconditional_set.intro f₁ h.left
-          match (no_t_to_l_sent f₁ h.left) with
+          match f₁ with
           | .falsum =>
             simp[build_relevant_phis,build_relevant_phis_list,no_t_to_l_sent,to_lt_term,LPA.numeral,L_T.Rel.t]
             unfold build_relevant_phis_list
             sorry
           | _ => sorry
         else
-          simp[h₃] at h₁
           sorry
           --exact h₁
       | ψ =>
