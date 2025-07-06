@@ -201,8 +201,7 @@ namespace Conservativity
       simp[to_lt_bf]
       apply homomorph_replacement_sent φ₁
 
-  def general_t_replacement_form {φ : ℒ.Sentence}{ψ : ℒ.Formula (Fin 1)}: T((to_lt_term ⌜φ⌝))/tsent[ψ] = ψ/[⌜φ⌝] := by
-    simp only [to_lt_term,subs_fml_for_t_in_sent,Matrix.cons_val_zero,term_translation]
+  def general_t_replacement_form {φ : ℒ.Sentence}{ψ : ℒ.Formula (Fin 1)}: T(TB.sentence_encoding φ)/tsent[ψ] = ψ/[to_l_term (TB.sentence_encoding φ)] := by trivial
 
   def no_t_to_l_sent {n : ℕ} (φ : ℒₜ.BoundedFormula Empty n) (h : ¬ contains_T φ) : ℒ.BoundedFormula Empty n :=
   match n, φ with
@@ -228,8 +227,8 @@ open Classical
   noncomputable def build_relevant_phis_list {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence
     | Derivation.tax φ _ _  =>
       match φ with
-      | (((((.rel L_T.Rel.t ts₁ ⟹ f₁)⟹⊥)⟹((f₂ ⟹ .rel L_T.Rel.t ts₂)⟹⊥))⟹⊥)⟹⊥) =>
-        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
+      | (((((.rel L_T.Rel.t ts₁ ⟹ f₁)⟹⊥)⟹((f₂ ⟹ .rel L_T.Rel.t ts₂)⟹⊥))⟹⊥)⟹⊥) => 
+        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ (ts₁ 0) = L_T.numeral (sent_tonat f₁) ∧ (ts₂ 0) = L_T.numeral (sent_tonat f₂) then [(no_t_to_l_sent f₁ h.left)] else []
       | _ => []
     | .lax _ => []
     | .left_conjunction _ _ _ _ d₁ _ _ => build_relevant_phis_list d₁
@@ -252,11 +251,7 @@ open Classical
   open PAT
   open SyntaxTheory
   open TB
-  open PA.Induction
-  inductive restricted_biconditional_set {Γ Δ} (d : Derivation 𝐓𝐁 Γ Δ) : ℒₜ.Theory where
-  | intro (ψ : ℒₜ.Sentence) (h₁ : ¬contains_T ψ) (h : (no_t_to_l_sent ψ h₁) ∈ (build_relevant_phis d)) : restricted_biconditional_set d (T(to_lt_term ⌜ψ⌝) ⇔ ψ)
-
-  def restricted_tarski_biconditionals {Γ Δ} (d : Derivation 𝐓𝐁 Γ Δ) : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ (biconditional_set ∩ (restricted_biconditional_set d))
+  def restricted_tarski_biconditionals {Γ Δ} (d : Derivation 𝐓𝐁 Γ Δ) : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = T(⌜ψ⌝) ⇔ ψ ∧ ψ ∈ (build_relevant_phis d)}
 
   notation "𝐓𝐁("d")" => restricted_tarski_biconditionals d
 
@@ -272,7 +267,8 @@ namespace Conservativity
   open BoundedFormula
   open TermEncoding
   open Calculus
-
+  
+  notation "ℒ.enc" f => LPA.numeral (sent_tonat f)
   variable {L : Language}
 
   def up_fv {n : ℕ} : L.Term (Empty ⊕ Fin n) → L.Term ((Fin 1) ⊕ Fin n)
@@ -290,7 +286,7 @@ namespace Conservativity
 
   def build_tau : List ℒ.Sentence → ℒ.Formula (Fin 1)
     | .nil => ⊥
-    | .cons a lst => (((#0) =' (⌜a⌝)) ∧' (to_fin_1 a)) ∨' (build_tau lst)
+    | .cons a lst => (((#0) =' (ℒ.enc a)) ∧' (to_fin_1 a)) ∨' (build_tau lst)
   variable {L : Language}[∀i, DecidableEq (L.Functions i)][∀i, DecidableEq (L.Relations i)]
   def iff_from_sides {Th Γ Δ} (A B : L.Formula ℕ) (S₁ S₂ S₃ : Finset (L.Formula ℕ)) : Derivation Th Δ S₁ → S₁ = S₃ ∪ {A ⟹ B} → Derivation Th Δ S₂ → S₂ = S₃ ∪ {B ⟹ A} → Γ = (S₃ ∪ {A ⇔ B}) → Derivation Th Δ Γ := sorry
 
@@ -380,7 +376,7 @@ namespace Conservativity
   def tonat_inj (φ ψ : L.Formula ℕ) : φ ≠ ψ → (formula_tonat φ) ≠ (formula_tonat ψ) := by
   sorry
 
-  def sent_tonat_inj {φ ψ : L.Sentence} : φ ≠ ψ → (sentence_tonat φ) ≠ (sentence_tonat ψ) := by
+  def sent_tonat_inj {φ ψ : L.Sentence} : φ ≠ ψ → (sent_tonat φ) ≠ (sent_tonat ψ) := by  
   sorry
 
   noncomputable def extend_iff_right {A B a: L.Formula ℕ} : Derivation Th Γ (Δ ∪ {A ⇔ B}) → Derivation Th Γ (Δ ∪ {B ⟹ (A ∨' a)}) := by
@@ -436,7 +432,6 @@ namespace FirstOrder.Language.BoundedFormula
         apply Derivation.tax (∀' ∼(null =' S(&0)))
         simp[PA.peano_arithmetic]
         apply Or.intro_left
-        apply Or.intro_left
         apply PA.peano_axioms.first
         simp
         trivial
@@ -450,7 +445,7 @@ namespace FirstOrder.Language.BoundedFormula
       exact step3
     | _, _, _ => sorry
 
-  def pa_proves_left_to_right_when_phi_not_in_l {φ : ℒ.Sentence} : (l : List ℒ.Sentence) → φ ∉ l → Derivation 𝐏𝐀 Δ (Γ ∪ {bf_empty_to_bf_N ((build_tau l)/[⌜φ⌝] ⟹ φ)})
+  def pa_proves_left_to_right_when_phi_not_in_l {φ : ℒ.Sentence} : (l : List ℒ.Sentence) → φ ∉ l → Derivation 𝐏𝐀 Δ (Γ ∪ {bf_empty_to_bf_N ((build_tau l)/[ℒ.enc φ] ⟹ φ)})
     | .nil, h₁ => by
       simp[build_tau,bf_empty_to_bf_N]
       apply Calculus.right_implication_intro
@@ -477,7 +472,7 @@ namespace FirstOrder.Language.BoundedFormula
       apply Calculus.right_implication_elim
       apply pa_proves_left_to_right_when_phi_not_in_l lst h₁.right
 
-  def if_pos {lst : List (ℒ.Sentence)} {a φ : ℒ.Sentence}{S : Finset (ℒ.Formula ℕ)} (h₁ : φ = a) (h₂ : Δ = S ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[⌜φ⌝] ⇔ φ)}) (h₄ : ¬ a ∈ lst) : Derivation 𝐏𝐀 Γ Δ := by
+  def if_pos {lst : List (ℒ.Sentence)} {a φ : ℒ.Sentence}{S : Finset (ℒ.Formula ℕ)} (h₁ : φ = a) (h₂ : Δ = S ∪ {bf_empty_to_bf_N (build_tau (a :: lst)/[ℒ.enc φ] ⇔ φ)}) (h₄ : ¬ a ∈ lst) : Derivation 𝐏𝐀 Γ Δ := by 
     simp[h₂,h₁,build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr]
     apply Calculus.iff_intro
     --left to right
@@ -499,12 +494,12 @@ namespace FirstOrder.Language.BoundedFormula
     apply Calculus.right_conjunction_intro
     -- d₁
     simp[bf_empty_to_bf_N]
-    apply Calculus.iax (sent_term_to_formula_term (⌜a⌝)) _
+    apply Calculus.iax (sent_term_to_formula_term (ℒ.enc a)) _
     simp[Term.bdEqual]
     -- d₂
     apply Derivation.lax (Exists.intro (bf_empty_to_bf_N a) (And.intro (by simp) (by simp)))
-
-  noncomputable def pa_proves_all_tau_disq {φ : ℒ.Sentence} {S : Finset (ℒ.Formula ℕ)} : (l : List ℒ.Sentence) → {h : l.Nodup} → φ ∈ l → Γ = S ∪ {bf_empty_to_bf_N ((build_tau l)/[⌜φ⌝] ⇔ φ)} → Derivation 𝐏𝐀 Δ Γ
+    
+  noncomputable def pa_proves_all_tau_disq {φ : ℒ.Sentence} {S : Finset (ℒ.Formula ℕ)} : (l : List ℒ.Sentence) → {h : l.Nodup} → φ ∈ l → Γ = S ∪ {bf_empty_to_bf_N ((build_tau l)/[ℒ.enc φ] ⇔ φ)} → Derivation 𝐏𝐀 Δ Γ
     | .nil, h, h₁, _ => by
       simp at h₁
     | .cons a lst, h, h₁, h₂ => by
@@ -516,7 +511,7 @@ namespace FirstOrder.Language.BoundedFormula
 
       -- case neg
       simp[h₃] at h₁
-      have ih : Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N ((build_tau lst)/[⌜φ⌝] ⇔ φ)}) := by
+      have ih : Derivation 𝐏𝐀 Δ (S ∪ {bf_empty_to_bf_N ((build_tau lst)/[ℒ.enc φ] ⇔ φ)}) := by
         apply pa_proves_all_tau_disq lst h₁ rfl
         apply List.Nodup.of_cons h
 
@@ -541,8 +536,8 @@ namespace FirstOrder.Language.BoundedFormula
       exact Calculus.right_implication_elim ih
       -- right to left
       simp[build_tau,subst_disj_distr,subst_conj_distr,to_N_disj_distr,to_N_conj_distr,Term.bdEqual,numeral_no_subst,forall_sent_trans_subst_self,to_N_iff_distr] at ih
-
-      have step1 : Derivation 𝐏𝐀 Δ (S ∪ {(bf_empty_to_bf_N φ) ⟹ (bf_empty_to_bf_N (build_tau lst/[⌜φ⌝])) ∨' (bf_empty_to_bf_N (BoundedFormula.equal (⌜φ⌝) (⌜a⌝))) ∧' (bf_empty_to_bf_N a)}) := by
+          
+      have step1 : Derivation 𝐏𝐀 Δ (S ∪ {(bf_empty_to_bf_N φ) ⟹ (bf_empty_to_bf_N (build_tau lst/[ℒ.enc φ])) ∨' (bf_empty_to_bf_N (BoundedFormula.equal (ℒ.enc φ) (ℒ.enc a))) ∧' (bf_empty_to_bf_N a)}) := by
         exact extend_iff_right ih
 
       apply Calculus.right_implication_intro
@@ -566,17 +561,6 @@ namespace FirstOrder.Language.BoundedFormula
     trivial
   def distr_tsent_sub_over_iff {A B : ℒₜ.Sentence} {φ : ℒ.Formula (Fin 1)} : (A ⇔ B)/tsent[φ] = (A/tsent[φ] ⇔ B/tsent[φ]) := by trivial
 
-  def forall_in_restr {Δ S Γ} : (a : ℒₜ.Sentence) → (h₁ : T(to_lt_term ⌜a⌝) ⇔ a ∈ 𝐓𝐁) → (h₂ : Δ = S ∪ {bf_empty_to_bf_N (T(to_lt_term ⌜a⌝) ⇔ a)}) → T(to_lt_term ⌜a⌝) ⇔ a ∈ restricted_biconditional_set (@Derivation.tax ℒₜ _ _ _ 𝐓𝐁 Γ Δ S (T(to_lt_term ⌜a⌝) ⇔ a) h₁ h₂)
-    | .falsum, _, _ => by
-      apply restricted_biconditional_set.intro (.falsum) (by trivial)
-      simp[build_relevant_phis,build_relevant_phis_list,no_t_to_l_sent]
-      unfold build_relevant_phis_list
-      
-
-
-      sorry
-    | _, _, _ => sorry
-
 /-
 match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜falsum⌝)) ⟹ ⊥) ⟹ ⊥, ⋯, ⋯ with
 | ((rel Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ rel Rel.t ts₂) ⟹ falsum) ⟹ falsum, h₁, h₂ =>
@@ -594,39 +578,13 @@ match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜f
       apply Or.intro_left _ h₃
       exact h₂
       -- neg
-      apply Derivation.tax A
-      simp [h₃]
-      apply And.intro
-      -- left
-      simp[h₃] at h₁
-      exact h₁
-      -- right
-      simp[h₃] at h₁
-      match A with
-      | (((((.rel L_T.Rel.t ts₁ ⟹ f₁)⟹⊥)⟹((f₂ ⟹ .rel L_T.Rel.t ts₂)⟹⊥))⟹⊥)⟹⊥) =>
-        if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂
-        then
-          simp only [←h.right.left,←h.right.right.right,h.right.right.left]
-          
-          apply restricted_biconditional_set.intro f₁ h.left _
-          match f₁ with
-          | .falsum =>
-            simp[build_relevant_phis,build_relevant_phis_list,no_t_to_l_sent,to_lt_term,LPA.numeral,L_T.Rel.t]
-            
-
-            sorry
-          | _ => sorry
-        else
-          sorry
-          --exact h₁
-      | ψ =>
-
-        sorry
-      sorry
+      simp [h₃] at h₁
+      apply Exists.choose_spec at h₁
+--      simp [h₁] give maxRecursionDepth error
       sorry
     | .left_conjunction A B S₁ S₂ d₁ h₁ h₂ => by
       apply to_restricted at d₁
-      simp only [h₂,restricted_tarski_biconditionals,restricted_biconditional_set]
+      simp only [h₂,restricted_tarski_biconditionals]
       simp only [h₁,restricted_tarski_biconditionals] at d₁
 --      exact Calculus.left_conjunction_intro d₁
       sorry
@@ -655,13 +613,12 @@ match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜f
       rw[numeral_language_independent]
       simp only [Matrix.vec_single_eq_const]
 
-/-
-  def encoding_typing {φ} : to_l_term (TB.sentence_encoding φ) = ⌜φ⌝ := by
+  def encoding_typing {φ} : to_l_term (TB.sentence_encoding φ) = ℒ.enc φ := by 
     simp[to_l_term,TB.sentence_encoding,LPA.numeral,sent_tonat]
     rw[numeral_language_independent]
--/
 
-  lemma tb_replacement {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {to_lt_bf φ}} : 𝐓𝐁(d)/ₜₛ[build_tau (build_relevant_phis d)] = (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) := by
+
+  lemma tb_replacement {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {to_lt_bf φ}} : 𝐓𝐁(d)/ₜₛ[build_tau (build_relevant_phis d)] = (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) := by
     apply Set.eq_of_subset_of_subset
     -- tb sub pa+
     rw[Set.subset_def]
@@ -701,7 +658,7 @@ match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜f
     sorry
 -/
 
-  noncomputable def pa_plus_der {φ : ℒ.Fml} : (d₁ : Derivation 𝐓𝐁 {} {to_lt_bf φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d₁))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d₁)}) {} {φ} := by
+  noncomputable def pa_plus_der {φ : ℒ.Fml} : (d₁ : Derivation 𝐓𝐁 {} {to_lt_bf φ}) →  Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d₁))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d₁)}) {} {φ} := by
   intro d₂
   apply pa_plus_der_general at d₂
   rw[in_finset] at d₂
@@ -710,7 +667,7 @@ match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜f
   exact d₂
   exact φ
 
-  noncomputable def pa_plus_to_pa {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {to_lt_bf φ}} {Γ Δ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[⌜ψ⌝]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ Δ) → (Derivation 𝐏𝐀 Γ Δ)
+  noncomputable def pa_plus_to_pa {φ : ℒ.Fml} {d : Derivation 𝐓𝐁 {} {to_lt_bf φ}} {Γ Δ : Finset ℒ.Fml} : (Derivation (𝐏𝐀 ∪ {(((build_tau (build_relevant_phis d))/[ℒ.enc ψ]) ⇔ ψ) | ψ ∈ (build_relevant_phis d)}) Γ Δ) → (Derivation 𝐏𝐀 Γ Δ)
     | Derivation.tax φ h₁ h₂ => by
       by_cases h₃ : φ ∈ 𝐏𝐀
       -- pos

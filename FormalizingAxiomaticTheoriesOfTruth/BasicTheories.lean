@@ -11,6 +11,9 @@ open LPA
 open BoundedFormula
 open TermEncoding
 
+scoped notation "⌜"t"⌝" => LPA.numeral (sentence_term_tonat t)
+scoped notation "⌜"φ"⌝" => LPA.numeral (formula_tonat φ)
+scoped notation "⌜"t"⌝" => LPA.numeral (term_tonat t)
 variable {α : Type*}
 def neg_repres (φ : Formula ℒ ℕ) : ℒ.Sentence :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
@@ -159,16 +162,12 @@ namespace PA
   example : φ2/bv[t2] = ψ2 := by
     simp[φ2,t2,ψ2,LPA.null,Term.bdEqual,Matrix.empty_eq]
 
-  inductive l_induction_set : ℒ.Theory where
-    | intro {ψ : ℒ.Formula (Fin 1)} : l_induction_set ((ψ/[LPA.null] ∧' (∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]))) ⟹ ∀'ψ/bv[&0])
-
-  inductive lt_induction_set : ℒₜ.Theory where
-    | intro {ψ : ℒₜ.Formula (Fin 1)} : lt_induction_set ((ψ/[L_T.null] ∧' (∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]))) ⟹ ∀'ψ/bv[&0])
+  
 
   end Induction
 
   open Induction
-  def peano_arithmetic : ℒ.Theory := peano_axioms ∪ l_induction_set  ∪ syntax_theory_l
+  def peano_arithmetic : ℒ.Theory := peano_axioms ∪ {φ : ℒ.Sentence | ∃ψ : ℒ.Formula (Fin 1), φ = (ψ/[LPA.null] ∧' (∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]))) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory_l
   
   notation "𝐏𝐀" => peano_arithmetic
 
@@ -181,7 +180,7 @@ open Languages
   open SyntaxTheory
   open BoundedFormula
   open Induction
-  def pat : ℒₜ.Theory := peano_axioms ∪ lt_induction_set ∪ syntax_theory
+  def pat : ℒₜ.Theory := peano_axioms ∪ {φ : ℒₜ.Sentence | ∃ψ : ℒₜ.Formula (Fin 1), φ = ψ/[L_T.null] ∧' ∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory
 
   notation "𝐏𝐀𝐓" => pat
 end PAT
@@ -195,10 +194,9 @@ open PAT
 open SyntaxTheory
 open TermEncoding
 
-  inductive biconditional_set : ℒₜ.Theory where
-  | intro (ψ : ℒₜ.Sentence) (h : ¬contains_T ψ) : biconditional_set (T(to_lt_term ⌜ψ⌝) ⇔ ψ)
-
-  def tarski_biconditionals : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ biconditional_set 
+  def sentence_encoding (s : ℒ.Sentence) : ℒₜ.Term (Empty ⊕ Fin 0) := L_T.numeral (Encodable.encodeList (BoundedFormula.listEncode s))
+  scoped notation "⌜"φ"⌝" => sentence_encoding φ 
+  def tarski_biconditionals : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = T(⌜ψ⌝) ⇔ ψ} 
 
 notation "𝐓𝐁" => tarski_biconditionals
 end TB
