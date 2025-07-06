@@ -4,7 +4,7 @@ Section \ref{subsec:notation} will first provide some notes on notation. Then, S
 \section{Notation}\label{subsec:notation}
 We aim to make this exposition intuitive for those not specialized in type theory. Hence, we will present the formal specification of the concepts in such a way that they are on the one hand as suggestive for their Lean implementation as possible while at the same time being stated in set theoretic terms rather than type theoretic ones. This made possible by an intuitive correspondence between types and sets (see e.g. \cite{nederpelt:1994}).
 
-Moreover, as Lean has additional functionalities on top of its type theoretic basis to allow for efficient programming and proof verification, some limitations arise preventing the code from following exactly the common conceptualizations of set theoretic mathematics. The most notable of these deviations is that the symbol \lstinline $0$ in Lean has a reserved meaning, namely \lstinline $Nat.zero$, an inhabitant of the primitive type \lstinline $Nat$, describing the natural numbers. As we shall also define a language involving the concept of zero, we will hence name it \lstinline $null$.
+Moreover, as Lean has additional functionalities on top of its type theoretic basis to allow for efficient programming and proof verification, some limitations arise preventing the code from following exactly the common conceptualizations of set theoretic mathematics. The most notable of these deviations is that the symbol \texttt{0} in Lean has a reserved meaning, namely \texttt{Nat.zero}, an inhabitant of the primitive type \texttt{Nat}, describing the natural numbers. As we shall also define a language involving the concept of zero, we will hence name it \texttt{null}.
 
 To allow for efficient automatic formulas manipulation, variables bound by a quantifier are associated with De Bruijn \cite{bruijn:1972} indices in \texttt{mathlib}'s implementation of first-order formulas. These indices are natural numbers that correspond to the level-distance between the variable and the quantifier that binds it. Take as an example the regular first-order formula 
 \begin{align}
@@ -19,15 +19,18 @@ Troughout this chapter we will use this formula as illustration to the concepts 
 \section{Language}\label{subsec:language}
 The ordinary definition of a first-order language $\mathcal{L}$ proceeds from the specification of a signature $\mathcal{S}$ and then an inductive definition of the way formulas can be build with elements from $\mathcal{S}$, the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature.
 
-\begin{definition}[first-order language]\label{def:fol}
-    A language is a structure $\langle(F_i)_{i\in \mathbb{N}}, (R_i)_{i\in \mathbb{N}})\rangle$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
+\begin{definition}[First-order Language]\label{def:FO-Language}
+\lean{FirstOrder.Language}\leanok
+  A language is a structure $\langle(F_i)_{i\in \mathbb{N}}, (R_i)_{i\in \mathbb{N}})\rangle$, where $F_i$ is a set of $i$-ary function symbols and $R_i$ a set of $i$-ary predicate symbols.
 \end{definition}
 
 Note that this defines a language as consisting only of functions and relations, whereas in philosophical logic it is more conventional that a language also contains a set of constants, like in Negri \& Von Plato \cite{negri:2001}. Observe, however, that constants can be modeled as $0$-ary functions, so this definition of a language does not limit expressive power. By providing concrete sets of function and relation symbols to $F_i$ and $R_i$ we obtain a specific language. So, the language in which our formula \ref{fml:db} is stated can be defined as $\mathcal{L}_{ex} = \langle (F_{ex,i})_{i \in \mathbb{N}}, (R_{ex,i})_{i \in \mathbb{N}} \rangle$, where $(F_{ex,i})_{i \in \mathbb{N}}$ is defined by $F_{ex,0} = \{a\}$ and $F_{ex,1} = \{f\}$ and $(R_{ex,i})_{i \in \mathbb{N}}$ is defined by $R_{ex,1} = \{P, R\}$.
 
 Now, we can use these specifications in \texttt{mathlib}'s implementation of \texttt{Term}s and \texttt{BoundedFormula}s.
 
-\begin{definition}[Term]\label{def:term}
+\begin{definition}[First-order Term]\label{def:FO-Term}
+  \lean{FirstOrder.Language.Term}\leanok
+  \uses{def:FO-Language}
     Let $\mathcal{L} = \langle F, R \rangle$ be a first-order language and $\alpha$ a set used to index free variables. Then the set of terms with respect to $\mathcal{L}$ and $\alpha$ denoted $\mathcal{T}(\mathcal{L},\alpha)$ is the smallest set such that
         \begin{enumerate}
             \item $\alpha \subseteq \mathcal{T}(\mathcal{L},\alpha)$ and
@@ -37,7 +40,9 @@ Now, we can use these specifications in \texttt{mathlib}'s implementation of \te
 
 The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormula}.
 
-\begin{definition}[BoundedFormula]\label{def:bf}
+\begin{definition}[First-order BoundedFormula]\label{def:FO-BoundedFormula}
+  \lean{FirstOrder.Language.BoundedFormula}\leanok
+  \uses{def:FO-Language, def:FO-Term}
     Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language, $\alpha$ a set indexing free variables, $n$ the intended number of variables bound by a quantifier and $\mathcal{T}(\mathcal{L}, \alpha \cup \{1,...,n\})$ a set of terms. Then, the set of bounded formulas with respect to these variables $\mathcal{B}(\mathcal{L},\alpha,n)$ is the smallest set such that
     \begin{enumerate}
         \item $\bot \in \mathcal{B}(\mathcal{L},\alpha,n)$,
@@ -48,53 +53,66 @@ The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormul
     \end{enumerate}
 \end{definition}
 
-Notice that these definitions differ in various ways from classial De Bruijn notation \cite{bruijn:1972}. Firstly, the disjoint union operator in Definition \ref{def:bf}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{Z}$. The reason for such an implementation is that now we can \textcolor{red}{[not sure about this:] control the amount of bound variables we have at our disposal, given the amount of quantifiers we will still add when constructing our formula,} without having anything to do with the indexing of the free variables, which may be any set for formulas. Hence follows the definition of a \texttt{Formula} as a \texttt{BoundedFormula} that does not allow for the appending another $\forall$.
+Notice that these definitions differ in various ways from classial De Bruijn notation \cite{bruijn:1972}. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{Z}$. The reason for such an implementation is that now we can distinguish free variables from bound variable. In that way we enable adding exactly as many distinct variables in sub-formulas of sentences as the amount of quantifiers removed in Definition \ref{def:FO-BoundedFormula}'s recursive step v. Furthermore, free variables can now come from any set, rather than $\mathbb{Z}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P((0,1)) \rightarrow R(f((1,1)))) \to (R((x_0,0)) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
 
-\begin{definition}[Formula]\label{def:formula}
+Formulas and sentences can then conveniently be defined as a \texttt{BoundedFormula} with all its bound variables bound and a \texttt{BoundedFormula} that is a formula and does not contain free variables respectively.
+
+\begin{definition}[First-order Formula]\label{def:FO-Formula}
+  \lean{FirstOrder.Language.Formula}\leanok
+  \uses{def:FO-Language, def:FO-BoundedFormula}
     Let $\mathcal{L}$ be a first-order language and $\alpha$ a set indexing variables. Then the set of formulas with respect to $\mathcal{L}$ and $\alpha$ denoted $\mathcal{F}(\mathcal{L},\alpha)$ is defined as the set of bounded formulas $\mathcal{B}(\mathcal{L},\alpha,0)$.
 \end{definition}
 
 A \texttt{Sentence} is then defined as a \texttt{Formula} that has no free variables.
 
-\begin{definition}[Sentence]\label{def:sentence}
+\begin{definition}[First-order Sentence]\label{def:FO-Sentence}
+  \lean{FirstOrder.Language.Sentence}\leanok
+  \uses{def:FO-Language, def:FO-Formula}
     Let $\mathcal{L}$ be a first-order language. Then the set of sentences with respect to $\mathcal{L}$ denoted $\mathcal{S}(\mathcal{L})$ is defined as the set of formulas $\mathcal{F}(\mathcal{L},\emptyset)$.
 \end{definition}
-
-
-
-Notice that this definition's second and third clause take the disjoint union of $\alpha$ and ${0,...,n-1}$. This guarantees that variables that are intended as free variables are always a different element than variables that are intended as variables to be bound by a quantifier. Hence, this notational nuances requires a slight rewrite of our example formula \ref{fml:db} to $\forall(\forall(P((0,1)) \rightarrow R(f((1,1)))) \to (R((1,0)) \to P(a)))$. Notice that in De Bruijn notation the free variable $1$ derives the fact that it is a free variable from there not being a quantifier at a level one spot above it.  
-
-Now consider formula \ref{fml:db} again. We can now proof that this formula in is $\mathcal{B}(\mathcal{L}_{ex},\{2\},0)$ in the following way.
-\begin{lemma} $\forall(\forall(P(0) \rightarrow R(f(1))) \to (R(1) \to P(a))) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},0)$.
-\end{lemma}
-\begin{proof}
-  We first prove that $\forall(P(0) \rightarrow R(f(1))) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},1)$. We have that $(0,1), (1,1) \in \{2\} \sqcup \{0,1\}$, by definition of $\sqcup$. Hence, by Definition \ref{def:term}.1, we have that $0, 1 \in \mathcal{T}(\mathcal{L}_{ex}, \{2\} \cup \{0,1\})$. Then, since $f \in F_{ex,1}$ and $1 \in \mathcal{T}(\mathcal{L}_{ex}, \{2\} \cup \{0,1\})$, we have by Definition \ref{def:term}.2 that $f(1) \in \mathcal{T}(\mathcal{L}_{ex}, \{2\} \cup \{0,1\})$. Furthermore, since we have $P, R \in R_{ex,1}$ and $0, f(1) \in \mathcal{T}(\mathcal{L}_{ex}, \{2\} \cup \{0,1\})$, we have by Definition \ref{def:bf}.3 that $P(0), R(f(1)) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},2)$. Then, by Definition \ref{def:bf}.4, we have that $(P(0) \rightarrow R(f(1))) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},2)$. Hence, by Definition \ref{def:bf}.5, we have that $\forall(P(0) \rightarrow R(f(1))) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},1)$.
-
-  Next, we prove that $(R(1) \to P(a)) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},1)$. We have that $2 \in \{2\} \cup \{0\}$. Hence, by Definition \ref{def:term}.1, we have that $2 \in \mathcal{T}(\mathcal{L}_{ex},\{2\},1)$. Furthermore, as $a \in F_{ex,0}$, we have have by Definition \ref{def:term}.2 that $a \in \mathcal{T}(\mathcal{L}_{ex},\{2\},1)$. Then, since $P, R \in R_{ex,1}$ and $2, a \in \mathcal{T}(\mathcal{L}_{ex},\{2\},1)$, we get by Definition \ref{def:bf}.3 that $P(2), R(a) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},1)$. Hence also, by Definition \ref{def:bf}.4, $(P(2) \to R(a)) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},1)$.
-
-  Now, from $\forall(P(0) \rightarrow R(f(1))) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},1)$ and $(R(1) \to P(a)) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},1)$, we get by Definition \ref{def:bf}.4 that $(\forall(P(0) \rightarrow R(f(1))) \to (R(1) \to P(a))) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},1)$. Then, by Definition \ref{def:bf}.5 we have that $\forall(\forall(P(0) \rightarrow R(f(1))) \to (R(1) \to P(a))) \in \mathcal{B}(\mathcal{L}_{ex},\{2\},0)$, which is what we wanted to show. 
-\end{proof}
-
-Observe that this implementation differs from the standard De Bruijn notation for formulas in two significant ways. Firstly, as we wanted $2$ to be a free variable, we have had to include it in the set that indexes the free variables. However, we could have chosen a any element that did not coincide with $0$ or $1$ to represent this free variable. This differs from standard De Bruijn indexing as described in \cite{bruijn:1972}, where  and the indexing set could be arbitrarily large, as long as the required variable is in there. This is more abstract than the standard De Bruijn treatment, which
 
 \section{Coding}\label{subsec:coding}
 All well-formed formulas of some first-order language are encodable as a natural number, a conventional example of this being Gödel encoding, but as \texttt{mathlib} does not yet feature Gödel encoding we use other native functions that have the same properties. Both \texttt{mathlib}'s namespace \texttt{Term} and \texttt{BoundedFormula} have a functions \texttt{listEncode} that encode \texttt{Term}s and \texttt{BoundedFormula}s as \texttt{List}s respectively. These lists can then be encoded as natural numbers using \texttt{mathlib}'s \texttt{Encodable.encodeList}. To encode some language $\mathcal{L}$ into a natural number these functions require encodings for $\mathcal{L}$'s function and relation symbols. Furthermore, they also require a set for indexing variables that is proved to be encodable and since \texttt{mathlib} natively has a proof of the encodability of natural numbers, we use from here on out $\mathbb{N}$ to index our free variables. Hence we obtain our definitions of \texttt{term\_tonat} and \texttt{formula\_tonat}.
 
-\begin{definition}[term to nat encoding]\label{def:coding-ttn}
+\begin{definition}[Encoding terms from formulas with free variables]\label{def:FV-Term-Enc}
+  \lean{Languages.TermEncoding.term_tonat}\leanok
+  \uses{def:FO-Language,def:FO-Term}
     Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number. Then the encoding function $\texttt{term\_tonat} : \mathcal{T}(\mathcal{L},\mathbb{N} \cup \{1,...,n\}) \to \mathbb{N}$ is defined as 
     \begin{align*}  
         \texttt{term\_tonat}(t) = \texttt{Encodable.encodeList}(\texttt{Term.listEncode}(t)).
     \end{align*}
 \end{definition}
 
-\begin{definition}[boundedformula to nat encoding]\label{def:coding-ttn}
+\begin{definition}[Encoding terms from sentences]\label{def:S-Term-Enc}
+  \lean{Languages.TermEncoding.sentence_term_tonat}\leanok
+  \uses{def:FO-Language,def:FO-Term}
+    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number. Then the encoding function $\texttt{term\_tonat} : \mathcal{T}(\mathcal{L},Empty \cup \{1,...,n\}) \to \mathbb{N}$ is defined as 
+    \begin{align*}  
+        \texttt{term\_tonat}(t) = \texttt{Encodable.encodeList}(\texttt{Term.listEncode}(t)).
+    \end{align*}
+\end{definition}
+
+\begin{definition}[BoundedFormula with Free Variables to $\mathbb{N}$ Encoding]\label{def:FV-Formula-to-N}
+  \lean{Languages.TermEncoding.formula_tonat}\leanok
+  \uses{def:FO-Language,def:FO-BoundedFormula}
     Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number and that for all $i \in \mathbb{N}$ all $r \in R_i$ have a unique associated natural number. Then the encoding function $\texttt{formula\_tonat} : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathbb{N}$ is defined as 
     \begin{align*}
         \texttt{formula\_tonat}(\varphi) = \texttt{Encodable.encodeList}(\texttt{BoundedFormula.listEncode}(\varphi)).
     \end{align*}
 \end{definition}
 
-Observe that encoding \texttt{Formula}s and \texttt{Sentence}s are both specific instances of encoding \texttt{BoundedFormula}s.
+\begin{definition}[Sentence to $\mathbb{N}$ Encoding]\label{def:S-To-N}
+  \lean{Languages.TermEncoding.sent_tonat}\leanok
+  \uses{def:FO-Language, def:FO-BoundedFormula}
+    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number and that for all $i \in \mathbb{N}$ all $r \in R_i$ have a unique associated natural number. Then the encoding function $\texttt{formula\_tonat} : \mathcal{B}(\mathcal{L},Empty,0) \to \mathbb{N}$ is defined as 
+    \begin{align*}
+        \texttt{sent\_tonat}(\varphi) = \texttt{Encodable.encodeList}(\texttt{BoundedFormula.listEncode}(\varphi)).
+    \end{align*}
+\end{definition}
+
+
+--------------------------------------------ff tot hier----------------------------------------
+
 
 \section{$\mathcal{L}$ and $\mathcal{L}_T$}\label{subsec:lpa-lt}
 Halbach defines the language $\mathcal{L}$ as the language of \texttt{PA}. As ``Peano arithmetic contains the defining equations for zero, successor, addition, and multiplication'' \cite[p. 30]{halbach:2011}, $\mathcal{L}$ hence needs at least functions symbols for zero (0-ary), successor (1-ary), addition (2-ary), and multiplication (2-ary). He then states ``[a]dding a new unary predicate symbol $T$ to the language $\mathcal{L}$ of arithmetic yields the language $\mathcal{L}_T$,'' \cite[p. 31]{halbach:2011}.
@@ -125,7 +143,7 @@ Hence, we have identified all the necessary function and relations symbols for o
     Let $\mathcal{L} = \langle F, (R_i)_{i \in \mathbb{N}} \rangle$ be the language of Peano arithmetic including syntactic functions symbols and predicates. Then, the language $\mathcal{L}_T$ is the first-order language $\mathcal{L}_T = \langle F, (R_{T,i})_{i \in \mathbb{N}} \rangle$, where $R_{T,1} = R_1 \cup \{T\}$.
 \end{definition}
 
-As noted in Section \ref{subsec:coding} for the encoding functions to work an explicit encoding of $\mathcal{L}$ and $\mathcal{L}_T$'s function and relation symbols has to be given. However, as Halbach leaves the specific encodings implicit, we will for here do to. The Lean implementation of these encodings will be discussed in Chapter \ref{sec:verification}.
+As noted in Section \ref{subsec:coding} for the encoding functions to work an explicit encoding of $\mathcal{L}$ and $\mathcal{L}_T$'s function and relation symbols has to be given. However, as Halbach leaves the specific encodings implicit, we will for here do to.
 
 \section{Axiomatization}\label{subsec:axiomatization}
 Once we have a formal language and specification of its formulas, we can define the theories we want to reason about. In \texttt{mathlib} theories are indexed by their defining axioms, so constructing a theory is equivalent to specifying its defining axioms. 
