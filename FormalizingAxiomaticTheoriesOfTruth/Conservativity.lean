@@ -224,10 +224,11 @@ namespace Conservativity
   | _, .imp ψ1 ψ2 => .imp (no_t_to_l_sent ψ1 (by simp at h; exact h.left)) (no_t_to_l_sent ψ2 (by simp at h; exact h.right))
   | _, .all ψ => .all (no_t_to_l_sent ψ (by assumption))
 
-  def build_relevant_phis_list {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence
+open Classical
+  noncomputable def build_relevant_phis_list {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence
     | Derivation.tax φ _ _  =>
       match φ with
-      | ((rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ (f₂ ⟹ rel L_T.Rel.t ts₂) ⟹ ⊥) ⟹ ⊥ =>
+      | (((((.rel L_T.Rel.t ts₁ ⟹ f₁)⟹⊥)⟹((f₂ ⟹ .rel L_T.Rel.t ts₂)⟹⊥))⟹⊥)⟹⊥) =>
         if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂ then [(no_t_to_l_sent f₁ h.left)] else []
       | _ => []
     | .lax _ => []
@@ -243,7 +244,7 @@ namespace Conservativity
     | .right_forall _ _ _ _ d₁ _ => build_relevant_phis_list d₁
     | .right_exists _ _ _ _ _ _ d₁ _ _ => build_relevant_phis_list d₁
 
-  def build_relevant_phis {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence := fun d => (build_relevant_phis_list d).dedup
+ noncomputable def build_relevant_phis {Γ Δ : Finset ℒₜ.Fml} : Derivation 𝐓𝐁 Γ Δ → List ℒ.Sentence := fun d => (build_relevant_phis_list d).dedup
 
   open LPA
   open L_T
@@ -570,7 +571,7 @@ namespace FirstOrder.Language.BoundedFormula
       apply restricted_biconditional_set.intro (.falsum) (by trivial)
       simp[build_relevant_phis,build_relevant_phis_list,no_t_to_l_sent]
       unfold build_relevant_phis_list
-
+      
 
 
       sorry
@@ -602,15 +603,17 @@ match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜f
       -- right
       simp[h₃] at h₁
       match A with
-      | (((.rel L_T.Rel.t ts₁ ⟹ f₁) ⟹ ((f₂ ⟹ .rel L_T.Rel.t ts₂) ⟹ ⊥)) ⟹ ⊥) =>
+      | (((((.rel L_T.Rel.t ts₁ ⟹ f₁)⟹⊥)⟹((f₂ ⟹ .rel L_T.Rel.t ts₂)⟹⊥))⟹⊥)⟹⊥) =>
         if h : ¬contains_T f₁ ∧ f₁ = f₂ ∧ ts₁ = ![to_lt_term ⌜f₁⌝] ∧ ts₁ = ts₂
         then
           simp only [←h.right.left,←h.right.right.right,h.right.right.left]
-          apply restricted_biconditional_set.intro f₁ h.left
+          
+          apply restricted_biconditional_set.intro f₁ h.left _
           match f₁ with
           | .falsum =>
             simp[build_relevant_phis,build_relevant_phis_list,no_t_to_l_sent,to_lt_term,LPA.numeral,L_T.Rel.t]
-            unfold build_relevant_phis_list
+            
+
             sorry
           | _ => sorry
         else
