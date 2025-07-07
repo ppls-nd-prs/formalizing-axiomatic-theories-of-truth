@@ -42,7 +42,7 @@ The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormul
 
 \begin{definition}[First-order BoundedFormula]\label{def:FO-BoundedFormula}
   \lean{FirstOrder.Language.BoundedFormula}\leanok
-  \uses{def:FO-Language, def:FO-Term}
+  \uses{def:FO-Language, def:FO-Term, def:Disjoint-Union}
     Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language, $\alpha$ a set indexing free variables, $n$ the intended number of variables bound by a quantifier and $\mathcal{T}(\mathcal{L}, \alpha \cup \{1,...,n\})$ a set of terms. Then, the set of bounded formulas with respect to these variables $\mathcal{B}(\mathcal{L},\alpha,n)$ is the smallest set such that
     \begin{enumerate}
         \item $\bot \in \mathcal{B}(\mathcal{L},\alpha,n)$,
@@ -111,59 +111,101 @@ All well-formed formulas of some first-order language are encodable as a natural
 \end{definition}
 
 
---------------------------------------------ff tot hier----------------------------------------
-
-
 \section{$\mathcal{L}$ and $\mathcal{L}_T$}\label{subsec:lpa-lt}
-Halbach defines the language $\mathcal{L}$ as the language of \texttt{PA}. As ``Peano arithmetic contains the defining equations for zero, successor, addition, and multiplication'' \cite[p. 30]{halbach:2011}, $\mathcal{L}$ hence needs at least functions symbols for zero (0-ary), successor (1-ary), addition (2-ary), and multiplication (2-ary). He then states ``[a]dding a new unary predicate symbol $T$ to the language $\mathcal{L}$ of arithmetic yields the language $\mathcal{L}_T$,'' \cite[p. 31]{halbach:2011}.
+We define the language of Peano Arithmetic based on our notion of a language. We hence first need to define a family of function and relation symbols, indexed by their arity. We also include function symbols that stand for some recursively definable logical operators.
 
-Furthermore, it is the case that ``[t]he expressions of the language $\mathcal{L}_T$ can be encoded in the natural numbers,'' and ``[t]he numeral of a number $n$ (...) is the symbol 0 preceded by $n$ occurrences of the successor symbol'' \cite[p. 31]{halbach:2011}, making numerals expressible in $\mathcal{L}$. Hence, the expressions of the language $\mathcal{L}_T$ can be encoded in $\mathcal{L}$. Following Halbach we denote the numeral of the code of some expression $\varphi$ of $\mathcal{L}_T$ by $\ulcorner \varphi \urcorner$. For example, if $t$ is some term of $\mathcal{L}_T$, for which \texttt{term\_tonat}($t) = 3$, then $\ulcorner t \urcorner = SSS0$.
+\begin{definition}[The Family of Function Symbols for the Language of Peano Arithmetic]\label{def:L-Func}
+  \lean{Languages.LPA.Func}\leanok
+  We define $(F_{\mathcal{L},i})_{i \in \mathbb{N}}$ by
+  \begin{enumerate}
+  \item $(F_{\mathcal{L},0}) = \{\texttt{null}\}$,
+  \item $(F_{\mathcal{L},1}) = \{S, \underdot{\neg} , \underdot{\forall}, \underdot{\exists}, {^\circ}\}$,
+  \item $(F_{\mathcal{L},2}) = \{+,\times, \underdot{\wedge}, \underdot{\vee}, \underdot{\supset}\}$ and
+  \item $(F_{\mathcal{L},3}) = \{\underdot{subs}\}$.
+  \end{enumerate}
+\end{definition}
 
-Even more conveniently, ``[i]n Peano arithmetic, all recursive functions can be represented'' and ``[c]ertain syntactic operations on expressions of $\mathcal{L}_T$ are primitive recursive,'' \cite[p. 31--32]{halbach:2011}. These syntactic operations include negation ($\neg$), conjunction ($\wedge$), disjunction ($\vee$), implication ($\supset$), universal quantification ($\forall$), existential quantification ($\exists$) and substitution of a term $t$ for a term $x$ in a formula $\varphi$ ($\varphi(t/x)$). For all these functions it is useful to have a corresponding function symbol in $\mathcal{L}$, to make it easy to identify the $\mathcal{L}_T$ operation they correspond with. For example, if we add the symbol \d{$\neg$} to $\mathcal{L}$ the statement \d{$\neg$} $\ulcorner \varphi \urcorner = \ulcorner \neg \varphi \urcorner$, where $\varphi$ is an expression in $\mathcal{L}_T$, becomes expressible in $\mathcal{L}$.
+\begin{definition}[The Family of Relation Symbols for the Language of Peano Arithmetic]\label{def:L-Rel}
+  \lean{Languages.LPA.Rel}\leanok
+  We define $(R_{\mathcal{L},i})_{i \in \mathbb{N}}$ by \[R_1 = \{Variable, Constant, ClosedTerm, Term, Formula_{\mathcal{L}}, Sentence_{\mathcal{L}}, \\ Formula_{\mathcal{L}_T}, Sentence_{\mathcal{L}_T}\}.\]
+\end{definition}
 
-Note, however, that \d{$\neg$} is not applicable to all $\mathcal{L}_T$-expressions. In particular it should only be applicable to the numeral-encodings of $\mathcal{L}_T$ formulas. Hence, what we would want to express in $\mathcal{L}$ about \d{$\neg$} is $Form(\ulcorner \varphi \urcorner) \supset$ \d{$\neg$}$\ulcorner \varphi \urcorner = \ulcorner \neg \varphi \urcorner$, where $Form$ is the predicate containing the codes of all $\mathcal{L}_T$-expressions that are formulas. Luckily, ``[a]ll recursive sets can be strongly represented in \texttt{PA}, and all recursively enumerable sets can be weakly represented in \texttt{PA}'' \cite[p. 31]{halbach:2011}, meaning we can express the meaning of the predicate $Form$ in $\mathcal{L}$.
+\begin{definition}[$\mathcal{L}$: the Language of Peano Arithmetic with Syntactic Function and Relation Symbols]\label{def:L}
+  \lean{Languages.LPA.signature}\leanok
+  \uses{def:FO-Language,def:L-Func,def:L-Rel}
+    The language of Peano arithmetic including syntactic functions and predicates is the first-order language $\mathcal{L} = \langle (F_{\mathcal{L},i})_{i \in \mathbb{N}}, (R_{\mathcal{L},i})_{i \in \mathbb{N}} \rangle$.
+\end{definition}
 
-For analogous reasons, it is useful to add relation-symbols $Var$, $Const$, $Term$, $ClTerm$, $Sentencel$, $Forml$, $Formlt$ and $Sentencelt$ to $\mathcal{L}$, denoting the predicates containing the codes of all $\mathcal{L}_T$-variables, terms, closed term, sentences without the $T$ predicate, formulas
-without the $T$ predicate, formulas with the $T$ predicate, and sentences with the $T$ predicate, respectively.
+We define the language of $\mathcal{L}_T$ as the language $\mathcal{L}$ one relation symbol added: $Tr$. Hence its Function symbols are equivalent to that of $\mathcal{L}$ and the relation symbols only feature an extra $Tr$.
 
-Hence, we have identified all the necessary function and relations symbols for our language $\mathcal{L}$, and by adding the $T$ predicate to that also those of $\mathcal{L}_T$. 
+\begin{definition}[The Family of Function Symbols for the Language of Peano Arithmetic]\label{def:L_T-Func}
+  \lean{Languages.L_T.Func}\leanok
+  We define $(F_{\mathcal{L}_T,i})_{i \in \mathbb{N}}$ by
+  \begin{enumerate}
+  \item $(F_{\mathcal{L},0}) = \{\texttt{null}\}$,
+  \item $(F_{\mathcal{L},1}) = \{S, \underdot{\neg} , \underdot{\forall}, \underdot{\exists}, {^\circ}\}$,
+  \item $(F_{\mathcal{L},2}) = \{+,\times, \underdot{\wedge}, \underdot{\vee}, \underdot{\supset}\}$ and
+  \item $(F_{\mathcal{L},3}) = \{\underdot{subs}\}$.
+  \end{enumerate}
+\end{definition}
 
-\begin{definition}[$\mathcal{L}$: the language of peano arithmetic with syntactic functions and predicates]\label{def:l}
-    The language of Peano arithmetic including syntactic functions and predicates is the first-order language $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$, where
-    \begin{itemize}
-        \item $F_0 = \{0\}$,
-        \item $F_1 = \{S,$ \d{$\neg$} , \d{$\forall$}, \d{$\exists$}, ${^\circ}\}$,
-        \item $F_2 = \{+,\times,$ \d{$\wedge$}, \d{$\vee$}, \d{$\supset$}$\}$ and
-        \item $F_3 = \{$ \d{$subs$}$\}$ and
-        \item $R_1 = \{Variable, Constant, ClosedTerm, Term, Formula_{\mathcal{L}}, Sentence_{\mathcal{L}}, \\ Formula_{\mathcal{L}_T}, Sentence_{\mathcal{L}_T}\}.$
-    \end{itemize}
-\end{definition} 
+\begin{definition}[The Family of Relation Symbols for the Language of Peano Arithmetic]\label{def:L_T-Rel}
+  \lean{Languages.L_T.Rel}\leanok
+  We define $(R_{\mathcal{L}_T,i})_{i \in \mathbb{N}}$ by \[R_1 = \{Tr,Variable, Constant, ClosedTerm, Term, Formula_{\mathcal{L}}, Sentence_{\mathcal{L}}, Formula_{\mathcal{L}_T}, Sentence_{\mathcal{L}_T}\}.\]
+\end{definition}
 
-\begin{definition}[$\mathcal{L}_{T}$: the language of Peano arithmetic including the truth predicate symbol]\label{def:lt}
-    Let $\mathcal{L} = \langle F, (R_i)_{i \in \mathbb{N}} \rangle$ be the language of Peano arithmetic including syntactic functions symbols and predicates. Then, the language $\mathcal{L}_T$ is the first-order language $\mathcal{L}_T = \langle F, (R_{T,i})_{i \in \mathbb{N}} \rangle$, where $R_{T,1} = R_1 \cup \{T\}$.
+\begin{definition}[$\mathcal{L}_T$: the Language of Peano Arithmetic with Syntactic Function and Relation Symbols]\label{def:L_T}
+  \lean{Languages.L_T.signature}\leanok
+  \uses{def:FO-Language,def:L_T-Func,def:L_T-Rel}
+    The language of Peano arithmetic including syntactic functions and predicates is the first-order language $\mathcal{L}_T = \langle (F_{\mathcal{L}_T,i})_{i \in \mathbb{N}}, (R_{\mathcal{L}_T,i})_{i \in \mathbb{N}} \rangle$.
 \end{definition}
 
 As noted in Section \ref{subsec:coding} for the encoding functions to work an explicit encoding of $\mathcal{L}$ and $\mathcal{L}_T$'s function and relation symbols has to be given. However, as Halbach leaves the specific encodings implicit, we will for here do to.
 
 \section{Axiomatization}\label{subsec:axiomatization}
-Once we have a formal language and specification of its formulas, we can define the theories we want to reason about. In \texttt{mathlib} theories are indexed by their defining axioms, so constructing a theory is equivalent to specifying its defining axioms. 
+Once we have a formal language and specification of its formulas, we can define the theories we want to reason about. In \texttt{mathlib} theories are defined by their axioms, so constructing a theory is equivalent to specifying its axioms. 
 
-\begin{definition}[theory]\label{def:theory}
-  Let $\mathcal{L}$ be a formal language and $W_{\mathcal{L}}$ its associated set of sentences. Then, a theory $T_{\mathcal{L}}$ of $\mathcal{L}$ is a set of sentences $X$ such that $X \subset W_{\mathcal{L}}$.
+\begin{definition}[Theory]\label{def:FO-Theory}
+  \lean{FirstOrder.Language.Theory}\leanok
+  \uses{def:FO-Language,def:FO-Sentence}
+  Let $\mathcal{L}$ be a formal language and $S_{\mathcal{L}}$ its associated set of sentences. Then, a theory of $\mathcal{L}$ is a set of sentences $T_{\mathcal{L}}$ such that $T_{\mathcal{L}} \subseteq S_{\mathcal{L}}$.
 \end{definition}
 
-We can hence use the notions of $\mathcal{L}$ and $\mathcal{L}_T$ to construct the theories of \texttt{PA}, \texttt{PAT} and \texttt{TB}, which are all formulated in either of those languages. ``The system of Peano arithmetic contains the defining equations for zero, successor, addition, and multiplication'' \cite[p. 30]{halbach:2011}, which can be axiomatized in the following way: 
-\begin{definition}[\texttt{PA}: the theory of Peano arithmetic]
-    The theory of Peano arithmetic \texttt{PA} is defined as the smallest set $X$ such that
+We can hence use the notions of $\mathcal{L}$ and $\mathcal{L}_T$ to construct the theories of Syntax Theory, Peano Arithmetic \texttt{PA}, Peano Arithmetic with T \texttt{PAT} and Peano Arithmetic with T and Tarski Biconditionals \texttt{TB}. For Syntax Theory we provide the primitive recursive logical operations as axioms.
+\subsubsection{Syntax Axioms}
+\begin{definition}[Syntactic Negation Operator Axiom]\label{def:Syntactic-Neg}
+  \lean{SyntaxAxioms.neg_repres}\leanok
+  \uses{def:FO-Language,def:L,def:Not,def:L-Numeral}
+  The meaning of the syntactic negation operator $\underdot{\neg}$ meaning is captured by the axiom $\forall \phi \in \mathcal{F}(\mathcal{L},\mathbb{N})(\underdot{\neg} \ulcorner \phi \urcorner = \ulcorner \neg \phi \urcorner)$. 
+\end{definition}
+
+
+\begin{definition}[Syntax Theory]\label{def:Syntax-Theory}
+  \lean{SyntaxTheory.syntax_theory_l}\leanok
+  \uses{def:FO-Theory,def:L}
+  We define Syntax Theory as the theory $\{\texttt{neg\_repres},\texttt{conj\_repres},\texttt{disj\_repres},\texttt{cond\_repres},\texttt{forall\_repres},\texttt{exists\_repres},\texttt{subs\_repres},\texttt{term\_repres},\texttt{formulaL\_repres},\texttt{formulaL\_T\_repres},\texttt{sentenceL\_repres},\texttt{sentenceL\_T\_repres},\texttt{closed\_term\_repres},\texttt{var\_repres},\texttt{const\_repres},\texttt{denote\_repres}\}$.
+\end{definition}
+
+The system of Peano arithmetic contains the defining equations for zero, successor, addition, and multiplication. We first provide the finite theory of the first 6 Peano axioms.
+\begin{definition}[The First 6 Axioms of Peano Arithmetic]\label{def:PA-Axioms}
+  \lean{PA.peano_axioms}\leanok
+  \uses{def:FO-Language,def:FO-Theory,def:L}
+    The theory of the first 6 axioms of Peano Arithmetic \texttt{PA-axioms} is defined as the smallest theory $X$ such that
     \begin{enumerate}
-        \item $\forall x (0 \not = S(x)) \in X$, 
-        \item $\forall x,y (S(x) = S(y) \rightarrow x = y) \in X$,
-        \item $\forall x(x + 0 = x) \in X$,
-        \item $\forall x,y(x + S(y) = S(x+y)) \in X$,
-        \item $\forall x(x \cdot 0 = 0) \in X$,
-        \item $\forall x,y(x \cdot S(y) = x \cdot y + x) \in X$ and
-        \item if $\varphi(x,y_1,...,y_k) \in \mathcal{L}$, then $\bar y \Bigl( \bigl(\varphi(0,\bar y) \land \forall x (\varphi(x,\bar y) \to \varphi(S(x),\bar y))\bigr)\Bigr) \to \forall x \varphi(x, \bar y)$, where $\bar y = y_1,...,y_k$
+        \item $\forall \neg ((0,1) = S((0,1)) \in X$, 
+        \item $\forall \forall (S((1,1)) = S((0,1)) \rightarrow (1,1) = (0,1)) \in X$,
+        \item $\forall ((0,1) + \texttt{null} = (0,1)) \in X$,
+        \item $\forall \forall ((1,1) + S((0,1)) = S((1,1)+(0,1))) \in X$,
+        \item $\forall ((0,1) \cdot \texttt{null} = \texttt{null}) \in X$ and
+        \item $\forall  \forall ((1,1) \cdot S((0,1)) = (1,1) \cdot (0,1) + (1,1)) \in X$.
     \end{enumerate}
+\end{definition}
+
+Then we define \texttt{PA} as the union of the first 6 Peano axioms and all the instances of the induction scheme for \texttt{PA}.
+\begin{definition}[\texttt{PA}: The Theory of Peano Arithmetic]\label{def:PA}
+  \lean{PA.peano_arithmetic}\leanok
+  \uses{def:PA-Axioms,def:FO-Formula}
+  We define \texttt{PA} as the theory $\texttt{PA-axioms} \cup \{φ | ∃ψ \in \mathcal{F}(\mathcal{L},{0}) : φ = ((ψ(0) \wedge ∀x(ψ(x) ⟹ ψ(S(x)))) ⟹ ∀xψ(x))\}$.
 \end{definition}
 
 \begin{definition}[\texttt{PAT}]
