@@ -1,0 +1,76 @@
+\chapter{Axiomatization}\label{chapter:axiomatization}
+Once we have a formal language and specification of its formulas, we can define the theories we want to reason about. In \texttt{mathlib} theories are defined by their axioms, so constructing a theory is equivalent to specifying its axioms. 
+
+\begin{definition}[Theory]\label{def:FO-Theory}
+  \lean{FirstOrder.Language.Theory}\leanok
+  \uses{def:FO-Language,def:FO-Sentence}
+  Let $\mathcal{L}$ be a formal language and $S_{\mathcal{L}}$ its associated set of sentences. Then, a theory of $\mathcal{L}$ is a set of sentences $T_{\mathcal{L}}$ such that $T_{\mathcal{L}} \subseteq S_{\mathcal{L}}$.
+\end{definition}
+
+We can hence use the notions of $\mathcal{L}$ and $\mathcal{L}_T$ to construct the theories of Syntax Theory, Peano Arithmetic \texttt{PA}, Peano Arithmetic with T \texttt{PAT} and Peano Arithmetic with T and Tarski Biconditionals \texttt{TB}. For Syntax Theory we provide the primitive recursive logical operations as axioms.
+\subsubsection{Syntax Axioms}
+\begin{definition}[$\underdot{\neg}$: Syntactic Negation Operator Axioms]\label{def:Syntactic-Neg}
+  \lean{SyntaxAxioms.neg_repres}\leanok
+  \uses{def:FO-Language,def:L,def:FO-Neg,def:L-Numeral}
+  The meaning of the syntactic negation operator $\underdot{\neg}$ is captured by the axiom scheme $\mathbb{N})(\underdot{\neg} \ulcorner \varphi \urcorner = \ulcorner \neg \varphi \urcorner)$, where $\varphi \in \mathcal{F}(\mathcal{L},\mathbb{N})$. 
+\end{definition}
+
+\begin{definition}[$\underdot{\wedge}$: Syntactic Conjunction Operator Axiom]\label{def:Syntactic-Conj}
+  \lean{SyntaxAxioms.conj_repres}\leanok
+  \uses{def:FO-Language,def:L,def:FO-And,def:L-Numeral,def:FV-Formula-to-N}
+  The meaning of the syntactic conjunction operator $\underdot{\wedge}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner \underdot{\wedge} \ulcorner \psi \urcorner) = (\ulcorner \varphi \wedge \psi \urcorner)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
+\end{definition}
+
+\begin{definition}[$\underdot{\vee}$: Syntactic Disjunction Operator Axiom Scheme]\label{def:Syntactic-Disj}
+  \lean{SyntaxAxioms.disj_repres}\leanok
+  \uses{def:FO-Language,def:L,def:FO-Or,def:L-Numeral,def:FV-Formula-to-N}
+  The meaning of the syntactic disjunction operator $\underdot{\vee}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner \underdot{\vee} \ulcorner \psi \urcorner = (\ulcorner \varphi \wedge \psi \urcorner)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
+\end{definition}
+
+\begin{definition}[$\underdot{\supset}$: Syntactic Condition Operator Axiom Scheme]\label{def:Syntactic-Cond}
+  \lean{SyntaxAxioms.cond_repres}\leanok
+  \uses{def:FO-BoundedFormula,def:L}
+  The meaning of the syntactic conditional operator $\underdot{\supset}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner) \underdot{\supset} \ulcorner \psi \urcorner) = (\ulcorner \phi \supset \psi)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
+\end{definition}
+
+-------------------------------------here should go more syntax axioms-----------------------------------
+
+\begin{definition}[Syntax Theory]\label{def:Syntax-Theory}
+  \lean{SyntaxTheory.syntax_theory_l}\leanok
+  \uses{def:FO-Theory,def:L}
+  We define Syntax Theory as the theory containg all the instances of the axiom schemas for $\underdot{\neg}$, $\underdot{\wedge}$, $\underdot{\vee}$, $\underdot{\supset}$, etc.
+\end{definition}
+
+The system of Peano arithmetic contains the defining equations for zero, successor, addition, and multiplication. We first provide the finite theory of the first 6 Peano axioms.
+\begin{definition}[The First 6 Axioms of Peano Arithmetic]\label{def:PA-Axioms}
+  \lean{PA.peano_axioms}\leanok
+  \uses{def:FO-Language,def:FO-Theory,def:L}
+    The theory of the first 6 axioms of Peano Arithmetic \texttt{PA-axioms} is defined as the smallest theory $X$ such that
+    \begin{enumerate}
+        \item $\forall \neg (\&0 = S(\&0) \in X$, 
+        \item $\forall \forall (S(\&1) = S(\&0) \rightarrow \&1 = \&0) \in X$,
+        \item $\forall (\&0 + \texttt{null} = \&0) \in X$,
+        \item $\forall \forall (\&1 + S(\&0) = S(\&1 + \&0)) \in X$,
+        \item $\forall (\&1 \cdot \texttt{null} = \texttt{null}) \in X$ and
+        \item $\forall  \forall (\&1 \cdot S(\&0) = \&1 \cdot \&0 + \&1) \in X$.
+    \end{enumerate}
+\end{definition}
+
+Then we define \texttt{PA} as the union of the first 6 Peano axioms and all the instances of the induction scheme for \texttt{PA}.
+\begin{definition}[\texttt{PA}: The Theory of Peano Arithmetic]\label{def:PA}
+  \lean{PA.peano_arithmetic}\leanok
+  \uses{def:PA-Axioms,def:FO-Formula,def:L}
+  We define \texttt{PA} as the theory $\texttt{PA-axioms} \cup \{φ | ∃ψ \in \mathcal{F}(\mathcal{L},{0}) : φ = ([ψ(\texttt{null}) \wedge ∀\langle ψ(\&0) \supset ψ(S(\&0)) \rangle ] \supset ∀ψ(\&0))\}$.
+\end{definition}
+
+\begin{definition}[\texttt{PAT}]\label{def:PAT}
+  \lean{PAT.pat}\leanok
+  \uses{def:PA-Axioms,def:FO-Formula,def:L}
+    We define \texttt{PAT} as the theory $\texttt{PA-axioms} \cup \{φ | ∃ψ \in \mathcal{F}(\mathcal{L}_T,{0}) : φ = ([ψ(\texttt{null}) \wedge ∀\langle ψ(\&0) \supset ψ(S(\&0)) \rangle ] \supset ∀ψ(\&0))\}$.
+\end{definition}
+
+\begin{definition}[\texttt{TB}]\label{def:TB}
+  \lean{TB.tarski_biconditionals}\leanok
+  \uses{def:PAT,def:FO-Sentence}
+    We define \texttt{TB} as $\texttt{PAT} \cup \{φ | ∃ψ \in \mathcal{S}(\mathcal{L}) : φ = T(⌜ψ⌝) \leftrightarrow ψ\}$.
+\end{definition}

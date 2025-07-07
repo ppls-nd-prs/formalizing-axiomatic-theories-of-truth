@@ -1,0 +1,84 @@
+\chapter{Disquotation}
+\section{Disquotation}\label{subsec:disquotation}
+\begin{definition}[conservativity]
+    A truth system $...$  in the language $\mathcal{L}_T$ is conservative over a system $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all sentences $s \in \mathcal{L}$ provable by $...$ are also provable by $\mathcal{S}$.
+\end{definition}
+
+\begin{lemma}[finite axioms in TB]
+    In a proof in \texttt{TB} only finitely many axioms can occur.
+\end{lemma}
+
+\begin{proof}
+    Let $p$ be a proof in \texttt{TB}. Then, by Definition \verb|\ref{def:formal-proof}|, $p$ is a finite sequence of sentences each of which is an axiom of \texttt{TB} or follows from the preceding sentences according to first-order rules of inference. The amount of axioms the proof contains is less or equal to the total number of sentences. Hence, the number of axioms in the proof should also be finite. 
+\end{proof}
+
+\begin{theorem}
+    \texttt{TB} is conservative over \texttt{PA}.
+\end{theorem}
+
+\begin{proof}
+Let $\psi$ be a formula in $\mathcal{L}$ that is provable in TB by a proof $p$. Then, by Lemma \verb|\ref{lem:finit-ax-tb}|, we have that $p$ contains finitely many sentences as axioms. Let $n$ be the number of disquotation sentences occurring as axioms in the proof. Then, every axiom $p$ is either (i) an axiom of \texttt{PA}, or (ii) an instance of the induction schema, or (iii) for some $i \leq n$, a sentence of the form: 
+\begin{align*}
+    T\ulcorner \varphi_i \urcorner \leftrightarrow \varphi_i.
+\end{align*}
+As axioms of type (i) and (ii) are sentences of $\mathcal{L}$, we need only show how to transform any given disquotation axiom into a logically equivalent sentence of $\mathcal{L}$. Now, let $\tau(x)$ be the formula: 
+\begin{align*}
+    (x = \ulcorner \varphi_1 \urcorner \land \varphi_1) \lor ... \lor (x = \ulcorner \varphi_k \urcorner \land \varphi_k).
+\end{align*}
+By Lemma \verb|\ref{lem:Tphi-eq-tau}|, we have that $T\ulcorner \varphi \urcorner \iff \tau(\ulcorner \varphi \urcorner)$. Hence, we can replace all occurrences of the truth predicate $T$ in the given \texttt{TB}-proof with $\tau$. Then the disquotation ...
+\end{proof}
+
+We will here define proof systems for $\texttt{PA}$, $\texttt{PAT}$ and $\texttt{TB}$. As all these theories have to be closed under first-order inference, the rules for deriving formulas from other formulas can be the same for each theory. We hence need to formulate the axioms of these theories and a general notion of first-order provability. 
+
+\begin{definition}[formal proof]
+    A formal proof in a logical system $\mathcal{S}$ is a finite sequence of sentences, where each sentence is an axiom of $\mathcal{S}$, an assumption, or follows from the application of one of $\mathcal{S}$'s rules of inference to previous sentences in the sequence (Wikipedia: Formal proof).
+\end{definition}
+
+\begin{definition}[provability]
+    A formula $\varphi$ is provable in a proof system $\mathcal{S}$ if and only if there exists a formal proof $\mathcal{P}$ in $\mathcal{S}$, such that $\mathcal{P}$ contains no assumptions and $\varphi$ is the last sentence of $\mathcal{P}$.
+\end{definition}
+
+
+--------------------------below from old file----------------------------------------
+
+\begin{definition}[\texttt{TB}]
+    %\label{def:TB}
+    %\uses{def:PAT}
+    The system \texttt{TB} comprises all axioms of \texttt{PAT}. Moreover all sentences of the form $T\ulcorner\varphi\urcorner \leftrightarrow \varphi$ are axioms of the system where $\varphi$ is a sentence of the language of $\mathcal{L}$ and $\ulcorner \varphi \urcorner$ is the numeral of $\varphi$'s Gödel code.
+\end{definition}
+
+\begin{definition}[conservativity]
+    %\label{def:cons}
+    %\uses{def:LT}
+    A truth system $...$ in the language $\mathcal{L}_T$ is conservative over a system $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all sentences $s \in \mathcal{L}$ provable by $...$ are also provable by $\mathcal{S}$.
+\end{definition}
+
+\begin{lemma}[finite axioms in TB]
+    %\label{lem:finit-ax-tb}
+    %\uses{def:TB}
+    In a proof in \texttt{TB} only finitely many axioms can occur.
+\end{lemma}
+
+\begin{proof}
+    %\uses{def:formal-proof, def:TB} 
+    Let $p$ be a proof in \texttt{TB}. Then, by Definition \verb|\ref{def:formal-proof}|, $p$ is a finite sequence of sentences each of which is an axiom of \texttt{TB} or follows from the preceding sentences according to first-order rules of inference. The amount of axioms the proof contains is less or equal to the total number of sentences. Hence, the number of axioms in the proof should also be finite. 
+\end{proof}
+
+\begin{theorem}
+    %\label{thm:tb-cons}
+    % \lean{[the right reference]}
+    \texttt{TB} is conservative over \texttt{PA}.
+\end{theorem}
+
+\begin{proof} %\uses{def:cons, def:TB} 
+%We show how to transform any given \texttt{TB}-proof of a formula in $\mathcal{L}$ into a \texttt{PA}-proof of the same formula. 
+Let $\psi$ be a formula in $\mathcal{L}$ that is provable in TB by a proof $p$. Then, by Lemma \verb|\ref{lem:finit-ax-tb}|, we have that $p$ contains finitely many sentences as axioms. Let $n$ be the number of disquotation sentences occurring as axioms in the proof. Then, every axiom $p$ is either (i) an axiom of \texttt{PA}, or (ii) an instance of the induction schema, or (iii) for some $i \leq n$, a sentence of the form: 
+\begin{align*}
+    T\ulcorner \varphi_i \urcorner \leftrightarrow \varphi_i.
+\end{align*}
+As axioms of type (i) and (ii) are sentences of $\mathcal{L}$, we need only show how to transform any given disquotation axiom into a logically equivalent sentence of $\mathcal{L}$. Now, let $\tau(x)$ be the formula: 
+\begin{align*}
+    (x = \ulcorner \varphi_1 \urcorner \land \varphi_1) \lor ... \lor (x = \ulcorner \varphi_k \urcorner \land \varphi_k).
+\end{align*}
+By Lemma \verb|\ref{lem:Tphi-eq-tau}|, we have that $T\ulcorner \varphi \urcorner \iff \tau(\ulcorner \varphi \urcorner)$. Hence, we can replace all occurences of the truth predicate $T$ in the given \texttt{TB}-proof with $\tau$. Then the disquotation ...
+\end{proof}

@@ -1,0 +1,73 @@
+\chapter{Proof Theory}\label{chapter:proof-theory}
+For own notion of proof we use a sequent calculus: G3cp + G3c (see \cite{negri:2001} pages 49 and 67 respectively) and an axiom for adding axioms from theories.
+\begin{definition}[Sequent Calculus]\label{def:Seq-Calc}
+  \lean{Calculus.Derivation}
+    Let $\mathcal{L}$ be a formal language, and $Th$ some set of $Th \subseteq \mathcal{S}(\mathcal{L})$ functioning as axioms. Then the inference rules of sequent calculus are
+
+\noindent \textbf{Theoretical Axiom:}
+
+if $A \in Th$ then $\Gamma \Rightarrow A, \Delta$
+
+\begin{center}
+    \textbf{G3cp}
+\end{center}
+\noindent \textbf{Logical Axiom:}
+
+$\Gamma, P \Rightarrow P, \Delta$
+
+\noindent \textbf{Logical Rules:}
+\begin{multicols}{2}
+\[
+\frac{\Gamma \Rightarrow A, \Delta \quad \Gamma \Rightarrow B, \Delta}{\Gamma \Rightarrow A \land B, \Delta}\tag{$R\land$}
+\]
+
+\[
+\frac{\Gamma, A, B \Rightarrow \Delta}{\Gamma, A \land B \Rightarrow \Delta}\tag{$L\land$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow A, B, \Delta}{\Gamma \Rightarrow A \lor B, \Delta}\tag{$R\lor$}
+\]
+
+\[
+\frac{\Gamma, A \Rightarrow \Delta \quad \Gamma, B \Rightarrow \Delta}{\Gamma, A \lor B \Rightarrow \Delta}\tag{$L\lor$}
+\]
+
+\[
+\frac{\Gamma, A \Rightarrow B, \Delta}{\Gamma \Rightarrow A \supset B, \Delta}\tag{$R\supset$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow A, \Delta \quad \Gamma, B \Rightarrow \Delta}{\Gamma, A \supset B \Rightarrow \Delta}\tag{$L\supset$}
+\]
+
+\[
+\frac{}{\bot, \Gamma \Rightarrow \Delta}\tag{$L\bot$}
+\]
+
+\end{multicols}
+
+\begin{center}
+    \textbf{G3c}
+\end{center}
+\begin{multicols}{2}
+
+\[
+\frac{\Gamma \Rightarrow A[y/x], \Delta}{\Gamma \Rightarrow \forall x A, \Delta}\tag{$R\forall$}
+\]
+
+\[
+\frac{\Gamma, A[t/x], \forall x A \Rightarrow \Delta}{\Gamma, \forall x A \Rightarrow \Delta}\tag{$L\forall$}
+\]
+
+\[
+\frac{\Gamma, A[y/x] \Rightarrow \Delta}{\Gamma, \exists x A \Rightarrow \Delta}\tag{$L\exists$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow \exists x A, A[t/x], \Delta}{\Gamma \Rightarrow \exists x A, \Delta}\tag{$R\exists$}
+\]
+
+\end{multicols}
+
+\end{definition}

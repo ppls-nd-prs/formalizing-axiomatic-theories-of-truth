@@ -1,0 +1,14 @@
+\chapter{Notation}\label{subsec:notation}
+We aim to make this exposition intuitive for those not specialized in type theory. Hence, we will present the formal specification of the concepts in such a way that they are on the one hand as suggestive for their Lean implementation as possible while at the same time being stated in set theoretic terms rather than type theoretic ones. This made possible by an intuitive correspondence between types and sets (see e.g. \cite{nederpelt:1994}).
+
+Moreover, as Lean has additional functionalities on top of its type theoretic basis to allow for efficient programming and proof verification, some limitations arise preventing the code from following exactly the common conceptualizations of set theoretic mathematics. The most notable of these deviations is that the symbol \texttt{0} in Lean has a reserved meaning, namely \texttt{Nat.zero}, an inhabitant of the primitive type \texttt{Nat}, describing the natural numbers. As we shall also define a language involving the concept of zero, we will hence name it \texttt{null}.
+
+To allow for efficient automatic formulas manipulation, variables bound by a quantifier are associated with De Bruijn \cite{bruijn:1972} indices in \texttt{mathlib}'s implementation of first-order formulas. These indices are natural numbers that correspond to the level-distance between the variable and the quantifier that binds it. Take as an example the regular first-order formula 
+\begin{align}
+    \forall x (\forall y (P(y) \to R(f(x))) \to (R(z) \to P(a))),
+\end{align} where $x, y$ are bound variables, $z$ is a free variables, $P$ and $R$ are predicates and $a$ is a constant.
+In De Bruijn notation this formula is expressed by
+\begin{align}\label{fml:db}
+    \forall (\forall (P(0) \to R(f(1))) \to (R(1) \to P(a))).
+\end{align}
+Troughout this documentation we will use this formula as illustration to the concepts introduced.

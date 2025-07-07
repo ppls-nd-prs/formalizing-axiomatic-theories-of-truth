@@ -3,3 +3,6 @@
 /lean_decls
 /src/web.paux
 /src/*.bbl
+/src/*.aux
+/src/*.dvi
+/src/*.out
