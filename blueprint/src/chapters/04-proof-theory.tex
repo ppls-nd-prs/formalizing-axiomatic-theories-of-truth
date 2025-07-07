@@ -1,7 +1,8 @@
 \chapter{Proof Theory}\label{chapter:proof-theory}
 For own notion of proof we use a sequent calculus: G3cp + G3c (see \cite{negri:2001} pages 49 and 67 respectively) and an axiom for adding axioms from theories.
 \begin{definition}[Sequent Calculus]\label{def:Seq-Calc}
-  \lean{Calculus.Derivation}
+  \lean{Calculus.Derivation}\leanok
+  \uses{def:FO-Language,def:FO-Sentence,def:FO-Formula}
     Let $\mathcal{L}$ be a formal language, and $Th$ some set of $Th \subseteq \mathcal{S}(\mathcal{L})$ functioning as axioms. Then the inference rules of sequent calculus are
 
 \noindent \textbf{Theoretical Axiom:}
