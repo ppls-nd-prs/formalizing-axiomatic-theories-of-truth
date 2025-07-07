@@ -1,21 +1,6 @@
 \chapter{Preliminaries}
 Section \ref{subsec:notation} will first provide some notes on notation. Then, Section \ref{subsec:language} will focus on the concepts of a first-order language and formulas, Section \ref{subsec:coding} will focus on how formulas can be encoded in natural numbers, Section \ref{subsec:lpa-lt} will discuss the specific languages of $\mathcal{L}$ and $\mathcal{L}_T$, Section \ref{subsec:axiomatization} discusses the axioms of \texttt{PA}, \texttt{PAT} and \texttt{TB}, Section \ref{subsec:proof-theory} will provide the necessary concepts for reasoning about derivations and finally Section \ref{subsec:disquotation} will discuss the concepts and final proof of the conservativity of \texttt{TB} over \texttt{PA}.
 
-\section{Notation}\label{subsec:notation}
-We aim to make this exposition intuitive for those not specialized in type theory. Hence, we will present the formal specification of the concepts in such a way that they are on the one hand as suggestive for their Lean implementation as possible while at the same time being stated in set theoretic terms rather than type theoretic ones. This made possible by an intuitive correspondence between types and sets (see e.g. \cite{nederpelt:1994}).
-
-Moreover, as Lean has additional functionalities on top of its type theoretic basis to allow for efficient programming and proof verification, some limitations arise preventing the code from following exactly the common conceptualizations of set theoretic mathematics. The most notable of these deviations is that the symbol \texttt{0} in Lean has a reserved meaning, namely \texttt{Nat.zero}, an inhabitant of the primitive type \texttt{Nat}, describing the natural numbers. As we shall also define a language involving the concept of zero, we will hence name it \texttt{null}.
-
-To allow for efficient automatic formulas manipulation, variables bound by a quantifier are associated with De Bruijn \cite{bruijn:1972} indices in \texttt{mathlib}'s implementation of first-order formulas. These indices are natural numbers that correspond to the level-distance between the variable and the quantifier that binds it. Take as an example the regular first-order formula 
-\begin{align}
-    \forall x (\forall y (P(y) \to R(f(x))) \to (R(z) \to P(a))),
-\end{align} where $x, y$ are bound variables, $z$ is a free variables, $P$ and $R$ are predicates and $a$ is a constant.
-In De Bruijn notation this formula is expressed by
-\begin{align}\label{fml:db}
-    \forall (\forall (P(0) \to R(f(1))) \to (R(1) \to P(a))).
-\end{align}
-Troughout this chapter we will use this formula as illustration to the concepts introduced.
-
 \section{Language}\label{subsec:language}
 The ordinary definition of a first-order language $\mathcal{L}$ proceeds from the specification of a signature $\mathcal{S}$ and then an inductive definition of the way formulas can be build with elements from $\mathcal{S}$, the set of logical connectives, variables and the quantifiers. See that for any first order language all these elements except the signature are the same. Hence, we could think of a specific first order language as being fully specified by its signature.
 
@@ -38,7 +23,12 @@ Now, we can use these specifications in \texttt{mathlib}'s implementation of \te
         \end{enumerate}
 \end{definition}
 
-The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormula}.
+The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormula}. For its definition we first need the notion of the disjoint union of two sets. Informally this is the union of two sets, where elements are marked with what set they originally come from.
+\begin{definition}[$\sqcup$ : Disjoint Union]\label{def:Disjoint-Union}
+  \lean{Sum}\leanok
+  The disjoint union, denoted $\sqcup$, of two sets $A$ and $B$ is defined as $A \sqcup B = \{(a,k) | (a \in A \wedge k = l) \vee (a \in B \wedge k = r)\}$.
+\end{definition}
+We shall from here on out refer to $(a,l)$ from a disjoint union of sets by $\#1$ and $(a,r)$ by $\&a$. 
 
 \begin{definition}[First-order BoundedFormula]\label{def:FO-BoundedFormula}
   \lean{FirstOrder.Language.BoundedFormula}\leanok
@@ -52,10 +42,46 @@ The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormul
         \item if $f \in \mathcal{B}(\mathcal{L},\alpha,n+1)$, then $\forall f \in \mathcal{B}(\mathcal{L},\alpha,n)$.
     \end{enumerate}
 \end{definition}
+Notice that these definitions differ in various ways from classial De Bruijn notation \cite{bruijn:1972}. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{Z}$. The reason for such an implementation is that now we can distinguish free variables from bound variable. In that way we enable adding exactly as many distinct variables in sub-formulas of sentences as the amount of quantifiers removed in Definition \ref{def:FO-BoundedFormula}'s recursive step v. Furthermore, free variables can now come from any set, rather than $\mathbb{Z}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P(\&0) \rightarrow R(f(\&1))) \to (R(\#x_0) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
 
-Notice that these definitions differ in various ways from classial De Bruijn notation \cite{bruijn:1972}. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{Z}$. The reason for such an implementation is that now we can distinguish free variables from bound variable. In that way we enable adding exactly as many distinct variables in sub-formulas of sentences as the amount of quantifiers removed in Definition \ref{def:FO-BoundedFormula}'s recursive step v. Furthermore, free variables can now come from any set, rather than $\mathbb{Z}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P((0,1)) \rightarrow R(f((1,1)))) \to (R((x_0,0)) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
+We can then go on to define the other standard logical operators: $\neg$, $\exists$, $\top$, $\wedge$, $\vee$, $\leftrightarrow$.
+\begin{definition}[$\neg$ : Negation]\label{def:FO-Neg}
+  \lean{FirstOrder.Language.BoundedFormula.not}\leanok
+  \uses{def:FO-BoundedFormula}
+  For some set of first-order BoundedFormulas $\mathcal{B}$ we define the negation operation $\neg : \mathcal{B} \to \mathcal{B}$ by $\neg(\varphi) = \varphi \rightarrow \bot$.
+\end{definition}
 
-Formulas and sentences can then conveniently be defined as a \texttt{BoundedFormula} with all its bound variables bound and a \texttt{BoundedFormula} that is a formula and does not contain free variables respectively.
+\begin{definition}[$\exists$ : Exists]\label{def:FO-Ex}
+  \lean{FirstOrder.Language.BoundedFormula.ex}\leanok
+  \uses{def:FO-BoundedFormula, def:FO-Neg}
+  For some set of first-order BoundedFormulas $\mathcal{B}(\mathcal{L},\alpha,(n+1))$ we define the exists operation $\exists : \mathcal{B}(\mathcal{L},\alpha,(n + 1)) \to \mathcal{B}(\mathcal{L},\alpha,n)$ by $\exists(\varphi) = \neg \forall \neg \varphi$.
+\end{definition}
+
+\begin{definition}[$\top$ : Top]\label{def:Top}
+  \lean{FirstOrder.Language.BoundedFormula.not}\leanok
+  \uses{def:FO-Neg}
+  We define $\top = \neg \bot$.
+\end{definition}
+
+\begin{definition}[$\wedge$ : And]\label{def:FO-And}
+  \lean{FirstOrder.Language.BoundedFormula.land}\leanok
+  \uses{def:FO-Neg, def:FO-BoundedFormula}
+  For $\mathcal{B}$ some set of BoundedFormulas we define the function $\wedge : \mathcal{B} \to \mathcal{B} \to \mathcal{B}$ by $\varphi \wedge \psi = \neg (\varphi \supset \neg \psi)$.
+\end{definition}
+
+\begin{definition}[$\vee$ : Or]\label{def:FO-Or}
+  \lean{FirstOrder.Language.BoundedFormula.lor}\leanok
+  \uses{def:FO-Neg,def:FO-BoundedFormula}
+  For $\mathcal{B}$ some set of BoundedFormulas we define the function $\vee : \mathcal{B} \to \mathcal{B} \to \mathcal{B}$ by $\varphi \vee \psi = \neg \phi \supset \psi$.
+\end{definition}
+
+\begin{definition}[$\leftrightarrow$ : If and Only If]\label{def:FO-Iff}
+  \lean{FirstOrder.Language.BoundedFormula.iff}\leanok
+  \uses{def:FO-BoundedFormula,def:FO-And}
+  For $\mathcal{B}$ some set of BoundedFormulas we define the function $\leftrightarrow : \mathcal{B} \to \mathcal{B} \to \mathcal{B}$ by $\varphi \leftrightarrow \psi = (\varphi \to \psi) \wedge (\psi \to \varphi)$.
+\end{definition}
+
+Formulas and sentences can conveniently be defined as a \texttt{BoundedFormula} with all its bound variables bound and a \texttt{BoundedFormula} that is a formula and does not contain free variables respectively.
 
 \begin{definition}[First-order Formula]\label{def:FO-Formula}
   \lean{FirstOrder.Language.Formula}\leanok
@@ -110,7 +136,6 @@ All well-formed formulas of some first-order language are encodable as a natural
     \end{align*}
 \end{definition}
 
-
 \section{$\mathcal{L}$ and $\mathcal{L}_T$}\label{subsec:lpa-lt}
 We define the language of Peano Arithmetic based on our notion of a language. We hence first need to define a family of function and relation symbols, indexed by their arity. We also include function symbols that stand for some recursively definable logical operators.
 
@@ -154,13 +179,34 @@ We define the language of $\mathcal{L}_T$ as the language $\mathcal{L}$ one rela
   We define $(R_{\mathcal{L}_T,i})_{i \in \mathbb{N}}$ by \[R_1 = \{Tr,Variable, Constant, ClosedTerm, Term, Formula_{\mathcal{L}}, Sentence_{\mathcal{L}}, Formula_{\mathcal{L}_T}, Sentence_{\mathcal{L}_T}\}.\]
 \end{definition}
 
-\begin{definition}[$\mathcal{L}_T$: the Language of Peano Arithmetic with Syntactic Function and Relation Symbols]\label{def:L_T}
+\begin{definition}[$\mathcal{L}_T$: the Language of Peano Arithmetic with $Tr$]\label{def:L_T}
   \lean{Languages.L_T.signature}\leanok
   \uses{def:FO-Language,def:L_T-Func,def:L_T-Rel}
     The language of Peano arithmetic including syntactic functions and predicates is the first-order language $\mathcal{L}_T = \langle (F_{\mathcal{L}_T,i})_{i \in \mathbb{N}}, (R_{\mathcal{L}_T,i})_{i \in \mathbb{N}} \rangle$.
 \end{definition}
 
-As noted in Section \ref{subsec:coding} for the encoding functions to work an explicit encoding of $\mathcal{L}$ and $\mathcal{L}_T$'s function and relation symbols has to be given. However, as Halbach leaves the specific encodings implicit, we will for here do to.
+We can now define the concept of numeral in both $\mathcal{L}$ and $\mathcal{L}_T$.
+\begin{definition}[$\mathcal{L}$-Numeral Function]\label{def:L-Numeral}
+  \lean{Languages.LPA.numeral}\leanok
+  \uses{def:L}
+  We define the numeral function $num_{\mathcal{L}} : \mathbb{N} \to \mathcal{T}(\mathcal{L},\alpha)$ recursively as
+  \begin{enumerate}
+  \item $num_{\mathcal{L}}(0) = \texttt{null}$
+  \item $num_{\mathcal{L}}(n + 1) = S(num_{\mathcal{L}}(n))$
+  \end{enumerate}
+\end{definition}
+
+\begin{definition}[$\mathcal{L}_T$-Numeral Function]\label{def:L_T-Numeral}
+  \lean{Languages.L_T.numeral}\leanok
+  \uses{def:L_T}
+  We define the numeral function $num_{\mathcal{L}_T} : \mathbb{N} \to \mathcal{T}(\mathcal{L}_T,\alpha)$ recursively as
+  \begin{enumerate}
+  \item $num_{\mathcal{L_T}}(0) = \texttt{null}$
+  \item $num_{\mathcal{L_T}}(n + 1) = S(num_{\mathcal{L_T}}(n))$
+  \end{enumerate}
+\end{definition}
+
+Now we have the notion of numeral, we can combine this with our \texttt{tonat} functions to construct an encoding of Terms and BoundedFormulas from $\mathcal{L}$ and $\mathcal{L}_T$ into closed terms in $\mathcal{L}$ and $\mathcal{L}_T$ themselves. We shall denote the numeral corresponding to the code of a BoundedFormula $\varphi$ or Term $t$ by $\ulcorner \varphi \urcorner$ and $\ulcorner t \urcorner$ respectively. 
 
 \section{Axiomatization}\label{subsec:axiomatization}
 Once we have a formal language and specification of its formulas, we can define the theories we want to reason about. In \texttt{mathlib} theories are defined by their axioms, so constructing a theory is equivalent to specifying its axioms. 
@@ -173,17 +219,36 @@ Once we have a formal language and specification of its formulas, we can define 
 
 We can hence use the notions of $\mathcal{L}$ and $\mathcal{L}_T$ to construct the theories of Syntax Theory, Peano Arithmetic \texttt{PA}, Peano Arithmetic with T \texttt{PAT} and Peano Arithmetic with T and Tarski Biconditionals \texttt{TB}. For Syntax Theory we provide the primitive recursive logical operations as axioms.
 \subsubsection{Syntax Axioms}
-\begin{definition}[Syntactic Negation Operator Axiom]\label{def:Syntactic-Neg}
+\begin{definition}[$\underdot{\neg}$: Syntactic Negation Operator Axioms]\label{def:Syntactic-Neg}
   \lean{SyntaxAxioms.neg_repres}\leanok
-  \uses{def:FO-Language,def:L,def:Not,def:L-Numeral}
-  The meaning of the syntactic negation operator $\underdot{\neg}$ meaning is captured by the axiom $\forall \phi \in \mathcal{F}(\mathcal{L},\mathbb{N})(\underdot{\neg} \ulcorner \phi \urcorner = \ulcorner \neg \phi \urcorner)$. 
+  \uses{def:FO-Language,def:L,def:FO-Neg,def:L-Numeral}
+  The meaning of the syntactic negation operator $\underdot{\neg}$ is captured by the axiom scheme $\mathbb{N})(\underdot{\neg} \ulcorner \varphi \urcorner = \ulcorner \neg \varphi \urcorner)$, where $\varphi \in \mathcal{F}(\mathcal{L},\mathbb{N})$. 
 \end{definition}
 
+\begin{definition}[$\underdot{\wedge}$: Syntactic Conjunction Operator Axiom]\label{def:Syntactic-Conj}
+  \lean{SyntaxAxioms.conj_repres}\leanok
+  \uses{def:FO-Language,def:L,def:FO-And,def:L-Numeral,def:FV-Formula-to-N}
+  The meaning of the syntactic conjunction operator $\underdot{\wedge}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner \underdot{\wedge} \ulcorner \psi \urcorner) = (\ulcorner \varphi \wedge \psi \urcorner)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
+\end{definition}
+
+\begin{definition}[$\underdot{\vee}$: Syntactic Disjunction Operator Axiom Scheme]\label{def:Syntactic-Disj}
+  \lean{SyntaxAxioms.disj_repres}\leanok
+  \uses{def:FO-Language,def:L,def:FO-Or,def:L-Numeral,def:FV-Formula-to-N}
+  The meaning of the syntactic disjunction operator $\underdot{\vee}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner \underdot{\vee} \ulcorner \psi \urcorner = (\ulcorner \varphi \wedge \psi \urcorner)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
+\end{definition}
+
+\begin{definition}[$\underdot{\supset}$: Syntactic Condition Operator Axiom Scheme]\label{def:Syntactic-Cond}
+  \lean{SyntaxAxioms.cond_repres}\leanok
+  \uses{def:FO-BoundedFormula,def:L}
+  The meaning of the syntactic conditional operator $\underdot{\supset}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner) \underdot{\supset} \ulcorner \psi \urcorner) = (\ulcorner \phi \supset \psi)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
+\end{definition}
+
+-------------------------------------here should go more syntax axioms-----------------------------------
 
 \begin{definition}[Syntax Theory]\label{def:Syntax-Theory}
   \lean{SyntaxTheory.syntax_theory_l}\leanok
   \uses{def:FO-Theory,def:L}
-  We define Syntax Theory as the theory $\{\texttt{neg\_repres},\texttt{conj\_repres},\texttt{disj\_repres},\texttt{cond\_repres},\texttt{forall\_repres},\texttt{exists\_repres},\texttt{subs\_repres},\texttt{term\_repres},\texttt{formulaL\_repres},\texttt{formulaL\_T\_repres},\texttt{sentenceL\_repres},\texttt{sentenceL\_T\_repres},\texttt{closed\_term\_repres},\texttt{var\_repres},\texttt{const\_repres},\texttt{denote\_repres}\}$.
+  We define Syntax Theory as the theory containg all the instances of the axiom schemas for $\underdot{\neg}$, $\underdot{\wedge}$, $\underdot{\vee}$, $\underdot{\supset}$, etc.
 \end{definition}
 
 The system of Peano arithmetic contains the defining equations for zero, successor, addition, and multiplication. We first provide the finite theory of the first 6 Peano axioms.
@@ -192,93 +257,113 @@ The system of Peano arithmetic contains the defining equations for zero, success
   \uses{def:FO-Language,def:FO-Theory,def:L}
     The theory of the first 6 axioms of Peano Arithmetic \texttt{PA-axioms} is defined as the smallest theory $X$ such that
     \begin{enumerate}
-        \item $\forall \neg ((0,1) = S((0,1)) \in X$, 
-        \item $\forall \forall (S((1,1)) = S((0,1)) \rightarrow (1,1) = (0,1)) \in X$,
-        \item $\forall ((0,1) + \texttt{null} = (0,1)) \in X$,
-        \item $\forall \forall ((1,1) + S((0,1)) = S((1,1)+(0,1))) \in X$,
-        \item $\forall ((0,1) \cdot \texttt{null} = \texttt{null}) \in X$ and
-        \item $\forall  \forall ((1,1) \cdot S((0,1)) = (1,1) \cdot (0,1) + (1,1)) \in X$.
+        \item $\forall \neg (\&0 = S(\&0) \in X$, 
+        \item $\forall \forall (S(\&1) = S(\&0) \rightarrow \&1 = \&0) \in X$,
+        \item $\forall (\&0 + \texttt{null} = \&0) \in X$,
+        \item $\forall \forall (\&1 + S(\&0) = S(\&1 + \&0)) \in X$,
+        \item $\forall (\&1 \cdot \texttt{null} = \texttt{null}) \in X$ and
+        \item $\forall  \forall (\&1 \cdot S(\&0) = \&1 \cdot \&0 + \&1) \in X$.
     \end{enumerate}
 \end{definition}
 
 Then we define \texttt{PA} as the union of the first 6 Peano axioms and all the instances of the induction scheme for \texttt{PA}.
 \begin{definition}[\texttt{PA}: The Theory of Peano Arithmetic]\label{def:PA}
   \lean{PA.peano_arithmetic}\leanok
-  \uses{def:PA-Axioms,def:FO-Formula}
-  We define \texttt{PA} as the theory $\texttt{PA-axioms} \cup \{φ | ∃ψ \in \mathcal{F}(\mathcal{L},{0}) : φ = ((ψ(0) \wedge ∀x(ψ(x) ⟹ ψ(S(x)))) ⟹ ∀xψ(x))\}$.
+  \uses{def:PA-Axioms,def:FO-Formula,def:L}
+  We define \texttt{PA} as the theory $\texttt{PA-axioms} \cup \{φ | ∃ψ \in \mathcal{F}(\mathcal{L},{0}) : φ = ([ψ(\texttt{null}) \wedge ∀\langle ψ(\&0) \supset ψ(S(\&0)) \rangle ] \supset ∀ψ(\&0))\}$.
 \end{definition}
 
-\begin{definition}[\texttt{PAT}]
-    We define the system \texttt{PAT} as the system of Peano arithmetic formulated in $\mathcal{L}_T$ including the induction schema for each formula of the language $\mathcal{L}_T$.
+\begin{definition}[\texttt{PAT}]\label{def:PAT}
+  \lean{PAT.pat}\leanok
+  \uses{def:PA-Axioms,def:FO-Formula,def:L}
+    We define \texttt{PAT} as the theory $\texttt{PA-axioms} \cup \{φ | ∃ψ \in \mathcal{F}(\mathcal{L}_T,{0}) : φ = ([ψ(\texttt{null}) \wedge ∀\langle ψ(\&0) \supset ψ(S(\&0)) \rangle ] \supset ∀ψ(\&0))\}$.
 \end{definition}
 
-\begin{definition}[\texttt{TB}]
-    The system \texttt{TB} comprises all axioms of \texttt{PAT}. Moreover all sentences of the form $T\ulcorner\varphi\urcorner \leftrightarrow \varphi$ are axioms of the system where $\varphi$ is a sentence of the language of $\mathcal{L}$ and $\ulcorner \varphi \urcorner$ is the numeral of $\varphi$'s Gödel code.
+\begin{definition}[\texttt{TB}]\label{def:TB}
+  \lean{TB.tarski_biconditionals}\leanok
+  \uses{def:PAT,def:FO-Sentence}
+    We define \texttt{TB} as $\texttt{PAT} \cup \{φ | ∃ψ \in \mathcal{S}(\mathcal{L}) : φ = T(⌜ψ⌝) \leftrightarrow ψ\}$.
 \end{definition}
 
 \section{Proof Theory}\label{subsec:proof-theory}
-As a theory is ``a set of formulae closed under first-order logical consequence'' \cite[p. 29]{halbach:2011}, we have to have a notion of how first-order formulae are derived from the axioms of theories. This is made precise by the notion of a formal systems: ``a collection of axioms and rules for generating theorems'' \cite[p. 29]{halbach:2011}.
-
-Proof systems hence require three elements:
-\begin{enumerate}
-\item a formal language,
-\item a set of formulas in the language that function as axioms and
-\item a set of rules for deriving formulas from other formulas, that are sound and complete with respect to first-order logical consequence.
-\end{enumerate}
-
-As we have defined the languages $\mathcal{L}$ and $\mathcal{L}_T$ in Section \ref{subsec:lpa-lt} and the axioms of \texttt{PA}, \texttt{PAT}, \texttt{TB} in Section \ref{subsec:axiomatization}, we only still need the notion of item 3.
-
-\begin{definition}[first free variable substitution in terms]
-  still to be defined
-    %% Let $\mathcal{S} = (\mathcal{C},\mathcal{F},\mathcal{R},ar)$ be a first order signature. Then, we define the substitution function over terms $subt_{\mathcal{S}} : \mathcal{T}_{\mathcal{S}} \times \mathcal{V} \times \mathcal{T}_{\mathcal{S}} \to \mathcal{T}_{\mathcal{S}}$ recursively such that
-    %% \begin{enumerate}
-    %%     \item if $s \in \mathcal{P}_{\mathcal{S}}$, then $subt_{\mathcal{S}}(s,x,t) = \begin{cases}
-    %%                     s, &\text{if }s \not = x \\
-    %%                     t, &\text{if }s = x
-    %%                     \end{cases}$
-    %%     \item $subt_{\mathcal{S}}(f(t_1,...,t_n),x,t) = f(subt_{\mathcal{S}}(t_1,x,t),...,subt_{\mathcal{S}}(t_n,x,t))$.
-    %% \end{enumerate}
-\end{definition}
-
-\begin{definition}[substitution first free variable]\label{def:subst}
-  still to be defined
-%%     Let $\mathcal{F} = B_{\mathcal{L},\mathbb{N},n}$ be a set of semiformulae and $\mathcal{T} = A_{\mathcal{L},\mathbb{N},n}$ a set of terms. Then, the substitution function $\texttt{sub}_f : \mathcal{F} \times \mathcal{T}^{n} \to \mathcal{F}$, of terms $\textbf{t} \in \mathcal{T}$, where $\textbf{t} = (t_1,...,t_n)$, in formula $\varphi \in \mathcal{F}$, denoted $\varphi/[\textbf{t}]$, is inductively defined as
-%%     \begin{enumerate}
-%%         \item $\texttt{verum}/[\textbf{t}] = \texttt{verum}$;
-%%         \item $\texttt{falsum}/[\textbf{t}] = \texttt{falsum}$;
-%%         \item if $P(a_1,...,a_k) \in \mathcal{F}$, then $P(a_1,...,a_k)/[\textbf{t}] = P(\texttt{sub}_t(a_1,\textbf{t}),...,\texttt{sub}(a_k,\textbf{t}))$;
-%%         \item if $\neg P(a_1,...,a_k) \in \mathcal{F}$, then $ \neg P(a_1,...,a_k)/[\textbf{t}] = \neg P(\texttt{sub}_t(a_1,\textbf{t}),...,\texttt{sub}_t(a_k,\textbf{t}))$;
-%%         \item if $\texttt{and}(\varphi_1, \varphi_2) \in \mathcal{F}$, then $\texttt{and}(\varphi_1, \varphi_2)/[\textbf{t}] = \texttt{and}(\varphi_1/[\textbf{t}],\varphi/[t])$;
-%%         \item if $\texttt{or}(\varphi_1, \varphi_2) \in \mathcal{F}$, then $\texttt{or}(\varphi_1, \varphi_2)/[\textbf{t}] = \texttt{or}(\varphi_1/[\textbf{t}],\varphi/[\textbf{t}])$;
-%%         \item if $\texttt{all}(\varphi) \in \mathcal{F}$, then $\texttt{all}(\varphi)/[\textbf{t}] = \texttt{all}(\varphi/[\textbf{t}])$ and
-%%         \item if $\texttt{ex}(\varphi)\in \mathcal{F}$, then $\texttt{ex}(\varphi)/[\textbf{t}] = \texttt{ex}(\varphi/[\textbf{t}])$.
-%%     \end{enumerate}
-\end{definition}
-
-Halbach mentions that in situations where it is necessary to specify the exact logical rules in derivations he will use a sequent calculus \cite[p. 29]{halbach:2011}. Since we need a fully syntactical notion of closure under first-order inference, we need to implement a concrete calculus to have an idea of what first-order closure is. We hence implement a notion of sequent calculus derivations of formulae.
-
-\begin{definition}[sequent calculus inference rules]
+For own notion of proof we use a sequent calculus: G3cp + G3c (see \cite{negri:2001} pages 49 and 67 respectively) and an axiom for adding axioms from theories.
+\begin{definition}[Sequent Calculus]\label{def:Seq-Calc}
+  \lean{Calculus.Derivation}
     Let $\mathcal{L}$ be a formal language, and $Th$ some set of $Th \subseteq \mathcal{S}(\mathcal{L})$ functioning as axioms. Then the inference rules of sequent calculus are
-    \begin{enumerate}
-        \item $r_{lax} : \mathcal{P}(\mathcal{F}(\mathcal{L}, \mathbb{N}))^2 \to \mathcal{P}(\mathcal{F}(\mathcal{L},\mathbb{N}))^2$ defined by $r_{lax}(\Gamma,\Delta) = (\Gamma \cup \{\varphi\}, \Delta \cup \{\varphi\})$, where $\varphi \in \mathcal{F}(\mathcal{L},\mathbb{N})$,
-        \item $r_{tax} : \mathcal{P}(\mathcal{F}(\mathcal{L}, \mathbb{N}))^2 \to \mathcal{P}(\mathcal{F}(\mathcal{L}, \mathbb{N}))^2$ defined by $r_{tax}(\Gamma, \Delta) = (\Gamma, \Delta \cup \{\phi\})$, where $\varphi \in Th$,
-        \item PROCEED HERE          
-        %% \item $r_{cut} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{cut}((\Gamma,\Delta \cup \{\phi\}),(\{\phi\} \cup \Sigma,\Pi))=(\Gamma \cup \Sigma, \Delta \cup \Pi)$,
-        %% \item $r_{\land L_1} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\land L_1}((\Gamma \cup \{\phi\}, \Delta))=(\Gamma \cup \{\phi \land \psi\}, \Delta)$,
-        %% \item $r_{\land L_2} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\land L_2}((\Gamma \cup \{\psi\}, \Delta))=(\Gamma \cup \{\phi \land \psi\}, \Delta)$,
-        %% \item $r_{\lor L} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{\lor L}((\Gamma \cup \{\phi\},\Delta),(\Gamma \cup \{\psi\},\Delta))=(\Gamma \cup \{\phi \lor \psi\},\Delta)$,
-        %% \item $r_{\to L} : \mathcal{S}^2 \to \mathcal{S}$ defined by $r_{\to L}((\Gamma, \{\phi\} \cup \Delta),(\Sigma \cup \{\psi\},\Pi))=(\Gamma \cup \Sigma \cup \{(\phi \to \psi)\},\Delta \cup \Pi)$,
-        %% \item $r_{\neg L} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\neg L}(\Gamma,\{\phi\} \cup \Delta)=(\Gamma \cup \{\neg \phi\},\Delta)$,
-        %% \item $r_{\forall L} : \mathcal{S} \to \mathcal{S}$ defined by $r_{\forall L}(\Gamma \cup \{\phi [t/x]\},\Delta)=(\Gamma \cup \{ \forall x \phi \},\Delta)$,
 
-    \end{enumerate}
+\noindent \textbf{Theoretical Axiom:}
+
+if $A \in Th$ then $\Gamma \Rightarrow A, \Delta$
+
+\begin{center}
+    \textbf{G3cp}
+\end{center}
+\noindent \textbf{Logical Axiom:}
+
+$\Gamma, P \Rightarrow P, \Delta$
+
+\noindent \textbf{Logical Rules:}
+\begin{multicols}{2}
+\[
+\frac{\Gamma \Rightarrow A, \Delta \quad \Gamma \Rightarrow B, \Delta}{\Gamma \Rightarrow A \land B, \Delta}\tag{$R\land$}
+\]
+
+\[
+\frac{\Gamma, A, B \Rightarrow \Delta}{\Gamma, A \land B \Rightarrow \Delta}\tag{$L\land$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow A, B, \Delta}{\Gamma \Rightarrow A \lor B, \Delta}\tag{$R\lor$}
+\]
+
+\[
+\frac{\Gamma, A \Rightarrow \Delta \quad \Gamma, B \Rightarrow \Delta}{\Gamma, A \lor B \Rightarrow \Delta}\tag{$L\lor$}
+\]
+
+\[
+\frac{\Gamma, A \Rightarrow B, \Delta}{\Gamma \Rightarrow A \supset B, \Delta}\tag{$R\supset$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow A, \Delta \quad \Gamma, B \Rightarrow \Delta}{\Gamma, A \supset B \Rightarrow \Delta}\tag{$L\supset$}
+\]
+
+\[
+\frac{}{\bot, \Gamma \Rightarrow \Delta}\tag{$L\bot$}
+\]
+
+\end{multicols}
+
+\begin{center}
+    \textbf{G3c}
+\end{center}
+\begin{multicols}{2}
+
+\[
+\frac{\Gamma \Rightarrow A[y/x], \Delta}{\Gamma \Rightarrow \forall x A, \Delta}\tag{$R\forall$}
+\]
+
+\[
+\frac{\Gamma, A[t/x], \forall x A \Rightarrow \Delta}{\Gamma, \forall x A \Rightarrow \Delta}\tag{$L\forall$}
+\]
+
+\[
+\frac{\Gamma, A[y/x] \Rightarrow \Delta}{\Gamma, \exists x A \Rightarrow \Delta}\tag{$L\exists$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow \exists x A, A[t/x], \Delta}{\Gamma \Rightarrow \exists x A, \Delta}\tag{$R\exists$}
+\]
+
+\end{multicols}
+
 \end{definition}
 
-\noindent \textcolor{red}{[I haven't reviewed from here on out.]}
+--------------------------------------------------------------
 
 \section{Disquotation}\label{subsec:disquotation}
 \begin{definition}[conservativity]
-    A truth system $...$ [\textcolor{red}{how do you get this symbol?}] in the language $\mathcal{L}_T$ is conservative over a system $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all sentences $s \in \mathcal{L}$ provable by $...$ are also provable by $\mathcal{S}$.
+    A truth system $...$  in the language $\mathcal{L}_T$ is conservative over a system $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all sentences $s \in \mathcal{L}$ provable by $...$ are also provable by $\mathcal{S}$.
 \end{definition}
 
 \begin{lemma}[finite axioms in TB]
