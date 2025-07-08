@@ -37,43 +37,77 @@
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[$dedup$: Removed Duplicates From List]\label{def:Dedup}
+\begin{definition}[\texttt{dedup}: Removed Duplicates From List]\label{def:dedup}
     \lean{List.dedup}\leanok
-    We define the function removing elements from a list $dedup : L \to L$ recursively by
+    We define the function removing elements from a list $\texttt{dedup} : L \to L$ recursively by
     \begin{enumerate}
-    \item $dedup([]) = []$ and
-    \item $dedup([h,T]) = \begin{cases}
-    [h,dedup(T)] & \text{if } \neg h ~\underline{\texttt{in}}~ T \\
-    dedup(T) & \text{if } h ~\underline{\texttt{in}}~ T
+    \item $\texttt{dedup}([]) = []$ and
+    \item $\texttt{dedup}([h,T]) = \begin{cases}
+    [h,\texttt{dedup}(T)] & \text{if } \neg h ~\underline{\texttt{in}}~ T \\
+    \texttt{dedup}(T) & \text{if } h ~\underline{\texttt{in}}~ T
     \end{cases}$
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[$\varphi L(d)$: The List of Disquoted Formulas wrt a Derivation]\label{def:Rel-Phis}
+\begin{definition}[$pre\varphi L(d)$: The List of Disquoted Sentences wrt a Derivation with Duplicates]\label{def:Pre-Rel-Phis}
     \lean{Conservativity.build_relevant_phis_list}\leanok
     \uses{def:List,def:List-Append}
-    We define the function $\varphi L(d) : \mathcal{D}(\texttt{TB},\Gamma,\Delta) \to L(\mathcal{F}(\mathcal{L},\{0\}))$ recursively by
+    We define the function $pre\varphi L(d) : \mathcal{D}(\texttt{TB},\Gamma,\Delta) \to L(\mathcal{F}(\mathcal{L},\{0\}))$ recursively by
     \begin{enumerate}
-    \item $\varphi L(\Gamma \Rightarrow \Delta, A) = \begin{cases}
-        [(\ulcorner \psi \urcorner = \#0) \wedge \psi] & \text{if } A = Tr(\ulcorner \psi \urcorner) \iff \psi \\
+    \item $pre\varphi L(\Gamma \Rightarrow \Delta, A) = \begin{cases}
+        [\psi] & \text{if } A = Tr(\ulcorner \psi \urcorner) \leftrightarrow \psi \wedge \psi \in \mathcal{S}(\mathcal{L}) \\
         \text{[]} & \text{else}
     \end{cases}$;
-    \item $\varphi L(\frac{d}{\Gamma, \Delta}) = \varphi L(d)$ and
-    \item $\varphi L(\frac{d_1 \quad d_2}{\Gamma \Rightarrow \Delta}) = \varphi L(d_1) ~\texttt{++}~ \varphi L(d_2)
+    \item $pre\varphi L(\frac{d}{\Gamma, \Delta}) = pre\varphi L(d)$ and
+    \item $pre\varphi L(\frac{d_1 \quad d_2}{\Gamma \Rightarrow \Delta}) = pre\varphi L(d_1) ~\texttt{++}~ pre\varphi L(d_2)
 $.
     \end{enumerate}
 \end{definition} 
 
-\begin{definition}[$pa\_plus\_to\_pa$: Function Derivations from \texttt{PA} + tau-equivalences to \texttt{PA}]\label{def:PA-Plus-To-PA}
-    \lean{Conservativity.pa_plus_to_pa}\leanok
-    \uses{def:Derivation,def:TB,def:PA,def:FO-Formula}
+\begin{definition}[$\varphi L(d)$: The List of Disquoted Sentences wrt a Derivation without Duplicates]\label{def:Rel-Phis}
+    \lean{Conservativity.build_relevant_phis}
+    \uses{def:Pre-Rel-Phis}
+     We define $\varphi L(d) : \mathcal{D}(\texttt{TB},\Gamma,\Delta) \to L(\mathcal{F}(\mathcal{L},\{0\}))$ by $\varphi L(d) = \texttt{dedup}(pre\varphi L(d))$.
+\end{definition}
+
+\begin{definition}[$\tau$: Builds Halbach's Tau from a List of Sentences]\label{def:Tau}
+    \lean{Conservativity.build_tau}\leanok
+    \uses{def:List,def:FO-Sentence,def:FO-Formula}
+    We define $\tau : L_{\mathcal{S}(\mathcal{L})} \to \mathcal{F}(\mathcal{L},\mathbb{N})$ by
+    \begin{enumerate}
+    \item $\tau([]) = \bot$ and
+    \item $\tau([\varphi,T]) = ((\#0 = \ulcorner \varphi \urcorner) \wedge \varphi) \vee (\tau(T))$	
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[$\texttt{paProvesAllTauDisq}$]\label{lem:PA-Proves-All-Tau-Disq}
+    \lean{Conservativity.pa_proves_all_tau_disq}\leanok
+    Let $[h,T] \in \mathcal{S}(\mathcal{L})$ and $\varphi ~\underline{\texttt{in}}~ [h,T]$. Then the partial function $\texttt{paProvesAllTauDisq}: L_{\mathcal{S}(\mathcal{L})} \times \mathcal{S}(\mathcal{L}) \rightharpoonup \mathcal{D}(\texttt{PA},\Gamma,\Delta \cup \{\tau([h,T])(\ulcorner \varphi \urcorner) \leftrightarrow \varphi \})$ is defined by
     
+    $\texttt{paProvesAllTauDisq}([h,T],\varphi) = \begin{cases}
+    \ldots & \text{if } h = \varphi \\
+    \ldots & \text{otherwise }
+    \end{cases}$
+\end{definition}
+
+\begin{definition}[$\texttt{paPlusToPa}$: Function Derivations from \texttt{PA} + $\tau$-equivalences to \texttt{PA}]\label{def:paPlusToPa}
+    \lean{Conservativity.pa_plus_to_pa}\leanok
+    \uses{def:Derivation,def:TB,def:PA,def:FO-Formula,def:PA-Proves-All-Disq-Phis}
+    Let $\varphi \in \mathcal{F}(\mathcal{L},\mathbb{N})$, and $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\varphi\})$. Then we define the function \texttt{paPlusToPa}$: \mathcal{D}(\texttt{PA} \cup \{\tau(\varphi L(d))(\ulcorner \psi \urcorner) \leftrightarrow \psi ~|~ \psi \in \varphi L(d)\},\Gamma,\Delta) \to \mathcal{D}(\texttt{PA},\Gamma,\Delta)$ by
+    \begin{enumerate}
+    \item $\texttt{paPlusToPa}(\Gamma \Rightarrow \Delta, A) = \begin{cases}
+        \Gamma \Rightarrow \Delta, A & \text{if } A \in \texttt{PA} \\
+        \texttt{paProvesAllTauDisq}(\varphi L(d),A) & \text{else}
+    \end{cases}$;
+    \item $\texttt{paPlusToPa}(\frac{d}{\Gamma, \Delta}) = \frac{\texttt{paPlusToPa}(d)}{\Gamma, \Delta}$ and
+    \item $\texttt{paPlusToPa}(\frac{d_1 \quad d_2}{\Gamma, \Delta}) = \frac{\texttt{paPlusToPa}(d_1) \quad \texttt{paPlusToPa}(d_2)}{\Gamma, \Delta}$.
+    \end{enumerate}
 \end{definition}
 
 \begin{definition}[Translation]\label{def:Translation}
     \lean{Conservativity.translation}\leanok
     \uses{def:FO-Formula,def:Derivation,def:TB,def:PA}
-    Let $\varphi$ be a formula $\varphi \in \mathcal{B}(\mathcal{L},\mathbb{N})$. Then we define the translation function with respect to that formula $translation_{\varphi} : \mathcal{D}(\texttt{TB},\emptyset,\{\phi\}) \to \mathcal{D}(\texttt{PA},\emptyset,\{\phi\})$ as $translation_{\varphi}(d) = pa\_plus\_to\_pa(pa\_plus\_der(d))$.
+    Let $\varphi$ be a formula $\varphi \in \mathcal{B}(\mathcal{L},\mathbb{N})$. Then we define the translation function with respect to that formula $translation_{\varphi} : \mathcal{D}(\texttt{TB},\emptyset,\{\phi\}) \to \mathcal{D}(\texttt{PA},\emptyset,\{\phi\})$ as $translation_{\varphi}(d) = paPlusToPa(pa-plus-der(d))$.
 \end{definition}
 
 \begin{theorem}[Conservativity of \texttt{TB} over \texttt{PA}]
