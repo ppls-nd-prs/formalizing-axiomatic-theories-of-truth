@@ -388,8 +388,10 @@ namespace Conservativity
     apply (fun d₁ => split_if B A Γ (Δ ∪ {B ⟹ A}) Δ d₁ (by rfl) (by rfl) (by rfl)) at d
     rw[Finset.union_comm] at d
     exact d
+end Conservativity
 
 namespace FirstOrder.Language.Term
+  variable {L : Language}
   def fin_one_to_bv : L.Term ((Fin 1) ⊕ Fin n) → L.Term (Empty ⊕ Fin (n + 1))
     | .var v => match v with
       | .inl m => .var (.inr ⟨n,(by simp)⟩)
@@ -406,6 +408,7 @@ end FirstOrder.Language.Term
 
 namespace FirstOrder.Language.BoundedFormula
 open Term
+variable{L : Language}
   def fin_one_to_bv : {n : ℕ} → L.BoundedFormula (Fin 1) n → L.BoundedFormula Empty (n + 1)
     | _, .falsum => .falsum
     | _, .equal t₁ t₂ => .equal (Term.fin_one_to_bv t₁) (Term.fin_one_to_bv t₂)
@@ -419,10 +422,15 @@ open Term
     | _, .rel R ts => .rel R (fun i => Term.fin_one_to_N (ts i))
     | _, .imp φ ψ => .imp (fin_one_to_N φ) (fin_one_to_N ψ)
     | _, .all φ => .all (fin_one_to_N φ)
-namespace FirstOrder.Language.BoundedFormula
 
+open Calculus
+variable {n : ℕ} [∀i, DecidableEq (L.Functions i)] [∀i, DecidableEq (L.Relations i)]
   def right_instantiation {t : L.Term (Empty ⊕ Fin 0)} {A : L.BoundedFormula (Fin 1) 0} {h : B = fin_one_to_bv A} : Derivation Th Δ (S ∪ {bf_empty_to_bf_N (∀'B)}) → Derivation Th Δ (S ∪ {bf_empty_to_bf_N (A/[t])}) := by sorry
 
+end FirstOrder.Language.BoundedFormula
+
+namespace Conservativity
+open Calculus
   def derivable_num_not_eq {S : Finset (ℒ.Formula ℕ)}: {n m : ℕ} → (h₁ : n ≠ m) → Derivation 𝐏𝐀 Δ (S ∪ {∼( bf_empty_to_bf_N (BoundedFormula.equal (numeral n) (numeral m)))})
     | .zero, .zero, h₁ => by
       trivial
@@ -613,6 +621,7 @@ match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜f
       rw[numeral_language_independent]
       simp only [Matrix.vec_single_eq_const]
 
+open TermEncoding
   def encoding_typing {φ} : to_l_term (TB.sentence_encoding φ) = ℒ.enc φ := by 
     simp[to_l_term,TB.sentence_encoding,LPA.numeral,sent_tonat]
     rw[numeral_language_independent]
@@ -710,4 +719,4 @@ match ((T(to_lt_term ⌜falsum⌝) ⟹ falsum) ⟹ (falsum ⟹ T(to_lt_term ⌜f
     intro h
     apply Nonempty.intro (translation φ (Classical.choice h))
 
-end BoundedFormula
+end Conservativity
