@@ -45,26 +45,26 @@ $
 \end{definition} 
 
 \begin{definition}[$pa\_plus\_to\_pa$: Function Derivations from \texttt{PA} + tau-equivalences to \texttt{PA}]\label{def:PA-Plus-To-PA}
-    \lean{Conservativity.FirstOrder.Language.BoundedFormula.FirstOrder.Language.BoundedFormula.pa_plus_to_pa}\leanok
-    \uses{def:TB,def:PA,def:FO-Formula}
+    \lean{Conservativity.pa_plus_to_pa}\leanok
+    \uses{def:Derivation,def:TB,def:PA,def:FO-Formula}
     
 \end{definition}
 
 \begin{definition}[Translation]\label{def:Translation}
-    \lean{Conservativity.FirstOrder.Language.BoundedFormula.FirstOrder.Language.BoundedFormula.translation}\leanok
-    \uses{def:FO-Formula,def:TB,def:PA}
+    \lean{Conservativity.translation}\leanok
+    \uses{def:FO-Formula,def:Derivation,def:TB,def:PA}
     Let $\varphi$ be a formula $\varphi \in \mathcal{B}(\mathcal{L},\mathbb{N})$. Then we define the translation function with respect to that formula $translation_{\varphi} : \mathcal{D}(\texttt{TB},\emptyset,\{\phi\}) \to \mathcal{D}(\texttt{PA},\emptyset,\{\phi\})$ as $translation_{\varphi}(d) = pa\_plus\_to\_pa(pa\_plus\_der(d))$.
 \end{definition}
 
 \begin{theorem}[Conservativity of \texttt{TB} over \texttt{PA}]
-    \lean{Conservativity.FirstOrder.Language.BoundedFormula.FirstOrder.Language.BoundedFormula.conservativity_of_tb}\leanok
-    \uses{def:FO-Language,def:FO-Formula,def:L,def:L_T}
+    \lean{Conservativity.conservativity_of_tb}\leanok
+    \uses{def:FO-Language,def:FO-Formula,def:L,def:L_T,def:Provability}
     $\forall \varphi \in \mathcal{F}(\mathcal{L},\mathbb{N}) : \texttt{TB} \vdash \varphi \Rightarrow \texttt{PA} \vdash \varphi$
 \end{theorem}
 
 \begin{proof}
-    \uses{def:Translation}
-    Let $\psi$ be an arbitrary formula such that $\psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and assume $\psi$ is provable from \texttt{TB}. Then, by Definition \textbf{?}, there exists some derivation $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Translation}, we have $translation(d) \in \mathcal{D}(\texttt{PA},\emptyset,\{\psi\})$. Then, by Definition \textbf{?}, we have that $\psi$ is provable from \texttt{PA}. Then, as we assumed that $\psi$ is provable from \texttt{TB}, we have that if $\texttt{TB} \vdash \psi$, then $\texttt{PA} \vdash \psi$. And since $\psi$ was arbitrary we have that for all $\varphi \in \mathcal{F}(\mathcal{L}, \mathbb{N})$ if $\texttt{TB} \vdash \varphi$, then $\texttt{PA} \vdash \varphi$.
+    \uses{def:Provable,def:Translation}
+    Let $\psi$ be an arbitrary formula such that $\psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and assume $\psi$ is provable from \texttt{TB}. Then, by Definition \ref{def:Provable}, there exists some derivation $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Translation}, we have $translation(d) \in \mathcal{D}(\texttt{PA},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Provable}, we have that $\psi$ is provable from \texttt{PA}. Then, as we assumed that $\psi$ is provable from \texttt{TB}, we have that if $\texttt{TB} \vdash \psi$, then $\texttt{PA} \vdash \psi$. And since $\psi$ was arbitrary we have that for all $\varphi \in \mathcal{F}(\mathcal{L}, \mathbb{N})$ if $\texttt{TB} \vdash \varphi$, then $\texttt{PA} \vdash \varphi$.
 \end{proof}
 
 \begin{lemma}[finite axioms in TB]
