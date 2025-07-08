@@ -1,8 +1,71 @@
-\chapter{Disquotation}
-\section{Disquotation}\label{subsec:disquotation}
-\begin{definition}[conservativity]
-    A truth system $...$  in the language $\mathcal{L}_T$ is conservative over a system $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all sentences $s \in \mathcal{L}$ provable by $...$ are also provable by $\mathcal{S}$.
+\chapter{Disquotation}\label{chapter:disquotation}
+\begin{definition}[T-Replacement]\label{def:T-Replacement}
+    Let $n$ be some natural number. We then define the T-replacement function, for replacing all T-predicate by a some $\mathcal{L}$ formula, with respect to $n$, $TrReplace_n : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathcal{B}(\mathcal{L}_T,\mathbb{N},n) \to \mathcal{B}(\mathcal{L},\mathbb{N},n)$ recursively as
+    \begin{enumerate}
+    \item $TrReplace_n(\varphi,\bot) = \bot$
+    \item $TrReplace_n(\varphi,(t_1 = t_2)) = (t_1 = t_2)$
+    \item $TrReplace_n(\varphi,Tr(t)) = \varphi(t)$
+    \item $TrReplace_n(\varphi,(\psi_1 \supset \psi_2)) = (TrReplace_n(\varphi,\psi_1) \supset TrReplace_n(\varphi,\psi_2))$
+    \item $TrReplace_n(\varphi,\forall(\psi)) = \forall(TrReplace_{n + 1}(\varphi,\psi))$
+    \end{enumerate}
 \end{definition}
+
+\begin{definition}[$L$: List]\label{def:List}
+    \lean{List}\leanok
+    We define the set of lists with respect to some set $S$, denoted $L(S)$, as the smallest set $X$ such that
+    \begin{enumerate}
+    \item $[] \in X$
+    \item if $h \in S$ and $T \in X$, then $[h,T] \in X$
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[$\cup$: List Append]\label{def:List-Append}
+    \lean{List.union}\leanok
+    We define the append function for lists recursively as 
+    \begin{enumerate}
+    \item $[] \cup L = L$
+    \item $[h,T] \cup L = [h,T \cup L]$ 
+    \end{enumerate} 
+\end{definition}
+
+\begin{definition}[$\varphi L(d)$: The L of Disquoted Formulas wrt a Derivation]\label{def:Rel-Phis}
+    \lean{Conservativity.build_relevant_phis_list}\leanok
+    \uses{def:List,def:List-Append}
+    We define the function $\varphi L(d) : \mathcal{D}(\texttt{TB},\Gamma,\Delta) \to L(\mathcal{F}(\mathcal{L},\{0\}))$ recursively as 
+    \begin{enumerate}
+    \item $\varphi L(\Gamma \Rightarrow \Delta, A) = \begin{cases}
+        [(\ulcorner \psi \urcorner = \#0) \wedge \psi] & \text{if } A = Tr(\ulcorner \psi \urcorner) \iff \psi \\
+        [] & \text{else}
+    \end{cases}$
+    \item $\varphi L(\frac{d}{\Gamma, \Delta}) = \varphi L(d)$
+    \item $\varphi L(\frac{d_1 \quad d_2}{\Gamma \Rightarrow \Delta}) = \varphi L(d_1) \cup \varphi L(d_2)
+$
+    \end{enumerate}
+
+\end{definition} 
+
+\begin{definition}[$pa\_plus\_to\_pa$: Function Derivations from \texttt{PA} + tau-equivalences to \texttt{PA}]\label{def:PA-Plus-To-PA}
+    \lean{Conservativity.pa_plus_to_pa}\leanok
+    \uses{def:Derivation,def:TB,def:PA,def:FO-Formula}
+    
+\end{definition}
+
+\begin{definition}[Translation]\label{def:Translation}
+    \lean{Conservativity.translation}\leanok
+    \uses{def:FO-Formula,def:Derivation,def:TB,def:PA}
+    Let $\varphi$ be a formula $\varphi \in \mathcal{B}(\mathcal{L},\mathbb{N})$. Then we define the translation function with respect to that formula $translation_{\varphi} : \mathcal{D}(\texttt{TB},\emptyset,\{\phi\}) \to \mathcal{D}(\texttt{PA},\emptyset,\{\phi\})$ as $translation_{\varphi}(d) = pa\_plus\_to\_pa(pa\_plus\_der(d))$.
+\end{definition}
+
+\begin{theorem}[Conservativity of \texttt{TB} over \texttt{PA}]
+    \lean{Conservativity.conservativity_of_tb}\leanok
+    \uses{def:FO-Language,def:FO-Formula,def:L,def:L_T,def:Provability}
+    $\forall \varphi \in \mathcal{F}(\mathcal{L},\mathbb{N}) : \texttt{TB} \vdash \varphi \Rightarrow \texttt{PA} \vdash \varphi$
+\end{theorem}
+
+\begin{proof}
+    \uses{def:Provable,def:Translation}
+    Let $\psi$ be an arbitrary formula such that $\psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and assume $\psi$ is provable from \texttt{TB}. Then, by Definition \ref{def:Provable}, there exists some derivation $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Translation}, we have $translation(d) \in \mathcal{D}(\texttt{PA},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Provable}, we have that $\psi$ is provable from \texttt{PA}. Then, as we assumed that $\psi$ is provable from \texttt{TB}, we have that if $\texttt{TB} \vdash \psi$, then $\texttt{PA} \vdash \psi$. And since $\psi$ was arbitrary we have that for all $\varphi \in \mathcal{F}(\mathcal{L}, \mathbb{N})$ if $\texttt{TB} \vdash \varphi$, then $\texttt{PA} \vdash \varphi$.
+\end{proof}
 
 \begin{lemma}[finite axioms in TB]
     In a proof in \texttt{TB} only finitely many axioms can occur.
