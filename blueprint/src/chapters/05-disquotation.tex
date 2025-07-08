@@ -12,36 +12,56 @@
 
 \begin{definition}[$L$: List]\label{def:List}
     \lean{List}\leanok
-    We define the set of lists with respect to some set $S$, denoted $L(S)$, as the smallest set $X$ such that
+    We define the set of lists with respect to some set $S$, denoted $L_S$, as the smallest set $X$ such that
     \begin{enumerate}
-    \item $[] \in X$
-    \item if $h \in S$ and $T \in X$, then $[h,T] \in X$
+    \item $[] \in X$ and
+    \item if $h \in S$ and $T \in X$, then $[h,T] \in X$.
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[$\cup$: List Append]\label{def:List-Append}
+\begin{definition}[\texttt{++}: List Append]\label{def:List-Append}
     \lean{List.union}\leanok
-    We define the append function for lists recursively as 
+    We define the append function for lists $\texttt{++}: L \to L \to L$ recursively by 
     \begin{enumerate}
-    \item $[] \cup L = L$
-    \item $[h,T] \cup L = [h,T \cup L]$ 
+    \item $[] ~\texttt{++}~ l = l$ and
+    \item $[h,T] ~\texttt{++}~ l = [h,T ~\texttt{++}~ L]$.
     \end{enumerate} 
 \end{definition}
 
-\begin{definition}[$\varphi L(d)$: The L of Disquoted Formulas wrt a Derivation]\label{def:Rel-Phis}
+\begin{definition}[$\underline{\texttt{in}}$: Membership relation for Lists]\label{def:List-Mem}
+    \lean{List.Mem}\leanok
+    We define the membership relation for lists $\underline{\texttt{in}}$ recursively as the smallest set $X$ such that
+    \begin{enumerate}
+    \item $(a,[a,[]]) \in X$ and
+    \item $(a,[h,T]) \in X$ if $a = h$ or $(a,T) \in X$.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[$dedup$: Removed Duplicates From List]\label{def:Dedup}
+    \lean{List.dedup}\leanok
+    We define the function removing elements from a list $dedup : L \to L$ recursively by
+    \begin{enumerate}
+    \item $dedup([]) = []$ and
+    \item $dedup([h,T]) = \begin{cases}
+    [h,dedup(T)] & \text{if } \neg h ~\underline{\texttt{in}}~ T \\
+    dedup(T) & \text{if } h ~\underline{\texttt{in}}~ T
+    \end{cases}$
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[$\varphi L(d)$: The List of Disquoted Formulas wrt a Derivation]\label{def:Rel-Phis}
     \lean{Conservativity.build_relevant_phis_list}\leanok
     \uses{def:List,def:List-Append}
-    We define the function $\varphi L(d) : \mathcal{D}(\texttt{TB},\Gamma,\Delta) \to L(\mathcal{F}(\mathcal{L},\{0\}))$ recursively as 
+    We define the function $\varphi L(d) : \mathcal{D}(\texttt{TB},\Gamma,\Delta) \to L(\mathcal{F}(\mathcal{L},\{0\}))$ recursively by
     \begin{enumerate}
     \item $\varphi L(\Gamma \Rightarrow \Delta, A) = \begin{cases}
         [(\ulcorner \psi \urcorner = \#0) \wedge \psi] & \text{if } A = Tr(\ulcorner \psi \urcorner) \iff \psi \\
-        [] & \text{else}
-    \end{cases}$
-    \item $\varphi L(\frac{d}{\Gamma, \Delta}) = \varphi L(d)$
-    \item $\varphi L(\frac{d_1 \quad d_2}{\Gamma \Rightarrow \Delta}) = \varphi L(d_1) \cup \varphi L(d_2)
-$
+        \text{[]} & \text{else}
+    \end{cases}$;
+    \item $\varphi L(\frac{d}{\Gamma, \Delta}) = \varphi L(d)$ and
+    \item $\varphi L(\frac{d_1 \quad d_2}{\Gamma \Rightarrow \Delta}) = \varphi L(d_1) ~\texttt{++}~ \varphi L(d_2)
+$.
     \end{enumerate}
-
 \end{definition} 
 
 \begin{definition}[$pa\_plus\_to\_pa$: Function Derivations from \texttt{PA} + tau-equivalences to \texttt{PA}]\label{def:PA-Plus-To-PA}
