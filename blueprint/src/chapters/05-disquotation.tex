@@ -82,12 +82,14 @@ $.
 
 \begin{definition}[$\texttt{paProvesAllTauDisq}$]\label{lem:PA-Proves-All-Tau-Disq}
     \lean{Conservativity.pa_proves_all_tau_disq}\leanok
-    Let $[h,T] \in \mathcal{S}(\mathcal{L})$ and $\varphi ~\underline{\texttt{in}}~ [h,T]$. Then the partial function $\texttt{paProvesAllTauDisq}: L_{\mathcal{S}(\mathcal{L})} \times \mathcal{S}(\mathcal{L}) \rightharpoonup \mathcal{D}(\texttt{PA},\Gamma,\Delta \cup \{\tau([h,T])(\ulcorner \varphi \urcorner) \leftrightarrow \varphi \})$ is defined by
+    Let $[h,T] \in \mathcal{S}(\mathcal{L})$ and $\varphi ~\underline{\texttt{in}}~ [h,T]$. Then the partial function $\texttt{paProvesAllTauDisq}: L_{\mathcal{S}(\mathcal{L})} \times \mathcal{S}(\mathcal{L}) \rightharpoonup \mathcal{D}(\texttt{PA},\Gamma,\Delta \cup \{\tau([h,T])(\ulcorner \psi \urcorner) \leftrightarrow \psi \})$ is (with a slight abuse of notation) defined by
     
     $\texttt{paProvesAllTauDisq}([h,T],\varphi) = \begin{cases}
-    $\url{/https://github.com/ppls-nd-prs/formalizing-axiomatic-theories-of-truth/blueprint/src/img/h-is-psi.pdf}$ & \text{if } h = \varphi \\
-    \ldots & \text{otherwise }
-    \end{cases}$
+    \href{https://github.com/ppls-nd-prs/formalizing-axiomatic-theories-of-truth/blob/main/blueprint/src/img/h-is-psi.pdf}{\text{h-is-psi.pdf}} & \text{if } h = \psi \\
+    \href{https://github.com/ppls-nd-prs/formalizing-axiomatic-theories-of-truth/blob/main/blueprint/src/img/h-is-not-psi.pdf}{\text{h-is-not-psi.pdf}} & \text{otherwise }
+    \end{cases}$.
+    
+    The derivations themselves are linked as they are rather large.
 \end{definition}
 
 \begin{definition}[$\texttt{paPlusToPa}$: Function Derivations from \texttt{PA} + $\tau$-equivalences to \texttt{PA}]\label{def:paPlusToPa}
