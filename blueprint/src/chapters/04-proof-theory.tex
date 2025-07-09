@@ -1,8 +1,8 @@
-\chapter{Proof Theory}\label{chapter:proof-theory}
+	\chapter{Proof Theory}\label{chapter:proof-theory}
 For own notion of proof we use a sequent calculus: G3cp + G3c (see \cite{negri:2001} pages 49 and 67 respectively) and an axiom for adding axioms from theories.
 \begin{definition}[Sequent Calculus]\label{def:Seq-Calc}
   \lean{Calculus.Derivation}\leanok
-  \uses{def:FO-Language,def:FO-Sentence,def:FO-Formula}
+  \uses{def:FO-Language,def:FO-Sentence,def:FO-Formula,def:BF-Substitution,def:FO-Not,def:FO-And,def:FO-Or,def:FO-Exists}
     Let $\mathcal{L}$ be a formal language, and $Th$ some set of $Th \subseteq \mathcal{S}(\mathcal{L})$ functioning as axioms. Then the inference rules of sequent calculus are
 
 \noindent \textbf{Theoretical Axiom:}
@@ -72,3 +72,55 @@ $\Gamma, P \Rightarrow P, \Delta$
 \end{multicols}
 
 \end{definition}
+
+In order to work with the set of all derivations from some theory with introduce the concept of the set of all derivation of some sequent from some theory. Note that in Lean this is immediate from the definition of the type of derivations.
+
+\begin{definition}[$\mathcal{D}$: the Set of All Derivations]\label{def:Derivation}
+\lean{Calculus.Derivation}\leanok
+\uses{def:Seq-Calc}
+Let $Th$ be some theory in some language $\mathcal{L}$, and $\Gamma, \Delta$ finite sets such that $\Gamma, \Delta \subseteq \mathcal{F}(\mathcal{L},\mathbb{N})$. Then we denote the set of all trees that consists only of rules from the Sequent Calculus (Definition \ref{def:Seq-Calc}) with $Th$ as theory and have as root $\Gamma \Rightarrow \Delta$ by $\mathcal{D}(Th,\Gamma,\Delta)$.
+\end{definition}
+
+\begin{definition}[$Th \vdash \Gamma \Rightarrow \Delta$: Sequent is Provable from Theory]\label{def:Sequent-Provable}
+\lean{Calculus.formula_provable}\leanok
+\uses{def:Derivation,def:FO-Theory}
+We call a sequent $\Gamma \Rightarrow \Delta$ provable from some theory $Th$, denoted $Th \vdash \Gamma \Rightarrow \Delta$, if there exists some derivation $d \in \mathcal{D}(Th,\Gamma,\Delta)$.
+\end{definition}
+
+\begin{definition}[$Th \vdash \varphi$: Formula Provable from Theory]\label{def:Formula-Provable}
+\lean{Calculus.formula_provable}\leanok
+\uses{def:Sequent-Provable,def:FO-Theory}
+We call a formula $\varphi$ provable from some theory $Th$, denoted $Th \vdash \varphi$, if there exists some derivation $d \in \mathcal{D}(Th,\emptyset,\{\varphi\})$.
+
+\begin{definition}[MetaRules]\label{def:MetaRules}
+\uses{def:Seq-Calc}
+We define many meta rules which should be proved for the sequent calculus, including
+\begin{multicols}{2}
+\[
+\frac{\Gamma \Rightarrow \Delta}{\Gamma, A \Rightarrow \Delta} \tag{$L_{wk}$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow \Delta}{\Gamma \Rightarrow \Delta, A} \tag{$R_{wk}$}
+\]
+
+\[
+\frac{}{\Gamma \Rightarrow (t_1 = t_1), \Delta} \tag{$R=$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow A \supset B, \Delta \quad \Gamma \Rightarrow B \supset A, \Delta}{\Gamma \Rightarrow A \leftrightarrow B, \Delta} \tag{$R\leftrightarrow$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow A \leftrightarrow B, \Delta}{\Gamma \Rightarrow A \supset B, \Delta} \tag{$R \leftrightarrow elim\_to\_right$}
+\]
+
+\[
+\frac{\Gamma \Rightarrow A \leftrightarrow B, \Delta}{\Gamma \Rightarrow B \supset A, \Delta} \tag{$R \leftrightarrow elim\_to\_left$}
+\]
+\end{multicols}
+\end{definition}
+
+
+

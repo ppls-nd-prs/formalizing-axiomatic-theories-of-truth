@@ -42,6 +42,35 @@ We shall from here on out refer to $(a,l)$ from a disjoint union of sets by $\#1
 \end{definition}
 Notice that these definitions differ in various ways from classial De Bruijn notation \cite{bruijn:1972}. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{Z}$. The reason for such an implementation is that now we can distinguish free variables from bound variable. In that way we enable adding exactly as many distinct variables in sub-formulas of sentences as the amount of quantifiers removed in Definition \ref{def:FO-BoundedFormula}'s recursive step v. Furthermore, free variables can now come from any set, rather than $\mathbb{Z}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P(\&0) \rightarrow R(f(\&1))) \to (R(\#x_0) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
 
+These concepts are sufficient to then also define the notion of term substitution in terms and formulas. 
+\begin{definition}[$/[t]$: Substitution in Terms]\label{def:Term-Substitution}
+\lean{Substitution.term_substitution}\leanok
+\uses{def:FO-Term}
+For some language $\mathcal{L}$, we define the subsitution function of terms in terms $/[t] : \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n})$ recursively by
+\begin{enumerate}
+\item $t/[a] = \begin{cases}
+    t & \text{if } t = \#0 \\
+    t & \text{otherwise }
+\end{cases}$ and
+\item $f(t_1,...,t_n)/[a] = f(t_1/[a],...,t_n/[a])$.
+\end{enumerate}
+
+\begin{definition}[$/[t]$: Substitution in BoundedFormulas]\label{def:BF-Substitution}
+\lean{Substitution.formulas_substitution}\leanok
+\uses{def:FO-BoundedFormula,def:Term-Substitution}
+For some language $\mathcal{L}$ and a natural number $n$, we define the subsitution function of terms in BoundedFormulas $/[t] : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{B}(\mathcal{L},\mathbb{N},n)$ recursively by
+\begin{enumerate}
+\item $\bot/[t] = \bot$;
+\item $(t_1 = t_2)/[t] = (t_1/[t] = t_2/[t])$;
+\item $R(t_1,...,t_n) = R(t_1/[t],...,t_n/[t])$;
+\item $(\varphi \supset \psi)/[t] = (\varphi/[t] \supset \psi/[t])$ and
+\item $(\forall \varphi)/[t] = \forall (\varphi/[t])$.
+\end{enumerate}
+
+\end{definition}
+
+\end{definition}
+
 We can then go on to define the other standard logical operators: $\neg$, $\exists$, $\top$, $\wedge$, $\vee$, $\leftrightarrow$.
 \begin{definition}[$\neg$ : Negation]\label{def:FO-Neg}
   \lean{FirstOrder.Language.BoundedFormula.not}\leanok

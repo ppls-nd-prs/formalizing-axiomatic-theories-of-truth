@@ -1,5 +1,7 @@
 \chapter{Disquotation}\label{chapter:disquotation}
 \begin{definition}[T-Replacement]\label{def:T-Replacement}
+\lean{Conservativity.subs_fml_for_t_in_fml}\leanok
+\uses{def:FO-BoundedFormula,def:L,def:L_T,def:Subst}
     Let $n$ be some natural number. We then define the T-replacement function, for replacing all T-predicate by a some $\mathcal{L}$ formula, with respect to $n$, $TrReplace_n : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathcal{B}(\mathcal{L}_T,\mathbb{N},n) \to \mathcal{B}(\mathcal{L},\mathbb{N},n)$ recursively as
     \begin{enumerate}
     \item $TrReplace_n(\varphi,\bot) = \bot$
@@ -51,7 +53,7 @@
 
 \begin{definition}[$pre\varphi L(d)$: The List of Disquoted Sentences wrt a Derivation with Duplicates]\label{def:Pre-Rel-Phis}
     \lean{Conservativity.build_relevant_phis_list}\leanok
-    \uses{def:List,def:List-Append}
+    \uses{def:List,def:List-Append,def:Derivation}
     We define the function $pre\varphi L(d) : \mathcal{D}(\texttt{TB},\Gamma,\Delta) \to L(\mathcal{F}(\mathcal{L},\{0\}))$ recursively by
     \begin{enumerate}
     \item $pre\varphi L(\Gamma \Rightarrow \Delta, A) = \begin{cases}
@@ -65,7 +67,7 @@ $.
 \end{definition} 
 
 \begin{definition}[$\varphi L(d)$: The List of Disquoted Sentences wrt a Derivation without Duplicates]\label{def:Rel-Phis}
-    \lean{Conservativity.build_relevant_phis}
+    \lean{Conservativity.build_relevant_phis}\leanok
     \uses{def:Pre-Rel-Phis}
      We define $\varphi L(d) : \mathcal{D}(\texttt{TB},\Gamma,\Delta) \to L(\mathcal{F}(\mathcal{L},\{0\}))$ by $\varphi L(d) = \texttt{dedup}(pre\varphi L(d))$.
 \end{definition}
@@ -80,8 +82,9 @@ $.
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[$\texttt{paProvesAllTauDisq}$]\label{lem:PA-Proves-All-Tau-Disq}
+\begin{definition}[$\texttt{paProvesAllTauDisq}$]\label{def:PA-Proves-All-Tau-Disq}
     \lean{Conservativity.pa_proves_all_tau_disq}\leanok
+    \uses{def:MetaRules,def:Derivation,def:Tau,def:List}
     Let $[h,T] \in \mathcal{S}(\mathcal{L})$ and $\varphi ~\underline{\texttt{in}}~ [h,T]$. Then the partial function $\texttt{paProvesAllTauDisq}: L_{\mathcal{S}(\mathcal{L})} \times \mathcal{S}(\mathcal{L}) \rightharpoonup \mathcal{D}(\texttt{PA},\Gamma,\Delta \cup \{\tau([h,T])(\ulcorner \psi \urcorner) \leftrightarrow \psi \})$ is (with a slight abuse of notation) defined by
     
     $\texttt{paProvesAllTauDisq}([h,T],\varphi) = \begin{cases}
@@ -92,9 +95,9 @@ $.
     The derivations themselves are linked as they are rather large.
 \end{definition}
 
-\begin{definition}[$\texttt{paPlusToPa}$: Function Derivations from \texttt{PA} + $\tau$-equivalences to \texttt{PA}]\label{def:paPlusToPa}
+\begin{definition}[$\texttt{paPlusToPa}$: Function Derivations from \texttt{PA} + $\tau$-equivalences to \texttt{PA}]\label{def:PA-Plus-To-PA}
     \lean{Conservativity.pa_plus_to_pa}\leanok
-    \uses{def:Derivation,def:TB,def:PA,def:FO-Formula,def:PA-Proves-All-Disq-Phis}
+    \uses{def:Derivation,def:TB,def:PA,def:FO-Formula,def:PA-Proves-All-Tau-Disq}
     Let $\varphi \in \mathcal{F}(\mathcal{L},\mathbb{N})$, and $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\varphi\})$. Then we define the function \texttt{paPlusToPa}$: \mathcal{D}(\texttt{PA} \cup \{\tau(\varphi L(d))(\ulcorner \psi \urcorner) \leftrightarrow \psi ~|~ \psi \in \varphi L(d)\},\Gamma,\Delta) \to \mathcal{D}(\texttt{PA},\Gamma,\Delta)$ by
     \begin{enumerate}
     \item $\texttt{paPlusToPa}(\Gamma \Rightarrow \Delta, A) = \begin{cases}
@@ -108,96 +111,20 @@ $.
 
 \begin{definition}[Translation]\label{def:Translation}
     \lean{Conservativity.translation}\leanok
-    \uses{def:FO-Formula,def:Derivation,def:TB,def:PA}
-    Let $\varphi$ be a formula $\varphi \in \mathcal{B}(\mathcal{L},\mathbb{N})$. Then we define the translation function with respect to that formula $translation_{\varphi} : \mathcal{D}(\texttt{TB},\emptyset,\{\phi\}) \to \mathcal{D}(\texttt{PA},\emptyset,\{\phi\})$ as $translation_{\varphi}(d) = paPlusToPa(pa-plus-der(d))$.
+    \uses{def:FO-Formula,def:Derivation,def:TB,def:PA,def:PA-Plus-To-PA,def:PA-Plus-Der}
+    Let $\varphi$ be a formula $\varphi \in \mathcal{B}(\mathcal{L},\mathbb{N})$. Then we define the translation function with respect to that formula $translation_{\varphi} : \mathcal{D}(\texttt{TB},\emptyset,\{\phi\}) \to \mathcal{D}(\texttt{PA},\emptyset,\{\phi\})$ as $translation_{\varphi}(d) = paPlusToPa(paPlusDer(d))$.
 \end{definition}
 
-\begin{theorem}[Conservativity of \texttt{TB} over \texttt{PA}]
+\begin{theorem}[Conservativity of \texttt{TB} over \texttt{PA}]\label{def:ConservativityTB}
     \lean{Conservativity.conservativity_of_tb}\leanok
-    \uses{def:FO-Language,def:FO-Formula,def:L,def:L_T,def:Provability}
+    \uses{def:FO-Language,def:FO-Formula,def:L,def:L_T,def:L,def:Provability}
     $\forall \varphi \in \mathcal{F}(\mathcal{L},\mathbb{N}) : \texttt{TB} \vdash \varphi \Rightarrow \texttt{PA} \vdash \varphi$
 \end{theorem}
 
 \begin{proof}
-    \uses{def:Provable,def:Translation}
-    Let $\psi$ be an arbitrary formula such that $\psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and assume $\psi$ is provable from \texttt{TB}. Then, by Definition \ref{def:Provable}, there exists some derivation $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Translation}, we have $translation(d) \in \mathcal{D}(\texttt{PA},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Provable}, we have that $\psi$ is provable from \texttt{PA}. Then, as we assumed that $\psi$ is provable from \texttt{TB}, we have that if $\texttt{TB} \vdash \psi$, then $\texttt{PA} \vdash \psi$. And since $\psi$ was arbitrary we have that for all $\varphi \in \mathcal{F}(\mathcal{L}, \mathbb{N})$ if $\texttt{TB} \vdash \varphi$, then $\texttt{PA} \vdash \varphi$.
+    \uses{def:Formula-Provable,def:Translation}
+    Let $\psi$ be an arbitrary formula such that $\psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and assume $\psi$ is provable from \texttt{TB}. Then, by Definition \ref{def:Formula-Provable}, there exists some derivation $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Translation}, we have $translation(d) \in \mathcal{D}(\texttt{PA},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Formula-Provable}, we have that $\psi$ is provable from \texttt{PA}. Then, as we assumed that $\psi$ is provable from \texttt{TB}, we have that if $\texttt{TB} \vdash \psi$, then $\texttt{PA} \vdash \psi$. And since $\psi$ was arbitrary we have that for all $\varphi \in \mathcal{F}(\mathcal{L}, \mathbb{N})$ if $\texttt{TB} \vdash \varphi$, then $\texttt{PA} \vdash \varphi$.
 \end{proof}
 
-\begin{lemma}[finite axioms in TB]
-    In a proof in \texttt{TB} only finitely many axioms can occur.
-\end{lemma}
-
-\begin{proof}
-    Let $p$ be a proof in \texttt{TB}. Then, by Definition \verb|\ref{def:formal-proof}|, $p$ is a finite sequence of sentences each of which is an axiom of \texttt{TB} or follows from the preceding sentences according to first-order rules of inference. The amount of axioms the proof contains is less or equal to the total number of sentences. Hence, the number of axioms in the proof should also be finite. 
-\end{proof}
-
-\begin{theorem}
-    \texttt{TB} is conservative over \texttt{PA}.
-\end{theorem}
-
-\begin{proof}
-Let $\psi$ be a formula in $\mathcal{L}$ that is provable in TB by a proof $p$. Then, by Lemma \verb|\ref{lem:finit-ax-tb}|, we have that $p$ contains finitely many sentences as axioms. Let $n$ be the number of disquotation sentences occurring as axioms in the proof. Then, every axiom $p$ is either (i) an axiom of \texttt{PA}, or (ii) an instance of the induction schema, or (iii) for some $i \leq n$, a sentence of the form: 
-\begin{align*}
-    T\ulcorner \varphi_i \urcorner \leftrightarrow \varphi_i.
-\end{align*}
-As axioms of type (i) and (ii) are sentences of $\mathcal{L}$, we need only show how to transform any given disquotation axiom into a logically equivalent sentence of $\mathcal{L}$. Now, let $\tau(x)$ be the formula: 
-\begin{align*}
-    (x = \ulcorner \varphi_1 \urcorner \land \varphi_1) \lor ... \lor (x = \ulcorner \varphi_k \urcorner \land \varphi_k).
-\end{align*}
-By Lemma \verb|\ref{lem:Tphi-eq-tau}|, we have that $T\ulcorner \varphi \urcorner \iff \tau(\ulcorner \varphi \urcorner)$. Hence, we can replace all occurrences of the truth predicate $T$ in the given \texttt{TB}-proof with $\tau$. Then the disquotation ...
-\end{proof}
-
-We will here define proof systems for $\texttt{PA}$, $\texttt{PAT}$ and $\texttt{TB}$. As all these theories have to be closed under first-order inference, the rules for deriving formulas from other formulas can be the same for each theory. We hence need to formulate the axioms of these theories and a general notion of first-order provability. 
-
-\begin{definition}[formal proof]
-    A formal proof in a logical system $\mathcal{S}$ is a finite sequence of sentences, where each sentence is an axiom of $\mathcal{S}$, an assumption, or follows from the application of one of $\mathcal{S}$'s rules of inference to previous sentences in the sequence (Wikipedia: Formal proof).
-\end{definition}
-
-\begin{definition}[provability]
-    A formula $\varphi$ is provable in a proof system $\mathcal{S}$ if and only if there exists a formal proof $\mathcal{P}$ in $\mathcal{S}$, such that $\mathcal{P}$ contains no assumptions and $\varphi$ is the last sentence of $\mathcal{P}$.
-\end{definition}
 
 
---------------------------below from old file----------------------------------------
-
-\begin{definition}[\texttt{TB}]
-    %\label{def:TB}
-    %\uses{def:PAT}
-    The system \texttt{TB} comprises all axioms of \texttt{PAT}. Moreover all sentences of the form $T\ulcorner\varphi\urcorner \leftrightarrow \varphi$ are axioms of the system where $\varphi$ is a sentence of the language of $\mathcal{L}$ and $\ulcorner \varphi \urcorner$ is the numeral of $\varphi$'s Gödel code.
-\end{definition}
-
-\begin{definition}[conservativity]
-    %\label{def:cons}
-    %\uses{def:LT}
-    A truth system $...$ in the language $\mathcal{L}_T$ is conservative over a system $\mathcal{S}$ formulated in language $\mathcal{L}$ without the truth predicate if and only if all sentences $s \in \mathcal{L}$ provable by $...$ are also provable by $\mathcal{S}$.
-\end{definition}
-
-\begin{lemma}[finite axioms in TB]
-    %\label{lem:finit-ax-tb}
-    %\uses{def:TB}
-    In a proof in \texttt{TB} only finitely many axioms can occur.
-\end{lemma}
-
-\begin{proof}
-    %\uses{def:formal-proof, def:TB} 
-    Let $p$ be a proof in \texttt{TB}. Then, by Definition \verb|\ref{def:formal-proof}|, $p$ is a finite sequence of sentences each of which is an axiom of \texttt{TB} or follows from the preceding sentences according to first-order rules of inference. The amount of axioms the proof contains is less or equal to the total number of sentences. Hence, the number of axioms in the proof should also be finite. 
-\end{proof}
-
-\begin{theorem}
-    %\label{thm:tb-cons}
-    % \lean{[the right reference]}
-    \texttt{TB} is conservative over \texttt{PA}.
-\end{theorem}
-
-\begin{proof} %\uses{def:cons, def:TB} 
-%We show how to transform any given \texttt{TB}-proof of a formula in $\mathcal{L}$ into a \texttt{PA}-proof of the same formula. 
-Let $\psi$ be a formula in $\mathcal{L}$ that is provable in TB by a proof $p$. Then, by Lemma \verb|\ref{lem:finit-ax-tb}|, we have that $p$ contains finitely many sentences as axioms. Let $n$ be the number of disquotation sentences occurring as axioms in the proof. Then, every axiom $p$ is either (i) an axiom of \texttt{PA}, or (ii) an instance of the induction schema, or (iii) for some $i \leq n$, a sentence of the form: 
-\begin{align*}
-    T\ulcorner \varphi_i \urcorner \leftrightarrow \varphi_i.
-\end{align*}
-As axioms of type (i) and (ii) are sentences of $\mathcal{L}$, we need only show how to transform any given disquotation axiom into a logically equivalent sentence of $\mathcal{L}$. Now, let $\tau(x)$ be the formula: 
-\begin{align*}
-    (x = \ulcorner \varphi_1 \urcorner \land \varphi_1) \lor ... \lor (x = \ulcorner \varphi_k \urcorner \land \varphi_k).
-\end{align*}
-By Lemma \verb|\ref{lem:Tphi-eq-tau}|, we have that $T\ulcorner \varphi \urcorner \iff \tau(\ulcorner \varphi \urcorner)$. Hence, we can replace all occurences of the truth predicate $T$ in the given \texttt{TB}-proof with $\tau$. Then the disquotation ...
-\end{proof}

@@ -8,36 +8,24 @@ Once we have a formal language and specification of its formulas, we can define 
 \end{definition}
 
 We can hence use the notions of $\mathcal{L}$ and $\mathcal{L}_T$ to construct the theories of Syntax Theory, Peano Arithmetic \texttt{PA}, Peano Arithmetic with T \texttt{PAT} and Peano Arithmetic with T and Tarski Biconditionals \texttt{TB}. For Syntax Theory we provide the primitive recursive logical operations as axioms.
-\subsubsection{Syntax Axioms}
-\begin{definition}[$\underdot{\neg}$: Syntactic Negation Operator Axioms]\label{def:Syntactic-Neg}
-  \lean{SyntaxAxioms.neg_repres}\leanok
-  \uses{def:FO-Language,def:L,def:FO-Neg,def:L-Numeral}
-  The meaning of the syntactic negation operator $\underdot{\neg}$ is captured by the axiom scheme $\mathbb{N})(\underdot{\neg} \ulcorner \varphi \urcorner = \ulcorner \neg \varphi \urcorner)$, where $\varphi \in \mathcal{F}(\mathcal{L},\mathbb{N})$. 
-\end{definition}
 
-\begin{definition}[$\underdot{\wedge}$: Syntactic Conjunction Operator Axiom]\label{def:Syntactic-Conj}
-  \lean{SyntaxAxioms.conj_repres}\leanok
-  \uses{def:FO-Language,def:L,def:FO-And,def:L-Numeral,def:FV-Formula-to-N}
-  The meaning of the syntactic conjunction operator $\underdot{\wedge}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner \underdot{\wedge} \ulcorner \psi \urcorner) = (\ulcorner \varphi \wedge \psi \urcorner)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
-\end{definition}
+\begin{definition}[Syntax Axioms]\label{def:Syntax-Axioms}
+\lean{SyntaxAxioms.neg_repres}\leanok
+\uses{def:L-Numeral,def:FO-Neg,def:FO-And,def:FO-Or,def:FO-BoundedFormula}
+We have formalized syntactic axiom schemes for all syntactic operators Syntax Theory. Examples include 
 
-\begin{definition}[$\underdot{\vee}$: Syntactic Disjunction Operator Axiom Scheme]\label{def:Syntactic-Disj}
-  \lean{SyntaxAxioms.disj_repres}\leanok
-  \uses{def:FO-Language,def:L,def:FO-Or,def:L-Numeral,def:FV-Formula-to-N}
-  The meaning of the syntactic disjunction operator $\underdot{\vee}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner \underdot{\vee} \ulcorner \psi \urcorner = (\ulcorner \varphi \wedge \psi \urcorner)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
-\end{definition}
+$(\underdot{\neg} \ulcorner \varphi \urcorner = \ulcorner \neg \varphi \urcorner)$, where $\varphi \in \mathcal{F}(\mathcal{L},\mathbb{N})$;
 
-\begin{definition}[$\underdot{\supset}$: Syntactic Condition Operator Axiom Scheme]\label{def:Syntactic-Cond}
-  \lean{SyntaxAxioms.cond_repres}\leanok
-  \uses{def:FO-BoundedFormula,def:L}
-  The meaning of the syntactic conditional operator $\underdot{\supset}$ is captured by the axiom scheme $(\ulcorner \varphi \urcorner) \underdot{\supset} \ulcorner \psi \urcorner) = (\ulcorner \phi \supset \psi)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
-\end{definition}
+$(\ulcorner \varphi \urcorner \underdot{\wedge} \ulcorner \psi \urcorner) = (\ulcorner \varphi \wedge \psi \urcorner)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$;
 
--------------------------------------here should go more syntax axioms-----------------------------------
+$(\ulcorner \varphi \urcorner \underdot{\vee} \ulcorner \psi \urcorner = (\ulcorner \varphi \wedge \psi \urcorner)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and
+
+$(\ulcorner \varphi \urcorner) \underdot{\supset} \ulcorner \psi \urcorner) = (\ulcorner \phi \supset \psi)$, where $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$.
+\end{definition}
 
 \begin{definition}[Syntax Theory]\label{def:Syntax-Theory}
   \lean{SyntaxTheory.syntax_theory_l}\leanok
-  \uses{def:FO-Theory,def:L}
+  \uses{def:FO-Theory,def:L,def:Syntax-Axioms}
   We define Syntax Theory as the theory containg all the instances of the axiom schemas for $\underdot{\neg}$, $\underdot{\wedge}$, $\underdot{\vee}$, $\underdot{\supset}$, etc.
 \end{definition}
 
