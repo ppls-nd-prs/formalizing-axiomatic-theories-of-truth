@@ -1,7 +1,7 @@
 \chapter{Disquotation}\label{chapter:disquotation}
 \begin{definition}[T-Replacement]\label{def:T-Replacement}
 \lean{Conservativity.subs_fml_for_t_in_fml}\leanok
-\uses{def:FO-BoundedFormula,def:L,def:L_T,def:Subst}
+\uses{def:FO-BoundedFormula,def:L,def:L_T,def:BF-Substitution}
     Let $n$ be some natural number. We then define the T-replacement function, for replacing all T-predicate by a some $\mathcal{L}$ formula, with respect to $n$, $TrReplace_n : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathcal{B}(\mathcal{L}_T,\mathbb{N},n) \to \mathcal{B}(\mathcal{L},\mathbb{N},n)$ recursively as
     \begin{enumerate}
     \item $TrReplace_n(\varphi,\bot) = \bot$
@@ -105,7 +105,7 @@ For all formulas $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ we have
 
 \begin{definition}[$Injective(Num) Derivable$: Derivation from PA that L-Num is Injective]\label{def:Injective-L-Num-Der}
 \lean{Conservativity.derivable_num_not_eq}
-\uses{def:PA,def:L-Num,def:Derivation}
+\uses{def:PA,def:L-Numeral,def:Derivation}
 [Not yet formalized].
 \end{definition}
 
@@ -167,7 +167,7 @@ We define the function \texttt{paPlusDer}$: \mathcal{D}(\texttt{TB},\emptyset,\{
 
 \begin{theorem}[Conservativity of \texttt{TB} over \texttt{PA}]\label{def:ConservativityTB}
     \lean{Conservativity.conservativity_of_tb}\leanok
-    \uses{def:FO-Language,def:FO-Formula,def:L,def:L_T,def:L,def:Provability}
+    \uses{def:FO-Language,def:FO-Formula,def:L,def:L_T,def:L,def:Formula-Provable}
     $\forall \varphi \in \mathcal{F}(\mathcal{L},\mathbb{N}) : \texttt{TB} \vdash \varphi \Rightarrow \texttt{PA} \vdash \varphi$
 \end{theorem}
 
