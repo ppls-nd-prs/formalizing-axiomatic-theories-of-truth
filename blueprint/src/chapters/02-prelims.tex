@@ -43,28 +43,28 @@ We shall from here on out refer to $(a,l)$ from a disjoint union of sets by $\#1
 Notice that these definitions differ in various ways from classial De Bruijn notation \cite{bruijn:1972}. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{Z}$. The reason for such an implementation is that now we can distinguish free variables from bound variable. In that way we enable adding exactly as many distinct variables in sub-formulas of sentences as the amount of quantifiers removed in Definition \ref{def:FO-BoundedFormula}'s recursive step v. Furthermore, free variables can now come from any set, rather than $\mathbb{Z}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P(\&0) \rightarrow R(f(\&1))) \to (R(\#x_0) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
 
 These concepts are sufficient to then also define the notion of term substitution in terms and formulas. 
-\begin{definition}[$/[t]$: Substitution in Terms]\label{def:Term-Substitution}
-\lean{Substitution.term_substitution}\leanok
+\begin{definition}[$/(t)$: Substitution in Terms]\label{def:Term-Substitution}
+\lean{BoundedFormula.Substitution.term_substitution}\leanok
 \uses{def:FO-Term}
-For some language $\mathcal{L}$, we define the subsitution function of terms in terms $/[t] : \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n})$ recursively by
+For some language $\mathcal{L}$, we define the subsitution function of terms in terms $/(t) : \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n})$ recursively by
 \begin{enumerate}
-\item $t/[a] = \begin{cases}
-    t & \text{if } t = \#0 \\
+\item $t/(a) = \begin{cases}
+    t & \text{if } a = \#0 \\
     t & \text{otherwise }
 \end{cases}$ and
-\item $f(t_1,...,t_n)/[a] = f(t_1/[a],...,t_n/[a])$.
+\item $f(t_1,...,t_n)/(a) = f(t_1/(a),...,t_n/(a))$.
 \end{enumerate}
 
-\begin{definition}[$/[t]$: Substitution in BoundedFormulas]\label{def:BF-Substitution}
-\lean{Substitution.formulas_substitution}\leanok
+\begin{definition}[$/(t)$: Substitution in BoundedFormulas]\label{def:BF-Substitution}
+\lean{BoundedFormula.Substitution.formula_substitution}\leanok
 \uses{def:FO-BoundedFormula,def:Term-Substitution}
-For some language $\mathcal{L}$ and a natural number $n$, we define the subsitution function of terms in BoundedFormulas $/[t] : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{B}(\mathcal{L},\mathbb{N},n)$ recursively by
+For some language $\mathcal{L}$ and a natural number $n$, we define the subsitution function of terms in BoundedFormulas $/(t) : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{B}(\mathcal{L},\mathbb{N},n)$ recursively by
 \begin{enumerate}
-\item $\bot/[t] = \bot$;
-\item $(t_1 = t_2)/[t] = (t_1/[t] = t_2/[t])$;
-\item $R(t_1,...,t_n) = R(t_1/[t],...,t_n/[t])$;
-\item $(\varphi \supset \psi)/[t] = (\varphi/[t] \supset \psi/[t])$ and
-\item $(\forall \varphi)/[t] = \forall (\varphi/[t])$.
+\item $\bot/(t) = \bot$;
+\item $(t_1 = t_2)/(t) = (t_1/(t) = t_2/(t))$;
+\item $R(t_1,...,t_n) = R(t_1/(t),...,t_n/(t))$;
+\item $(\varphi \supset \psi)/(t) = (\varphi/(t) \supset \psi/(t))$ and
+\item $(\forall \varphi)/(t) = \forall (\varphi/(t))$.
 \end{enumerate}
 
 \end{definition}
@@ -125,41 +125,41 @@ A \texttt{Sentence} is then defined as a \texttt{Formula} that has no free varia
 \end{definition}
 
 \section{Coding}\label{subsec:coding}
-All well-formed formulas of some first-order language are encodable as a natural number, a conventional example of this being Gödel encoding, but as \texttt{mathlib} does not yet feature Gödel encoding we use other native functions that have the same properties. Both \texttt{mathlib}'s namespace \texttt{Term} and \texttt{BoundedFormula} have a functions \texttt{listEncode} that encode \texttt{Term}s and \texttt{BoundedFormula}s as \texttt{List}s respectively. These lists can then be encoded as natural numbers using \texttt{mathlib}'s \texttt{Encodable.encodeList}. To encode some language $\mathcal{L}$ into a natural number these functions require encodings for $\mathcal{L}$'s function and relation symbols. Furthermore, they also require a set for indexing variables that is proved to be encodable and since \texttt{mathlib} natively has a proof of the encodability of natural numbers, we use from here on out $\mathbb{N}$ to index our free variables. Hence we obtain our definitions of \texttt{term\_tonat} and \texttt{formula\_tonat}.
+All well-formed formulas of some first-order language are encodable as a natural number, a conventional example of this being Gödel encoding, but as \texttt{mathlib} does not yet feature Gödel encoding we use other native functions that have the same properties. Both \texttt{mathlib}'s namespace \texttt{Term} and \texttt{BoundedFormula} have a functions \texttt{listEncode} that encode \texttt{Term}s and \texttt{BoundedFormula}s as \texttt{List}s respectively. These lists can then be encoded as natural numbers using \texttt{mathlib}'s \texttt{Encodable.encodeList}. To encode some language $\mathcal{L}$ into a natural number these functions require encodings for $\mathcal{L}$'s function and relation symbols. Furthermore, they also require a set for indexing variables that is proved to be encodable and since \texttt{mathlib} natively has a proof of the encodability of natural numbers, we use from here on out $\mathbb{N}$ to index our free variables. Hence we obtain our definitions of \texttt{termToNat} and \texttt{formulaToNat}.
 
 \begin{definition}[Encoding terms from formulas with free variables]\label{def:FV-Term-Enc}
   \lean{Languages.TermEncoding.term_tonat}\leanok
   \uses{def:FO-Language,def:FO-Term}
-    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number. Then the encoding function $\texttt{term\_tonat} : \mathcal{T}(\mathcal{L},\mathbb{N} \cup \{1,...,n\}) \to \mathbb{N}$ is defined as 
+    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number. Then the encoding function $\texttt{termToNat} : \mathcal{T}(\mathcal{L},\mathbb{N} \cup \{1,...,n\}) \to \mathbb{N}$ is defined as 
     \begin{align*}  
-        \texttt{term\_tonat}(t) = \texttt{Encodable.encodeList}(\texttt{Term.listEncode}(t)).
+        \texttt{termToNat}(t) = \texttt{Encodable.encodeList}(\texttt{Term.listEncode}(t)).
     \end{align*}
 \end{definition}
 
 \begin{definition}[Encoding terms from sentences]\label{def:S-Term-Enc}
   \lean{Languages.TermEncoding.sentence_term_tonat}\leanok
   \uses{def:FO-Language,def:FO-Term}
-    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number. Then the encoding function $\texttt{term\_tonat} : \mathcal{T}(\mathcal{L},Empty \cup \{1,...,n\}) \to \mathbb{N}$ is defined as 
+    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number. Then the encoding function $\texttt{termToNat} : \mathcal{T}(\mathcal{L},Empty \cup \{1,...,n\}) \to \mathbb{N}$ is defined as 
     \begin{align*}  
-        \texttt{term\_tonat}(t) = \texttt{Encodable.encodeList}(\texttt{Term.listEncode}(t)).
+        \texttt{termToNat}(t) = \texttt{Encodable.encodeList}(\texttt{Term.listEncode}(t)).
     \end{align*}
 \end{definition}
 
 \begin{definition}[BoundedFormula with Free Variables to $\mathbb{N}$ Encoding]\label{def:FV-Formula-to-N}
   \lean{Languages.TermEncoding.formula_tonat}\leanok
   \uses{def:FO-Language,def:FO-BoundedFormula}
-    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number and that for all $i \in \mathbb{N}$ all $r \in R_i$ have a unique associated natural number. Then the encoding function $\texttt{formula\_tonat} : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathbb{N}$ is defined as 
+    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number and that for all $i \in \mathbb{N}$ all $r \in R_i$ have a unique associated natural number. Then the encoding function $\texttt{formulaToNat} : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathbb{N}$ is defined as 
     \begin{align*}
-        \texttt{formula\_tonat}(\varphi) = \texttt{Encodable.encodeList}(\texttt{BoundedFormula.listEncode}(\varphi)).
+        \texttt{formulaToNat}(\varphi) = \texttt{Encodable.encodeList}(\texttt{BoundedFormula.listEncode}(\varphi)).
     \end{align*}
 \end{definition}
 
 \begin{definition}[Sentence to $\mathbb{N}$ Encoding]\label{def:S-To-N}
   \lean{Languages.TermEncoding.sent_tonat}\leanok
   \uses{def:FO-Language, def:FO-BoundedFormula}
-    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number and that for all $i \in \mathbb{N}$ all $r \in R_i$ have a unique associated natural number. Then the encoding function $\texttt{formula\_tonat} : \mathcal{B}(\mathcal{L},Empty,0) \to \mathbb{N}$ is defined as 
+    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language and let $n$ be a natural number. Assume furthermore that for all $i \in \mathbb{N}$ all $f \in F_i$ have a unique associated natural number and that for all $i \in \mathbb{N}$ all $r \in R_i$ have a unique associated natural number. Then the encoding function $\texttt{sentToNat} : \mathcal{B}(\mathcal{L},Empty,0) \to \mathbb{N}$ is defined as 
     \begin{align*}
-        \texttt{sent\_tonat}(\varphi) = \texttt{Encodable.encodeList}(\texttt{BoundedFormula.listEncode}(\varphi)).
+        \texttt{sentToNat}(\varphi) = \texttt{Encodable.encodeList}(\texttt{BoundedFormula.listEncode}(\varphi)).
     \end{align*}
 \end{definition}
 

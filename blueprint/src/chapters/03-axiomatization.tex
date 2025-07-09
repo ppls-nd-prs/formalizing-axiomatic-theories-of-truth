@@ -53,7 +53,7 @@ Then we define \texttt{PA} as the union of the first 6 Peano axioms and all the 
 
 \begin{definition}[\texttt{PAT}]\label{def:PAT}
   \lean{PAT.pat}\leanok
-  \uses{def:PA-Axioms,def:FO-Formula,def:L}
+  \uses{def:PA-Axioms,def:FO-Formula,def:L_T}
     We define \texttt{PAT} as the theory $\texttt{PA-axioms} \cup \{φ | ∃ψ \in \mathcal{F}(\mathcal{L}_T,{0}) : φ = ([ψ(\texttt{null}) \wedge ∀\langle ψ(\&0) \supset ψ(S(\&0)) \rangle ] \supset ∀ψ(\&0))\}$.
 \end{definition}
 
