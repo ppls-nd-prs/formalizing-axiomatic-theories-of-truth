@@ -26,21 +26,21 @@ The concept of \texttt{Term} is used to define the concept \texttt{BoundedFormul
   \lean{Sum}\leanok
   The disjoint union, denoted $\sqcup$, of two sets $A$ and $B$ is defined as $A \sqcup B = \{(a,k) | (a \in A \wedge k = l) \vee (a \in B \wedge k = r)\}$.
 \end{definition}
-We shall from here on out refer to $(a,l)$ from a disjoint union of sets by $\#1$ and $(a,r)$ by $\&a$. 
+We shall from here on out refer to $(a,l)$ from a disjoint union of sets by $\#a$ and $(a,r)$ by $\&a$. 
 
 \begin{definition}[First-order BoundedFormula]\label{def:FO-BoundedFormula}
   \lean{FirstOrder.Language.BoundedFormula}\leanok
   \uses{def:FO-Language, def:FO-Term, def:Disjoint-Union}
-    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language, $\alpha$ a set indexing free variables, $n$ the intended number of variables bound by a quantifier and $\mathcal{T}(\mathcal{L}, \alpha \cup \{1,...,n\})$ a set of terms. Then, the set of bounded formulas with respect to these variables $\mathcal{B}(\mathcal{L},\alpha,n)$ is the smallest set such that
+    Let $\mathcal{L} = \langle (F_i)_{i \in \mathbb{N}}, (R_i)_{i \in \mathbb{N}} \rangle$ be a first-order language, $\alpha$ a set indexing free variables, $n$ the intended number of variables bound by a quantifier and $\mathcal{T}(\mathcal{L}, \alpha \sqcup \{1,...,n\})$ the set of terms. Then, the set of bounded formulas with respect to these variables $\mathcal{B}(\mathcal{L},\alpha,n)$ is the smallest set such that
     \begin{enumerate}
         \item $\bot \in \mathcal{B}(\mathcal{L},\alpha,n)$,
         \item if $t_1,t_2 \in \mathcal{T}(\mathcal{L}, \alpha \sqcup \{0,...,n-1\})$, then $t_1 = t_2 \in \mathcal{B}(\mathcal{L},\alpha,n)$,
         \item for all $i \in \mathbb{N}$, if $P \in R_i$ and $t_1,...,t_i \in \mathcal{T}(\mathcal{L}, \alpha \sqcup \{0,...,n-1\})$, then $P(t_1,...,t_i) \in \mathcal{B}(\mathcal{L},\alpha,n)$,
-        \item if $f_1,f_2 \in \mathcal{B}(\mathcal{L},\alpha,n)$, then $(f_1 \rightarrow f_2) \in \mathcal{B}(\mathcal{L},\alpha,n)$ and
+        \item if $f_1,f_2 \in \mathcal{B}(\mathcal{L},\alpha,n)$, then $(f_1 \supset f_2) \in \mathcal{B}(\mathcal{L},\alpha,n)$ and
         \item if $f \in \mathcal{B}(\mathcal{L},\alpha,n+1)$, then $\forall f \in \mathcal{B}(\mathcal{L},\alpha,n)$.
     \end{enumerate}
 \end{definition}
-Notice that these definitions differ in various ways from classial De Bruijn notation \cite{bruijn:1972}. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{Z}$. The reason for such an implementation is that now we can distinguish free variables from bound variable. In that way we enable adding exactly as many distinct variables in sub-formulas of sentences as the amount of quantifiers removed in Definition \ref{def:FO-BoundedFormula}'s recursive step v. Furthermore, free variables can now come from any set, rather than $\mathbb{Z}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P(\&0) \rightarrow R(f(\&1))) \to (R(\#x_0) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
+Notice that these definitions differ from classial De Bruijn \cite{bruijn:1972} notation in the way variable binding is organised. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{N}$. The reason for such an implementation is that now we can distinguish free variables from bound variables. This makes it straightforward to keep track in the recursive cases of what the first free variable is. This is useful for substitution, which will be made clearer after the definition of substitution. Furthermore, free variables can now come from any set, rather than $\mathbb{N}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P(\&0) \rightarrow R(f(\&1))) \to (R(\#x_0) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
 
 These concepts are sufficient to then also define the notion of term substitution in terms and formulas. 
 \begin{definition}[$/(t)$: Substitution in Terms]\label{def:Term-Substitution}
