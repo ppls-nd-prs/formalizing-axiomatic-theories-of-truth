@@ -40,13 +40,13 @@ We shall from here on out refer to $(a,l)$ from a disjoint union of sets by $\#a
         \item if $f \in \mathcal{B}(\mathcal{L},\alpha,n+1)$, then $\forall f \in \mathcal{B}(\mathcal{L},\alpha,n)$.
     \end{enumerate}
 \end{definition}
-Notice that these definitions differ from classial De Bruijn \cite{bruijn:1972} notation in the way variable binding is organised. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{N}$. The reason for such an implementation is that now we can distinguish free variables from bound variables. This makes it straightforward to keep track in the recursive cases of what the first free variable is. This is useful for substitution, which will be made clearer after the definition of substitution. Furthermore, free variables can now come from any set, rather than $\mathbb{N}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P(\&0) \rightarrow R(f(\&1))) \to (R(\#x_0) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
+Notice that these definitions differ from classial De Bruijn \cite{bruijn:1972} notation in the way variable binding is organised. Firstly, the disjoint union operator in Definition \ref{def:FO-BoundedFormula}'s clauses 2 and 3 guarantees that free variables and variables bound by a quantifier can only be constructed from different sets, whereas in classical De Bruijn all variables are indexed by $\mathbb{N}$. The reason for such an implementation is that now we can distinguish free variables from bound variables. This makes it straightforward to keep track in the recursive cases of what the first free variable is. This is useful for substitution, which will be made clearer shortly. Furthermore, free variables can now come from any set, rather than $\mathbb{N}$, as they are not bound and hence do not have to indicate at what level they are bound. These two notational nuances require a slight rewrite of our example formula \ref{fml:db} to $\forall (\forall(P(\&0) \rightarrow R(f(\&1))) \to (R(\#x_0) \to P(a)))$, where $x_0$ is some element from the relevant type $\alpha$ for indexing free variables.
 
 These concepts are sufficient to then also define the notion of term substitution in terms and formulas. 
 \begin{definition}[$/(t)$: Substitution in Terms]\label{def:Term-Substitution}
 \lean{BoundedFormula.Substitution.term_substitution}\leanok
 \uses{def:FO-Term}
-For some language $\mathcal{L}$, we define the subsitution function of terms in terms $/(t) : \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n})$ recursively by
+For some language $\mathcal{L}$, we define the subsitution function of terms in terms $/(t) : \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup \{1,...,n\}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup \{1,...,n\}) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup \{1,...,n\})$ recursively by
 \begin{enumerate}
 \item $t/(a) = \begin{cases}
     t & \text{if } a = \#0 \\
@@ -54,11 +54,12 @@ For some language $\mathcal{L}$, we define the subsitution function of terms in 
 \end{cases}$ and
 \item $f(t_1,...,t_n)/(a) = f(t_1/(a),...,t_n/(a))$.
 \end{enumerate}
+\end{definition}
 
 \begin{definition}[$/(t)$: Substitution in BoundedFormulas]\label{def:BF-Substitution}
 \lean{BoundedFormula.Substitution.formula_substitution}\leanok
 \uses{def:FO-BoundedFormula,def:Term-Substitution}
-For some language $\mathcal{L}$ and a natural number $n$, we define the subsitution function of terms in BoundedFormulas $/(t) : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup {x_1,...,x_n}) \to \mathcal{B}(\mathcal{L},\mathbb{N},n)$ recursively by
+For some language $\mathcal{L}$ and a natural number $n$, we define the subsitution function of terms in BoundedFormulas $/(t) : \mathcal{B}(\mathcal{L},\mathbb{N},n) \to \mathcal{T}(\mathcal{L},(\mathbb{N} \sqcup \{1,...,n\}) \to \mathcal{B}(\mathcal{L},\mathbb{N},n)$ recursively by
 \begin{enumerate}
 \item $\bot/(t) = \bot$;
 \item $(t_1 = t_2)/(t) = (t_1/(t) = t_2/(t))$;
@@ -66,10 +67,9 @@ For some language $\mathcal{L}$ and a natural number $n$, we define the subsitut
 \item $(\varphi \supset \psi)/(t) = (\varphi/(t) \supset \psi/(t))$ and
 \item $(\forall \varphi)/(t) = \forall (\varphi/(t))$.
 \end{enumerate}
-
 \end{definition}
 
-\end{definition}
+Note that especially the substitution in clause 5 is different from the standard De Bruijn substitution. See From \cite{from:2021} for an exposition on a first-order De Bruijn-style substitution implementation. Consider a formula in standard De Bruijn notation $\varphi = \forall P(0,1)$. If we would now want to substitute the term $t$ for the first free variable in $\varphi$ using our substitution function, we would write $\forall P(0,1)/(t) = \forall (P(0,1)/(t))$, but note here that substituting the first free variable in $P(0,1)$ does not target the variable we were after: $1$. So if there is no distinction between free variables and bound variables then we have to introduce mechanisms to avoid variable capture, such that $P(0,1)/(t) = P(0,t)$ rather than $P(t,1)$. However, since we do distinguish between free and bound variables from the outset there is no need for such a mechanism and the substitution function can be safely defined as in Definition \ref{def:BF-Substitution} clause 5: $\forall P(\&0,\#0)/(t) = \forall (P(\&0,\#0)/(t)) = \forall P(\&0,t)$. This makes for a more elegant notion of free-variable substitution.\footnote{Note that having a strong distinction between free and bound variables and a substitution operation that works only on free variables does make universal instantiation less elegant. In that case the bound variables have to be rewritten to the correct free variables. This is a design choice we assume is due to theoretical considerations that are specific to model theory, the \texttt{mathlib} library of which forms the bases for this implementation of BoundedFormula and substitution.}
 
 We can then go on to define the other standard logical operators: $\neg$, $\exists$, $\top$, $\wedge$, $\vee$, $\leftrightarrow$.
 \begin{definition}[$\neg$ : Negation]\label{def:FO-Neg}
