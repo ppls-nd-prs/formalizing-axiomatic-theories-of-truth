@@ -110,7 +110,7 @@ For all formulas $\varphi, \psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ we have
 \end{definition}
 
 \begin{definition}[$Injective(\ulcorner \urcorner)$: Derivation from PA that TermEncoding is Injective]\label{def:Term-Encoding-Injective-Der}
-\uses{lem:Injective-ToNat,def:Injective-L-Num-Der}
+\uses{lem:Injective-ToNat,def:Injective-L-Num-Der}\leanok
 [Used implicitly in code of PA-Proves-All-Tau-Disq.]
 \end{definition}
 
@@ -121,7 +121,7 @@ For all derivations $d_1 \in \mathcal{D}(\texttt{TB},\Gamma,\Delta)$, where $\Ga
 \end{definition}
 
 \begin{lemma}[$\tau$-equivalences: T-Replacement in \texttt{TB}(d) Gives \texttt{PA} Plus $\tau$-Equivalences]\label{lem:Tau-Equivalences}
-\lean{Conservativity.tb_replacement}
+\lean{Conservativity.tb_replacement}\leanok
 \uses{def:Derivation,def:TB,def:PA,def:Tau,def:T-Replacement-Set}
 For all $d_1 \in \mathcal{D}(\texttt{TB},\emptyset,\{\varphi\})$, where $\varphi \in \mathcal{F}(\mathcal{L},\mathbb{N})$, we have that $\texttt{TB}(d)/_{ts}(\tau(\varphi L(d))) = \texttt{PA} \cup \{ \tau(\varphi L(d))(\ulcorner \psi \urcorner) \leftrightarrow \psi : \psi \in \varphi L(d) \}$.
 \end{lemma}
@@ -172,7 +172,7 @@ We define the function \texttt{paPlusDer}$: \mathcal{D}(\texttt{TB},\emptyset,\{
 \end{theorem}
 
 \begin{proof}
-    \uses{def:Formula-Provable,def:Translation}
+    \uses{def:Formula-Provable,def:Translation}\leanok
     Let $\psi$ be an arbitrary formula such that $\psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and assume $\psi$ is provable from \texttt{TB}. Then, by Definition \ref{def:Formula-Provable}, there exists some derivation $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Translation}, we have $translation(d) \in \mathcal{D}(\texttt{PA},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Formula-Provable}, we have that $\psi$ is provable from \texttt{PA}. Then, as we assumed that $\psi$ is provable from \texttt{TB}, we have that if $\texttt{TB} \vdash \psi$, then $\texttt{PA} \vdash \psi$. And since $\psi$ was arbitrary we have that for all $\varphi \in \mathcal{F}(\mathcal{L}, \mathbb{N})$ if $\texttt{TB} \vdash \varphi$, then $\texttt{PA} \vdash \varphi$.
 \end{proof}
 
