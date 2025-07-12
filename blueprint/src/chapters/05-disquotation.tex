@@ -135,7 +135,7 @@ We define the function \texttt{paPlusDer}$: \mathcal{D}(\texttt{TB},\emptyset,\{
 \begin{definition}[$\texttt{paProvesAllTauDisq}$]\label{def:PA-Proves-All-Tau-Disq}
     \lean{Conservativity.pa_proves_all_tau_disq}\leanok
     \uses{def:MetaRules,def:Derivation,def:Tau,def:List,def:Term-Encoding-Injective-Der}
-    Let $[h,T] \in \mathcal{S}(\mathcal{L})$ and $\varphi ~\underline{\texttt{in}}~ [h,T]$. Then the partial function $\texttt{paProvesAllTauDisq}: L_{\mathcal{S}(\mathcal{L})} \times \mathcal{S}(\mathcal{L}) \rightharpoonup \mathcal{D}(\texttt{PA},\Gamma,\Delta \cup \{\tau([h,T])(\ulcorner \psi \urcorner) \leftrightarrow \psi \})$ is (with a slight abuse of notation) defined by
+    Let $[h,T] \in L_{\mathcal{S}(\mathcal{L})}$ and $\varphi ~\underline{\texttt{in}}~ [h,T]$. Then the partial function $\texttt{paProvesAllTauDisq}: L_{\mathcal{S}(\mathcal{L})} \times \mathcal{S}(\mathcal{L}) \rightharpoonup \mathcal{D}(\texttt{PA},\Gamma,\Delta \cup \{\tau([h,T])(\ulcorner \psi \urcorner) \leftrightarrow \psi \})$ is (with a slight abuse of notation) defined by
     
     $\texttt{paProvesAllTauDisq}([h,T],\varphi) = \begin{cases}
     \href{https://github.com/ppls-nd-prs/formalizing-axiomatic-theories-of-truth/blob/main/blueprint/src/img/h-is-psi.pdf}{\text{h-is-psi.pdf}} & \text{if } h = \psi \\
