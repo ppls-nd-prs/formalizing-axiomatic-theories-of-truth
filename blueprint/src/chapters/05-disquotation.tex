@@ -173,7 +173,7 @@ We define the function \texttt{paPlusDer}$: \mathcal{D}(\texttt{TB},\emptyset,\{
 
 \begin{proof}
     \uses{def:Formula-Provable,def:Translation}\leanok
-    Let $\psi$ be an arbitrary formula such that $\psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and assume $\psi$ is provable from \texttt{TB}. Then, by Definition \ref{def:Formula-Provable}, there exists some derivation $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Translation}, we have $translation(d) \in \mathcal{D}(\texttt{PA},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Formula-Provable}, we have that $\psi$ is provable from \texttt{PA}. Then, as we assumed that $\psi$ is provable from \texttt{TB}, we have that if $\texttt{TB} \vdash \psi$, then $\texttt{PA} \vdash \psi$. And since $\psi$ was arbitrary we have that for all $\varphi \in \mathcal{F}(\mathcal{L}, \mathbb{N})$ if $\texttt{TB} \vdash \varphi$, then $\texttt{PA} \vdash \varphi$.
+    Let $\psi$ be an arbitrary formula such that $\psi \in \mathcal{F}(\mathcal{L},\mathbb{N})$ and assume $\psi$ is provable from \texttt{TB}. Then, by Definition \ref{def:Formula-Provable}, there exists some derivation $d \in \mathcal{D}(\texttt{TB},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Translation}, we have $\texttt{translation}(d) \in \mathcal{D}(\texttt{PA},\emptyset,\{\psi\})$. Then, by Definition \ref{def:Formula-Provable}, we have that $\psi$ is provable from \texttt{PA}. Then, as we assumed that $\psi$ is provable from \texttt{TB}, we have that if $\texttt{TB} \vdash \psi$, then $\texttt{PA} \vdash \psi$. And since $\psi$ was arbitrary we have that for all $\varphi \in \mathcal{F}(\mathcal{L}, \mathbb{N})$ if $\texttt{TB} \vdash \varphi$, then $\texttt{PA} \vdash \varphi$.
 \end{proof}
 
 
