@@ -69,7 +69,7 @@ namespace BoundedFormula
       have step2 : val < n + 1 := by
         apply Nat.lt_trans isLt step1
       apply Fin.mk val step2
-        
+
 variable {L : Language}
 
 namespace Substitution
@@ -80,7 +80,7 @@ def term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ F
 def up_bv {n : ℕ} : L.Term (α ⊕ Fin n) → L.Term (α ⊕ Fin (n + 1))
 | .var v => 
   match v with
-  | .inl m => 
+  | .inl m =>
     .var (.inl m)
   | .inr m => .var (.inr (to_extra_fin m))
 | .func f ts => .func f (fun i => up_bv (ts i))
@@ -92,7 +92,7 @@ def formula_substitution : {n : ℕ} → (t : L.Term (ℕ ⊕ Fin n)) → L.Boun
 | _, t, .imp φ ψ => .imp (formula_substitution t φ) (formula_substitution t ψ)
 | _, t, .all φ => .all (formula_substitution (up_bv t) φ)
 
-notation φ"/["t"]" => formula_substitution t φ 
+notation φ"/["t"]" => formula_substitution t φ
 
 def bv_term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin (n + 1))) : L.Term (ℕ ⊕ Fin n) → L.Term (ℕ ⊕ Fin (n + 1))
 | .var v => if v = (.inl 0) then t else (up_bv (.var  v))
@@ -111,7 +111,7 @@ end Substitution
 inductive simple_func : ℕ → Type where
   | one : simple_func 0
 
-def simple_l : Language := ⟨simple_func, (fun _ => Empty)⟩ 
+def simple_l : Language := ⟨simple_func, (fun _ => Empty)⟩
 
 def φ : simple_l.BoundedFormula ℕ 0 := (.var (.inl 0)) =' (.func simple_func.one ![])
 def ψ : simple_l.BoundedFormula ℕ 0 := (.func simple_func.one ![]) =' (.func simple_func.one ![])
@@ -125,8 +125,8 @@ def φ₂ : simple_l.BoundedFormula ℕ 0 := (.var (.inl 0)) =' (.func simple_fu
 def ψ₂ : simple_l.BoundedFormula ℕ 1 := (.var (.inr 0)) =' (.func simple_func.one ![])
 def t₂ : simple_l.Term (ℕ ⊕ Fin 1) := (.var (.inr 0))
 
-example : (φ₂/bv[t₂]) = ψ₂  := by 
-  simp[bv_formula_substitution,t₂,φ₂,ψ₂,Term.bdEqual,bv_term_substitution,Matrix.empty_eq] 
+example : (φ₂/bv[t₂]) = ψ₂  := by
+  simp[bv_formula_substitution,t₂,φ₂,ψ₂,Term.bdEqual,bv_term_substitution,Matrix.empty_eq]
 
 end BoundedFormula
 
@@ -678,6 +678,3 @@ namespace FirstOrder.Language.BoundedFormula
     ((∼f₁) ⟹ f₂)
   scoped notation f₁ "∨'" f₂ => lor f₁ f₂
 end FirstOrder.Language.BoundedFormula
-
-
-
