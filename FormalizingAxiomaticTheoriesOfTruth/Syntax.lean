@@ -1,9 +1,35 @@
 import Mathlib.ModelTheory.Basic
 import Mathlib.ModelTheory.Syntax
-import Mathlib.ModelTheory.Encoding 
+import Mathlib.ModelTheory.Encoding
 
 open FirstOrder
 open Language
+
+namespace FirstOrder.Language
+/-- A language is arithmetic when it has +, ×, 0 and S. -/
+class Arithmetic (L : Language) where
+  zero_symbol : L.Functions 0
+  succ_symbol : L.Functions 1
+  mult_symbol : L.Functions 2
+  add_symbol : L.Functions 2
+
+scoped notation "S("t")" => Term.func Arithmetic.succ_symbol ![t]
+scoped notation t₁ "add" t₂ => Term.func Arithmetic.add_symbol ![t₁, t₂]
+
+
+variable {α : Type}{L : Language}[Arithmetic L]
+@[simp]
+def null : L.Term α :=
+  Term.func Arithmetic.zero_symbol ![]
+
+scoped notation "null" => null
+
+@[simp]
+def numeral : ℕ → L.Term α
+  | .zero => null
+  | .succ n => .func Arithmetic.succ_symbol ![numeral n]
+
+end FirstOrder.Language
 
 namespace String
   def vecToStr : ∀ {n}, (Fin n → String) → String
@@ -78,7 +104,7 @@ def term_substitution {n : ℕ} (t : L.Term (ℕ ⊕ Fin n)) : L.Term (ℕ ⊕ F
 | .func f ts => .func f (fun i => term_substitution t (ts i))
 
 def up_bv {n : ℕ} : L.Term (α ⊕ Fin n) → L.Term (α ⊕ Fin (n + 1))
-| .var v => 
+| .var v =>
   match v with
   | .inl m =>
     .var (.inl m)
@@ -190,9 +216,6 @@ namespace Languages
     /-
     Useful notation
     -/
-    scoped notation "S(" n ")" => Term.func Func.succ ![n]
---    scoped notation "null" => Term.func Func.null ![]
-    scoped notation n "add" m => Term.func Func.add ![n,m]
     scoped notation n "times" m => Term.func Func.mult ![n,m]
     scoped notation n "⬝∧" m => Term.func Func.conj ![n,m]
     scoped notation n "⬝∨" m => Term.func Func.disj ![n,m]
@@ -213,18 +236,11 @@ namespace Languages
     abbrev ℒ := signature
     scoped[Languages] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
-    /-
-    Some useful terms
-    -/
-    variable {α : Type}
-    @[simp]
-    def null : Term signature α :=
-      Term.func .null ![]
-   
-    @[simp]
-    def numeral : ℕ → Term signature α
-      | .zero => null
-      | .succ n => S(numeral n)
+    instance : Arithmetic ℒ where
+      null := LPA.Func.null
+      succ := LPA.Func.succ
+      add := LPA.Func.add
+      mult := LPA.Func.mult
 
     section Coding
       variable {k : ℕ}
@@ -404,15 +420,21 @@ namespace Languages
     Some useful notation
     -/
     scoped notation "T(" n ")" => BoundedFormula.rel Rel.t ![n]
-    scoped notation "S(" n ")" => Term.func Func.succ ![n]
+    -- scoped notation "S(" n ")" => Term.func Func.succ ![n]
 --    scoped notation "zero" => Term.func Func.zero ![]
-    scoped notation n "add" m => Term.func Func.add ![n,m]
+    -- scoped notation n "add" m => Term.func Func.add ![n,m]
     scoped notation n "times" m => Term.func Func.mult ![n,m]
     scoped notation n "⬝∧" m => Term.func Func.conj ![n,m]
     scoped notation n "⬝∨" m => Term.func Func.disj ![n,m]
     scoped notation "⬝∼" n => Term.func Func.neg ![n]
     scoped notation n "⬝⟹" m => Term.func Func.cond ![n,m]
-    scoped notation "⬝∀" n => Term.func Func.forall ![n]
+    scoped notation "⬝∀" n => Term.func Func.forall ![n]    variable {α : Type}
+    def null : Term signature α :=
+      Term.func .null ![]
+
+    def numeral : ℕ → Term signature α
+      | .zero => null
+      | .succ n => .func .succ ![numeral n]
     scoped notation "⬝∃" n => Term.func Func.exists ![n]
     scoped notation "⬝°" n  => Term.func Func.denote ![n]
     scoped notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n,x,t]
@@ -426,13 +448,11 @@ namespace Languages
     scoped notation "SentenceLT(" t ")" => BoundedFormula.rel L_T.Rel.sentencelt ![t]
     abbrev ℒₜ := signature
 
-    variable {α : Type}
-    def null : Term signature α :=
-      Term.func .null ![]
-
-    def numeral : ℕ → Term signature α
-      | .zero => null
-      | .succ n => S(numeral n)
+    instance : Arithmetic ℒₜ where
+      null := L_T.Func.null
+      add := L_T.Func.add
+      mult := L_T.Func.mult
+      succ := L_T.Func.succ
 
   /-- Gives whether a BoundedFormula contains a T predicate-/
   @[simp] def contains_T {n} : ℒₜ.BoundedFormula α n → Prop
@@ -440,7 +460,7 @@ namespace Languages
   | .imp f₁ f₂ => contains_T f₁ ∨ contains_T f₂
   | .all f => contains_T f
   | _ => false
-  
+
   namespace FirstOrder.Language.Sentence
     variable {L : Language}
     open Languages
@@ -603,7 +623,7 @@ namespace TermEncoding
     fun t => Encodable.encodeList (Term.listEncode t)
 
  /-- Encodes BoundedFormulas as natural numbers -/
-  def sent_tonat : BoundedFormula L Empty 0 → ℕ := 
+  def sent_tonat : BoundedFormula L Empty 0 → ℕ :=
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
   def formula_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
@@ -633,7 +653,7 @@ end TermEncoding
     | .exists => .exists
     | .denote => .denote
     | .subs => .subs
-  
+
   def to_lt_rel ⦃n : ℕ⦄ : (ℒ.Relations n) → (ℒₜ.Relations n)
       | .var => .var
       | .const => .const
@@ -652,7 +672,7 @@ end TermEncoding
 
   def to_lt_bf : {n : ℕ} → ℒ.BoundedFormula α n → ℒₜ.BoundedFormula α n
     | _, .falsum => .falsum
-    | _, .equal t₁ t₂ => .equal (to_lt_term t₁) (to_lt_term t₂) 
+    | _, .equal t₁ t₂ => .equal (to_lt_term t₁) (to_lt_term t₂)
     | _, .rel R ts => .rel (to_lt_rel R) fun i => to_lt_term (ts i)
     | _, .imp φ ψ => .imp (to_lt_bf φ) (to_lt_bf ψ)
     | _, .all φ => .all (to_lt_bf φ)

@@ -75,128 +75,48 @@ open L_T
 def syntax_theory : ℒₜ.Theory := syntax_theory_l
 end SyntaxTheory
 
+namespace Induction
+open BoundedFormula
+
+variable {L : Language}[Arithmetic L]
+def ind {φ : {n : ℕ} →  L.Term (Empty ⊕ Fin n) → L.BoundedFormula Empty n} : L.Sentence :=
+  ((φ (.func Arithmetic.null ![]) ∧' (∀'((φ (&0)) ⟹ φ (S(&0))))) ⟹ ∀' φ (&0))
+
+end Induction
+
 namespace PA
-  open Languages
-  open LPA
-  open L_T
-  open BoundedFormula
-  open SyntaxTheory
+  open Languages LPA L_T BoundedFormula SyntaxTheory Induction
 
   /-- Peano arithemtic -/
   inductive peano_axioms : ℒ.Theory where
     | first : peano_axioms (∀' ∼(LPA.null =' S(&0)))
     | second :peano_axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-    | third : peano_axioms (∀' ((&0 add LPA.null) =' &0))
-    | fourth : peano_axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
+    | third : peano_axioms (∀' ((&0 plus LPA.null) =' &0))
+    | fourth : peano_axioms (∀' ∀' ((&1 plus S(&0)) =' S(&1 plus &0)))
     | fifth : peano_axioms (∀' ((&0 times LPA.null) =' LPA.null))
-    | sixth : peano_axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) add &1))
+    | sixth : peano_axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) plus &1))
 
-  namespace Induction
-    variable {L : Language}
+  def pa : ℒ.Theory := peano_axioms ∪ {φ | ∃ψ, φ = @ind ℒ _ ψ}
 
-    @[simp]
-    def term_substitution {n : ℕ} (t : L.Term (Empty ⊕ Fin n)) : L.Term (Fin 1 ⊕ Fin n) → L.Term (Empty ⊕ Fin n)
-    | .var v => 
-      match v with
-      | .inl (.mk 0 _) => t
-      | .inr m => Term.var (.inr m)
-    | .func f ts => .func f (fun i => term_substitution t (ts i))
-
-    @[simp]
-    def up_bv_empty {n : ℕ} : L.Term (Empty ⊕ Fin n) → L.Term (Empty ⊕ Fin (n + 1))
-    | .var v => 
-      match v with
-      | .inl m => 
-        .var (.inl m)
-      | .inr m => .var (.inr (to_extra_fin m))
-    | .func f ts => .func f (fun i => up_bv_empty (ts i))
-
-    @[simp]
-    def up_bv_fin_1 {n : ℕ} : L.Term (Fin 1 ⊕ Fin n) → L.Term (Fin 1 ⊕ Fin (n + 1))
-    | .var v => 
-      match v with
-      | .inl m => 
-        .var (.inl m)
-      | .inr m => .var (.inr (to_extra_fin m))
-    | .func f ts => .func f (fun i => up_bv_fin_1 (ts i))
-
-    @[simp]
-    def formula_substitution : {n : ℕ} → (t : L.Term (Empty ⊕ Fin n)) → L.BoundedFormula (Fin 1) n → L.BoundedFormula Empty n
-    | _, _, .falsum => .falsum
-    | _, t, .equal t₁ t₂ => .equal (term_substitution t t₁) (term_substitution t t₂)
-     | _, t, .rel R ts => .rel R (fun i => term_substitution t (ts i))
-     | _, t, .imp φ ψ => .imp (formula_substitution t φ) (formula_substitution t ψ)
-     | _, t, .all φ => .all (formula_substitution (up_bv_empty t) φ)
-  
-  scoped notation φ"/[" t "]" => formula_substitution t φ
-
-  @[simp]
-  def bv_term_substitution {n : ℕ} (t : L.Term (Empty ⊕ Fin (n + 1))) : L.Term (Fin 1 ⊕ Fin n) → L.Term (Empty ⊕ Fin (n + 1))
-  | .var v => 
-    match v with
-    | .inl (.mk 0 _) => t
-    | .inr m => up_bv_empty (Term.var (.inr m))
-  | .func f ts => .func f (fun i => term_substitution t (up_bv_fin_1 (ts i)))
-
-  @[simp]
-  def bv_formula_substitution : {n : ℕ} → (t : L.Term (Empty ⊕ Fin (n + 1))) → L.BoundedFormula (Fin 1) n → L.BoundedFormula Empty (n + 1)
-  | _, _, .falsum => .falsum
-  | _, t, .equal t₁ t₂ => .equal (bv_term_substitution t t₁) (bv_term_substitution t t₂)
-  | _, t, .rel R ts => .rel R (fun i => term_substitution t (up_bv_fin_1 (ts i)))
-  | _, t, .imp φ ψ => .imp (bv_formula_substitution t φ) (bv_formula_substitution t ψ)
-  | _, t, .all φ => .all (bv_formula_substitution (up_bv_empty t) φ)
-
-  scoped notation φ"/bv["t"]" => bv_formula_substitution t φ
-
-  def φ1 : ℒ.Formula (Fin 1) := #0 =' LPA.null
-  def t1 : ℒ.Term (Empty ⊕ Fin 0) := LPA.null
-  def ψ1 : ℒ.Sentence := LPA.null =' LPA.null
-
-  example : φ1/[t1] = ψ1 := by
-    simp[φ1,t1,ψ1,LPA.null,Term.bdEqual,Matrix.empty_eq]
-
-  def φ2 : ℒ.Formula (Fin 1) := #0 =' LPA.null
-  def t2 : ℒ.Term (Empty ⊕ Fin 1) := &0
-  def ψ2 : ℒ.BoundedFormula Empty 1 := (&0) =' LPA.null
-
-  example : φ2/bv[t2] = ψ2 := by
-    simp[φ2,t2,ψ2,LPA.null,Term.bdEqual,Matrix.empty_eq]
-
-  
-
-  end Induction
-
-  open Induction
-  def peano_arithmetic : ℒ.Theory := peano_axioms ∪ {φ : ℒ.Sentence | ∃ψ : ℒ.Formula (Fin 1), φ = (ψ/[LPA.null] ∧' (∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]))) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory_l
-  
-  notation "𝐏𝐀" => peano_arithmetic
+  notation "𝐏𝐀" => pa
 
 end PA
 
 namespace PAT
-open Languages
-  open PA
-  open L_T
-  open SyntaxTheory
-  open BoundedFormula
-  open Induction
-  def pat : ℒₜ.Theory := peano_axioms ∪ {φ : ℒₜ.Sentence | ∃ψ : ℒₜ.Formula (Fin 1), φ = ψ/[L_T.null] ∧' ∀'(ψ/bv[&0] ⟹ ψ/bv[S(&0)]) ⟹ ∀'ψ/bv[&0]} ∪ syntax_theory
+open Languages PA L_T SyntaxTheory BoundedFormula Induction
 
-  notation "𝐏𝐀𝐓" => pat
+def pat : ℒₜ.Theory := peano_axioms ∪ {φ | ∃ψ, φ = @ind ℒₜ _ ψ}
+notation "𝐏𝐀𝐓" => pat
+
 end PAT
 
 namespace TB
-open Languages
+open Languages L_T LPA PAT SyntaxTheory TermEncoding
 
-open L_T
-open LPA
-open PAT
-open SyntaxTheory
-open TermEncoding
-
-  def sentence_encoding (s : ℒ.Sentence) : ℒₜ.Term (Empty ⊕ Fin 0) := L_T.numeral (Encodable.encodeList (BoundedFormula.listEncode s))
-  scoped notation "⌜"φ"⌝" => sentence_encoding φ 
-  def tarski_biconditionals : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = T(⌜ψ⌝) ⇔ ψ} 
+variable [Encodable (ℒ.Sentence)]
+scoped notation "⌜"φ"⌝" => L_T.numeral (Encodable.encode φ)
+def tarski_biconditionals : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = T(⌜ψ⌝) ⇔ ψ}
 
 notation "𝐓𝐁" => tarski_biconditionals
+
 end TB
