@@ -15,7 +15,7 @@ class Arithmetic (L : Language) where
 
 scoped notation "S("t")" => Term.func Arithmetic.succ_symbol ![t]
 scoped notation t₁ "add" t₂ => Term.func Arithmetic.add_symbol ![t₁, t₂]
-
+scoped notation t₁ "mult" t₂ => Term.func Arithmetic.mult_symbol ![t₁, t₂]
 
 variable {α : Type}{L : Language}[Arithmetic L]
 @[simp]
@@ -159,10 +159,10 @@ end BoundedFormula
 namespace Languages
   namespace LPA
     inductive Func : ℕ → Type _ where
-      | null : Func 0
-      | succ : Func 1
-      | add : Func 2
-      | mult : Func 2
+      | zero_symbol : Func 0
+      | succ_symbol : Func 1
+      | add_symbol : Func 2
+      | mult_symbol : Func 2
       | neg : Func 1
       | conj : Func 2
       | disj : Func 2
@@ -188,10 +188,10 @@ namespace Languages
       ⟨Func, Rel⟩
 
     def funToStr {n}: Func n → String
-      | .null => "0"
-      | .succ => "S"
-      | .add => "+"
-      | .mult => "×"
+      | .zero_symbol => "0"
+      | .succ_symbol => "S"
+      | .add_symbol => "+"
+      | .mult_symbol => "×"
       | .neg => "𝑛𝑒𝑔"
       | .conj => "𝑐𝑜𝑛𝑗"
       | .disj => "𝑑𝑖𝑠𝑗"
@@ -237,22 +237,22 @@ namespace Languages
     scoped[Languages] prefix:arg "#" => FirstOrder.Language.Term.var ∘ Sum.inl
 
     instance : Arithmetic ℒ where
-      null := LPA.Func.null
-      succ := LPA.Func.succ
-      add := LPA.Func.add
-      mult := LPA.Func.mult
+      zero_symbol := LPA.Func.zero_symbol
+      succ_symbol := LPA.Func.succ_symbol
+      add_symbol := LPA.Func.add_symbol
+      mult_symbol := LPA.Func.mult_symbol
 
     section Coding
       variable {k : ℕ}
       def Func_enc : signature.Functions k → ℕ
-        | .null => Nat.pair 0 0 + 1
-        | .succ => Nat.pair 1 0 + 1
+        | .zero_symbol => Nat.pair 0 0 + 1
+        | .succ_symbol => Nat.pair 1 0 + 1
         | .denote => Nat.pair 1 1 + 1
         | .exists => Nat.pair 1 2 + 1
         | .forall => Nat.pair 1 3 + 1
         | .neg => Nat.pair 1 4 + 1
-        | .add => Nat.pair 2 0 + 1
-        | .mult => Nat.pair 2 1 + 1
+        | .add_symbol => Nat.pair 2 0 + 1
+        | .mult_symbol => Nat.pair 2 1 + 1
         | .cond => Nat.pair 2 2 + 1
         | .disj => Nat.pair 2 3 + 1
         | .conj => Nat.pair 2 4 + 1
@@ -264,11 +264,11 @@ namespace Languages
           match k with
             | 0 =>
               match e.unpair.2 with
-                | 0 => some (.null)
+                | 0 => some (.zero_symbol)
                 | _ => none
             | 1 =>
               match e.unpair.2 with
-                | 0 => some (.succ)
+                | 0 => some (.succ_symbol)
                 | 1 => some (.denote)
                 | 2 => some (.exists)
                 | 3 => some (.forall)
@@ -276,8 +276,8 @@ namespace Languages
                 | _ => none
             | 2 =>
               match e.unpair.2 with
-                | 0 => some (.add)
-                | 1 => some (.mult)
+                | 0 => some (.add_symbol)
+                | 1 => some (.mult_symbol)
                 | 2 => some (.cond)
                 | 3 => some (.disj)
                 | 4 => some (.conj)
@@ -429,12 +429,6 @@ namespace Languages
     scoped notation "⬝∼" n => Term.func Func.neg ![n]
     scoped notation n "⬝⟹" m => Term.func Func.cond ![n,m]
     scoped notation "⬝∀" n => Term.func Func.forall ![n]    variable {α : Type}
-    def null : Term signature α :=
-      Term.func .null ![]
-
-    def numeral : ℕ → Term signature α
-      | .zero => null
-      | .succ n => .func .succ ![numeral n]
     scoped notation "⬝∃" n => Term.func Func.exists ![n]
     scoped notation "⬝°" n  => Term.func Func.denote ![n]
     scoped notation "Subs(" n "," x "," t ")" => Term.func Func.subs ![n,x,t]
@@ -449,10 +443,10 @@ namespace Languages
     abbrev ℒₜ := signature
 
     instance : Arithmetic ℒₜ where
-      null := L_T.Func.null
-      add := L_T.Func.add
-      mult := L_T.Func.mult
-      succ := L_T.Func.succ
+      zero_symbol := L_T.Func.null
+      add_symbol := L_T.Func.add
+      mult_symbol := L_T.Func.mult
+      succ_symbol := L_T.Func.succ
 
   /-- Gives whether a BoundedFormula contains a T predicate-/
   @[simp] def contains_T {n} : ℒₜ.BoundedFormula α n → Prop
@@ -628,8 +622,8 @@ namespace TermEncoding
   def formula_tonat {n : ℕ} : BoundedFormula L ℕ n → ℕ :=
     fun f => Encodable.encodeList (BoundedFormula.listEncode f)
 
-  scoped notation "⌜" φ "⌝" => L_T.numeral (formula_tonat φ)
-  scoped notation "⌜" t₁ "⌝" => L_T.numeral (term_tonat t₁)
+  scoped notation "⌜" φ "⌝" => numeral (formula_tonat φ)
+  scoped notation "⌜" t₁ "⌝" => numeral (term_tonat t₁)
 
 end TermEncoding
 
@@ -641,10 +635,10 @@ end TermEncoding
   also lt formulas
   -/
   def to_lt_func ⦃arity : ℕ⦄ : (ℒ.Functions arity) → (ℒₜ.Functions arity)
-    | .null => .null
-    | .succ => .succ
-    | .add => .add
-    | .mult => .mult
+    | .zero_symbol => .null
+    | .succ_symbol => .succ
+    | .add_symbol => .add
+    | .mult_symbol => .mult
     | .neg => .neg
     | .conj => .conj
     | .disj => .disj

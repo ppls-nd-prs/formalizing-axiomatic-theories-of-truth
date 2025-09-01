@@ -9,11 +9,10 @@ open Languages
 open L_T
 open LPA
 open BoundedFormula
-open TermEncoding
 
-scoped notation "⌜"t"⌝" => LPA.numeral (sentence_term_tonat t)
-scoped notation "⌜"φ"⌝" => LPA.numeral (formula_tonat φ)
-scoped notation "⌜"t"⌝" => LPA.numeral (term_tonat t)
+variable [∀α n, Encodable (ℒ.Term (α ⊕ Fin n))][∀α n, Encodable (ℒ.BoundedFormula α n)]
+scoped notation "⌜"t"⌝" => numeral (Encodable.encode t)
+
 variable {α : Type*}
 def neg_repres (φ : Formula ℒ ℕ) : ℒ.Sentence :=
   (⬝∼ ⌜φ⌝) =' (⌜∼φ⌝)
@@ -54,6 +53,10 @@ namespace SyntaxTheory
 open Languages
 open LPA
 open SyntaxAxioms
+
+variable [∀α n, Encodable (ℒ.Term (α ⊕ Fin n))][∀α n, Encodable (ℒ.BoundedFormula α n)]
+scoped notation "⌜"t"⌝" => numeral (Encodable.encode t)
+
 inductive syntax_theory_l : ℒ.Theory where
   | negation_representation {φ} : syntax_theory_l (neg_repres φ)
   | conjunction_representation {φ ψ} : syntax_theory_l (conj_repres φ ψ)
@@ -80,7 +83,7 @@ open BoundedFormula
 
 variable {L : Language}[Arithmetic L]
 def ind {φ : {n : ℕ} →  L.Term (Empty ⊕ Fin n) → L.BoundedFormula Empty n} : L.Sentence :=
-  ((φ (.func Arithmetic.null ![]) ∧' (∀'((φ (&0)) ⟹ φ (S(&0))))) ⟹ ∀' φ (&0))
+  ((φ (null) ∧' (∀'((φ (&0)) ⟹ φ (S(&0))))) ⟹ ∀' φ (&0))
 
 end Induction
 
@@ -89,12 +92,12 @@ namespace PA
 
   /-- Peano arithemtic -/
   inductive peano_axioms : ℒ.Theory where
-    | first : peano_axioms (∀' ∼(LPA.null =' S(&0)))
+    | first : peano_axioms (∀' ∼(null =' S(&0)))
     | second :peano_axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
-    | third : peano_axioms (∀' ((&0 plus LPA.null) =' &0))
-    | fourth : peano_axioms (∀' ∀' ((&1 plus S(&0)) =' S(&1 plus &0)))
-    | fifth : peano_axioms (∀' ((&0 times LPA.null) =' LPA.null))
-    | sixth : peano_axioms (∀' ∀' ((&1 times S(&0)) =' ((&1 times &0)) plus &1))
+    | third : peano_axioms (∀' ((&0 add null) =' &0))
+    | fourth : peano_axioms (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
+    | fifth : peano_axioms (∀' ((&0 mult null) =' null))
+    | sixth : peano_axioms (∀' ∀' ((&1 mult S(&0)) =' ((&1 mult &0)) add &1))
 
   def pa : ℒ.Theory := peano_axioms ∪ {φ | ∃ψ, φ = @ind ℒ _ ψ}
 
@@ -111,12 +114,12 @@ notation "𝐏𝐀𝐓" => pat
 end PAT
 
 namespace TB
-open Languages L_T LPA PAT SyntaxTheory TermEncoding
+open Languages L_T LPA PAT SyntaxTheory
 
 variable [Encodable (ℒ.Sentence)]
-scoped notation "⌜"φ"⌝" => L_T.numeral (Encodable.encode φ)
-def tarski_biconditionals : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = T(⌜ψ⌝) ⇔ ψ}
+def tarski_biconditional (ψ : ℒ.Sentence) : ℒₜ.Sentence := T(⌜ψ⌝) ⇔ ψ
+def tb : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = (tarski_biconditional ψ)}
 
-notation "𝐓𝐁" => tarski_biconditionals
+notation "𝐓𝐁" => tb
 
 end TB
