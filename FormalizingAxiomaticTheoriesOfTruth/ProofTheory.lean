@@ -5,17 +5,19 @@ import Mathlib.Data.Tree.Get
 import Mathlib.Data.Set.Basic
 
 namespace FirstOrder.Language
-variable {α : Type}{n : Nat}
+
+variable {α : Type}
 
 class System where
   l : Language
-  axioms : Set (l.BoundedFormula α n)
-  unary : Set (l.BoundedFormula α n → l.BoundedFormula α n)
-  binary : Set (l.BoundedFormula α n → l.BoundedFormula α n → l.BoundedFormula α n)
+  axioms : Set (l.Sentence)
+  unary : Set (l.Formula α → l.Formula α)
+  binary : Set (l.Formula α → l.Formula α)
 
-def follows_system_rules : (ls : @System α n) → Tree (ls.l.BoundedFormula α n) → Prop
+def follows_system : (s : @System α) → Tree (s.l.Sentence ⊕ s.l.Formula α) → Prop
 | _, .nil => True
-| _, .node _ .nil .nil => True
+| _, .node (.inl a) .nil .nil => True
+| _, .node (.inr a) .nil .nil => False
 | ls, .node a .nil (.node b t₁ t₂) => ∃r ∈ ls.unary, (r b) = a ∧ follows_system_rules ls t₁ ∧ follows_system_rules ls t₂
 | ls, .node a (.node b t₁ t₂) .nil => ∃r ∈ ls.unary, (r b) = a ∧ follows_system_rules ls t₁ ∧ follows_system_rules ls t₂
 | ls, .node a (.node b t₁ t₂) (.node c t₃ t₄) => ∃r ∈ ls.binary, (r b c) = a ∧ follows_system_rules ls t₁ ∧ follows_system_rules ls t₂ ∧ follows_system_rules ls t₃ ∧ follows_system_rules ls t₄
@@ -25,20 +27,23 @@ def leaves {β : Type} : Tree β → Set β
 | .node a .nil .nil => {a}
 | .node _ t₁ t₂ => (leaves t₁) ∪ (leaves t₂)
 
-def leaves_are_axioms (ls : @System α n) (Th : Set (ls.l.BoundedFormula α n)) (tr : Tree (ls.l.BoundedFormula α n)) : Prop :=
+def leaves_are_axioms (s : @System α) (Th : s.l.Sentence) (tr : Tree (s.l.Formula α)) : Prop :=
   ∀lf ∈ leaves tr, lf ∈ ls.axioms ∨ lf ∈ Th
 
-class Proof {α : Type} {n : Nat} (ls : System) (Th : Set (ls.l.BoundedFormula α n)) (φ : ls.l.BoundedFormula α n) where
-  mk ::
-  tree : Tree (ls.l.BoundedFormula α n)
+class Proof {α : Type} {n : Nat} (s : System) (Th : s.l.Theory) (φ : ls.l.BoundedFormula α n) where
+  tree : Tree (s.l.BoundedFormula α n)
   root : tree.get PosNum.one = φ
-  rules : follows_system_rules ls tree
-  ax : leaves_are_axioms ls Th tree
+  rules : follows_system s tree
+  ax : leaves_are_axioms s Th tree
 
 namespace System
 variable {α : Type}{n : Nat}
-def provable (s : System α n) (φ : s.l.BoundedFormula α n) : Prop :=
-  Nonempty (@Proof α n s )
+def provable (s : @System α n) (Th : s.l.Theory) (φ : s.l.BoundedFormula α n) : Prop :=
+  Nonempty (@Proof α n s Th φ)
+notation Th "|"s"⊢" φ => provable s Th φ
+
+def Sound (s : @System α n) : Prop := ∀φ : s.l.BoundedFormula α n,
+  ∀Th, Th ⊨ᵇ φ → Th |s⊢ φ
 end System
 
 end FirstOrder.Language
