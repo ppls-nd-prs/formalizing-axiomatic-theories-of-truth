@@ -1,4 +1,3 @@
-
 import FormalizingAxiomaticTheoriesOfTruth.Syntax
 
 open FirstOrder
@@ -87,7 +86,7 @@ namespace PA
   open Languages LPA L_T BoundedFormula SyntaxTheory Induction
   variable {L : Language}[Arithmetical L]
   /-- Peano arithemtic -/
-  inductive peano_axioms : L.Theory where
+  inductive peano_axioms : ℒₜ.Theory where
     | first : peano_axioms (∀' ∼(null =' S(&0)))
     | second :peano_axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_axioms (∀' ((&0 add null) =' &0))
@@ -95,7 +94,16 @@ namespace PA
     | fifth : peano_axioms (∀' ((&0 mult null) =' null))
     | sixth : peano_axioms (∀' ∀' ((&1 mult S(&0)) =' ((&1 mult &0)) add &1))
 
-  def pa : ℒ.Theory := peano_axioms ∪ {φ | ∃ψ, φ = ind ψ}
+  def prop_func_to_lt (φ : {n : Nat} → {α : Type} → ℒ.Term (α ⊕ Fin n) → ℒ.BoundedFormula α n) :
+    {n : Nat} → {α : Type} → ℒₜ.Term (α ⊕ Fin n) → ℒₜ.BoundedFormula α n
+    := by
+    intro n α t
+    apply lt_l_onTerm at t
+    apply φ at t
+    apply ϕ.onBoundedFormula at t
+    exact t
+
+  def pa : ℒₜ.Theory := peano_axioms ∪ {φ | ∃ψ : {n : Nat} → {α : Type} → ℒ.Term (α ⊕ Fin n) → ℒ.BoundedFormula α n, φ = ind (prop_func_to_lt ψ)}
 
   notation "𝐏𝐀" => pa
 

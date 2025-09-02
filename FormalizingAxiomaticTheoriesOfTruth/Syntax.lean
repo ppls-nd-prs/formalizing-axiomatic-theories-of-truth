@@ -213,6 +213,28 @@ namespace Languages
     onFunction := onFunction
     onRelation := onRelation
 
-  instance : Coe (ℒ.BoundedFormula α n) (ℒₜ.BoundedFormula α n) where
+  def lt_l_onFunction ⦃n : Nat⦄ : ℒₜ.Functions n → ℒ.Functions n
+  | .zero_symbol => .zero_symbol
+  | .subs_symbol => .subs_symbol
+  | .denote_symbol => .denote_symbol
+  | .exists_symbol => .exists_symbol
+  | .forall_symbol => .forall_symbol
+  | .cond_symbol => .cond_symbol
+  | .disj_symbol => .disj_symbol
+  | .conj_symbol => .conj_symbol
+  | .neg_symbol => .neg_symbol
+  | .mult_symbol => .mult_symbol
+  | .add_symbol => .add_symbol
+  | .succ_symbol => .succ_symbol
+
+  def lt_l_onTerm {α} {n : Nat} : ℒₜ.Term (α ⊕ Fin n) → ℒ.Term (α ⊕ Fin n)
+  | .var v => .var v
+  | .func f ts => .func (lt_l_onFunction f) (fun i => lt_l_onTerm (ts i))
+
+  instance {α n} : Coe (ℒₜ.Term (α ⊕ Fin n)) (ℒ.Term (α ⊕ Fin n)) where
+    coe := lt_l_onTerm
+  instance {α n} : Coe (ℒ.Term (α ⊕ Fin n)) (ℒₜ.Term (α ⊕ Fin n)) where
+    coe := ϕ.onTerm
+  instance {α n} : Coe (ℒ.BoundedFormula α n) (ℒₜ.BoundedFormula α n) where
     coe := ϕ.onBoundedFormula
 end Languages
