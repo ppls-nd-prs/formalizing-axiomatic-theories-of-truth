@@ -45,8 +45,8 @@ namespace Conservativity
     intro φ
     simp[empty]
 
-  def Conservative (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
-    ∀φ, (Th₁ ⊨ᵇ (ϕ.onSentence φ)) → (Th₂ ⊨ᵇ (ϕ.onSentence φ))
+  def Conservative {n : Nat} {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
+    ∀φ : ℒ.BoundedFormula α n, (Th₁ ⊨ᵇ (ϕ.onBoundedFormula φ)) → (Th₂ ⊨ᵇ (ϕ.onBoundedFormula φ))
 
   open Theory
   variable [Encodable ℒ.Sentence]
@@ -89,14 +89,17 @@ namespace Conservativity
         sorry
     | inr h₂ => sorry
 
-
-  theorem conservativity_of_tb : Conservative 𝐓𝐁 𝐏𝐀 := by
+  theorem conservativity_of_tb {n : Nat} {α : Type}: @Conservative n α 𝐓𝐁 𝐏𝐀 := by
     intro φ h
-    apply models_sentence_iff.mpr
+    simp only [ModelsBoundedFormula]
+    simp only [ModelsBoundedFormula] at h
     intro M
-    apply models_sentence_iff.mp at h
-    #check M.Carrier
-    sorry
+    induction φ with
+    | falsum =>
+
+
+      sorry
+    | _ => sorry
 
 
 
