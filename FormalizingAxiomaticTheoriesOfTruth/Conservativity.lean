@@ -46,64 +46,28 @@ namespace Conservativity
     intro φ
     simp[empty]
 
-  def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
-    ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onBoundedFormula φ)) → (Th₂ ⊨ᵇ (ϕ.onBoundedFormula φ))
+  def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
+    ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
 
   open Theory
-  variable [Encodable ℒ.Sentence]
-
-  variable {M : Type} [ℒₜ.Structure M]
-  lemma lem2 : M ⊨ 𝐓𝐁 ↔ M ⊨ 𝐏𝐀 := by
-    apply Iff.intro
-    -- mp
-    intro h
-    simp at h
-    simp
-    intro a h₂
-    apply h
-    cases h₂ with
-    | inl h₂ =>
-      apply Or.intro_left
-      apply Or.intro_left
-      exact h₂
-    | inr h₂ =>
-      apply Or.intro_left
-      apply Or.intro_right
-      simp
-      simp at h₂
-      simp[h₂.choose_spec]
-    simp
-    --mpr
-    intro h₁ φ h₂
-    cases h₂ with
-    | inl h₂ =>
-      cases h₂ with
-      | inl h₂ =>
-        have step1 : φ ∈ 𝐏𝐀 := by
-          apply Or.intro_left
-          exact h₂
-        apply h₁ at step1
-        exact step1
-      | inr h₂ =>
-        simp at h₂
-
-        sorry
-    | inr h₂ => sorry
+  variable {α : Type} {s : @ProofSystem α ℒₜ}{φ : ℒ.Formula α}[Encodable ℒ.Sentence]
+  def to_pa : Proof s 𝐓𝐁 (ϕ.onFormula φ) → Proof s 𝐏𝐀 φ := by
+    intro p₁ x
+    sorry
 
   open Classical
   open ProofSystem
   theorem conservativity_of_tb {α} {s : @ProofSystem α ℒₜ}{sound : s.Sound}{complete : s.Complete}{n : Nat}: @Conservative α 𝐓𝐁 𝐏𝐀 := by
     simp[Conservative]
     intro φ h
-    #check sound φ 𝐓𝐁
     apply (complete φ 𝐓𝐁) at h
-    simp[ProofSystem.Provable] at h
-    apply (@Classical.ofNonempty (Proof s 𝐓𝐁 (ϕ.onBoundedFormula φ))) at h
-    have step1 : Proof.leaves_are_axioms s 𝐓𝐁 (Proof.tree s 𝐓𝐁 (ϕ.onBoundedFormula φ)) := by
-      apply h.ax
-    simp[Proof.leaves_are_axioms] at step1
+    unfold ProofSystem.Provable at h
+    apply @Classical.ofNonempty at h
+    apply sound φ 𝐏𝐀
+    unfold ProofSystem.Provable
+    apply Nonempty.intro
+    exact to_pa h
 
-    sorry
     -- #check sound φ 𝐓𝐁
     -- apply sound φ 𝐓𝐁 at h
     -- simp only [ModelsBoundedFormula]
