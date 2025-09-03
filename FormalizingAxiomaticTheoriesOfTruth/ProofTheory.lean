@@ -30,14 +30,13 @@ coe := to_alpha
 end Sentence
 
 open Sentence
-class ProofSystem where
-  l : Language
+structure ProofSystem (l : Language) where
   axioms : Set (l.Sentence)
   unary : Set (l.Formula α → l.Formula α)
   binary : Set (l.Formula α → l.Formula α → l.Formula α)
 
 namespace Proof
-def follows_system_rules : (s : @ProofSystem α) → Tree (s.l.Formula α) → Prop
+def follows_system_rules : (s : @ProofSystem α L) → Tree (L.Formula α) → Prop
 | _, .nil => True
 | _, .node _ .nil .nil => True
 | s, .node a .nil (.node b t₁ t₂) => ∃r ∈ s.unary, (r b) = a ∧ follows_system_rules s t₁ ∧ follows_system_rules s t₂
@@ -49,27 +48,27 @@ def leaves {β : Type} : Tree β → Set β
 | .node a .nil .nil => {a}
 | .node _ t₁ t₂ => (leaves t₁) ∪ (leaves t₂)
 
-def leaves_are_axioms (s : @ProofSystem α) (Th : s.l.Theory) (tr : Tree (s.l.Formula α)) : Prop :=
+def leaves_are_axioms (s : @ProofSystem α L) (Th : L.Theory) (tr : Tree (L.Formula α)) : Prop :=
   ∀lf ∈ leaves tr, lf ∈ (to_alpha '' s.axioms) ∨ lf ∈ (to_alpha '' Th)
 end Proof
 
 open Proof
-class Proof {α : Type} (s : ProofSystem) (Th : s.l.Theory) (φ : s.l.Formula α) where
-  tree : Tree (s.l.Formula α)
+class Proof {α : Type} (s : ProofSystem L) (Th : L.Theory) (φ : L.Formula α) where
+  tree : Tree (L.Formula α)
   root : tree.get PosNum.one = φ
   rules : follows_system_rules s tree
   ax : leaves_are_axioms s Th tree
 
 namespace ProofSystem
-variable {α : Type}{s : @ProofSystem α}
-def Provable (Th : s.l.Theory) (φ : s.l.Formula α) : Prop :=
+variable {α : Type}{s : @ProofSystem α L}
+def Provable (s : @ProofSystem α L) (Th : L.Theory) (φ : L.Formula α) : Prop :=
   Nonempty (Proof s Th φ)
-infix:60 " ⊢ₛ " => Provable
+notation Th " ⊢("s") " φ => Provable s Th φ
 
-def Sound (s : @ProofSystem α) : Prop :=
- ∀φ : s.l.Formula α, ∀Th : s.l.Theory, (Th ⊢ₛ φ) → (Th ⊨ᵇ φ)
+def Sound : Prop :=
+ ∀φ : L.Formula α, ∀Th : L.Theory, (Th ⊢(s) φ) → (Th ⊨ᵇ φ)
 def Complete : Prop :=
-  ∀φ : s.l.Formula α, ∀Th : s.l.Theory, (Th ⊨ᵇ φ) → (Th ⊢ₛ φ)
+  ∀φ : L.Formula α, ∀Th : L.Theory, (Th ⊨ᵇ φ) → (Th ⊢(s) φ)
 end ProofSystem
 
 end FirstOrder.Language

@@ -1,4 +1,5 @@
 import FormalizingAxiomaticTheoriesOfTruth.BasicTheories
+import FormalizingAxiomaticTheoriesOfTruth.ProofTheory
 import Mathlib.ModelTheory.Satisfiability
 import Mathlib.ModelTheory.Semantics
 
@@ -45,8 +46,8 @@ namespace Conservativity
     intro φ
     simp[empty]
 
-  def Conservative {n : Nat} {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
-    ∀φ : ℒ.BoundedFormula α n, (Th₁ ⊨ᵇ (ϕ.onBoundedFormula φ)) → (Th₂ ⊨ᵇ (ϕ.onBoundedFormula φ))
+  def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
+    ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onBoundedFormula φ)) → (Th₂ ⊨ᵇ (ϕ.onBoundedFormula φ))
 
   open Theory
   variable [Encodable ℒ.Sentence]
@@ -89,17 +90,31 @@ namespace Conservativity
         sorry
     | inr h₂ => sorry
 
-  theorem conservativity_of_tb {n : Nat} {α : Type}: @Conservative n α 𝐓𝐁 𝐏𝐀 := by
+  open Classical
+  open ProofSystem
+  theorem conservativity_of_tb {α} {s : @ProofSystem α ℒₜ}{sound : s.Sound}{complete : s.Complete}{n : Nat}: @Conservative α 𝐓𝐁 𝐏𝐀 := by
+    simp[Conservative]
     intro φ h
-    simp only [ModelsBoundedFormula]
-    simp only [ModelsBoundedFormula] at h
-    intro M
-    induction φ with
-    | falsum =>
+    #check sound φ 𝐓𝐁
+    apply (complete φ 𝐓𝐁) at h
+    simp[ProofSystem.Provable] at h
+    apply (@Classical.ofNonempty (Proof s 𝐓𝐁 (ϕ.onBoundedFormula φ))) at h
+    have step1 : Proof.leaves_are_axioms s 𝐓𝐁 (Proof.tree s 𝐓𝐁 (ϕ.onBoundedFormula φ)) := by
+      apply h.ax
+    simp[Proof.leaves_are_axioms] at step1
+
+    sorry
+    -- #check sound φ 𝐓𝐁
+    -- apply sound φ 𝐓𝐁 at h
+    -- simp only [ModelsBoundedFormula]
+    -- simp only [ModelsBoundedFormula] at h
+    -- intro M
+    -- induction φ with
+    -- | falsum =>
 
 
-      sorry
-    | _ => sorry
+    --   sorry
+    -- | _ => sorry
 
 
 
