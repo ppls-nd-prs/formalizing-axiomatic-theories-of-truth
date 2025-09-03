@@ -52,7 +52,7 @@ namespace Conservativity
   open Theory
   variable {α : Type} {s : @ProofSystem α ℒₜ}{φ : ℒ.Formula α}[Encodable ℒ.Sentence]
   def to_pa : Proof s 𝐓𝐁 (ϕ.onFormula φ) → Proof s 𝐏𝐀 φ := by
-    intro p₁ x
+    intro p₁
     sorry
 
   open Classical
