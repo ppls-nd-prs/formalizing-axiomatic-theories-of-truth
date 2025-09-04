@@ -5,7 +5,7 @@ import Mathlib.Data.Tree.Get
 import Mathlib.Data.Set.Basic
 
 namespace FirstOrder.Language
-variable {α : Type _} {L : Language}{n : Nat}
+variable {α : Type} {L : Language} {n : Nat}
 
 namespace Term
 def empty_to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
@@ -31,29 +31,29 @@ coe := to_alpha
 end Sentence
 
 open Sentence
-structure ProofSystem (L : Language) : Type _ where
-  axioms : Set (L.Sentence)
-  axioms_sound {M} [L.Structure M] : ∀φ ∈ axioms, M ⊨ φ
+structure ProofSystem (L : Language) : Type where
+  la : Set (L.Sentence)
+  la_tautology : ∀φ ∈ la, {} ⊨ᵇ φ
   unary : Set (L.Formula α → L.Formula α)
-  unary_sound {M} {v : α → M}[L.Structure M] : ∀r ∈ unary, ∀ψ φ, r ψ = φ → (ψ.Realize v → φ.Realize v)
+  unary_sound {M : Type}[L.Structure M] : ∀v : α → M, ∀r ∈ unary, ∀ψ φ, r ψ = φ → (ψ.Realize v → φ.Realize v)
   binary : Set (L.Formula α → L.Formula α → L.Formula α)
-  binary_sound {M} {v : α → M}[L.Structure M] : ∀r ∈ binary, ∀ψ₁ ψ₂ φ, r ψ₁ ψ₂ = φ → (ψ₁.Realize v → ψ₂.Realize v → φ.Realize v)
+  binary_sound {M: Type}[L.Structure M] : ∀v : α → M, ∀r ∈ binary, ∀ψ₁ ψ₂ φ, r ψ₁ ψ₂ = φ → (ψ₁.Realize v → ψ₂.Realize v → φ.Realize v)
 
-inductive Proof : (s : @ProofSystem α L) →  L.Theory → L.Formula α → Type _
-| ax {s Th} : (φ : L.Sentence) → φ ∈ Th ∪ s.axioms → Proof s Th (to_alpha φ)
-| un {s Th ψ φ} {r : L.Formula α → L.Formula α} : Proof s Th ψ → (r ∈ s.unary) → (r ψ = φ) → Proof s Th φ
-| bi {s Th ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} : Proof s Th ψ₁ → Proof s Th ψ₂ → (r ∈ s.binary) → (r ψ₁ ψ₂ = φ) → Proof s Th φ
+inductive Proof : (Th : L.Theory) → (s : @ProofSystem α L) →  L.Formula α → Type _
+| ax {Th s} : (φ : L.Sentence) → φ ∈ s.la ∪ Th → Proof Th s φ
+| un {Th s ψ φ} {r : L.Formula α → L.Formula α} : Proof Th s ψ → (r ∈ s.unary) → (r ψ = φ) → Proof Th s φ
+| bi {Th s ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} : Proof Th s ψ₁ → Proof Th s ψ₂ → (r ∈ s.binary) → (r ψ₁ ψ₂ = φ) → Proof Th s φ
 
 namespace ProofSystem
-variable {α : Type}{s : @ProofSystem α L}
-def Provable (s : @ProofSystem α L) (Th : L.Theory) (φ : L.Formula α) : Prop :=
-  Nonempty (Proof s Th φ)
-notation Th " ⊢("s") " φ => Provable s Th φ
+variable {α : Type}
+def Provable (Th : L.Theory) (s : @ProofSystem α L) (φ : L.Formula α) : Prop :=
+  Nonempty (Proof Th s φ)
+notation Th " ⊢("s") " φ => Provable Th s φ
 
-def Sound : Prop :=
- ∀φ : L.Formula α, ∀Th : L.Theory, (Th ⊢(s) φ) → (Th ⊨ᵇ φ)
-def Complete : Prop :=
-  ∀φ : L.Formula α, ∀Th : L.Theory, (Th ⊨ᵇ φ) → (Th ⊢(s) φ)
+def Sound (s : @ProofSystem α L) : Prop :=
+ ∀φ : L.Formula α, ∀Th, (Th ⊢(s) φ) → (Th ⊨ᵇ φ)
+def Complete (s : @ProofSystem α L) : Prop :=
+  ∀φ : L.Formula α, ∀Th, (Th ⊨ᵇ φ) → (Th ⊢(s) φ)
 
 open Theory BoundedFormula
 
@@ -61,7 +61,7 @@ open Theory BoundedFormula
 
 --  FirstOrder.Language.Theory.ModelsBoundedFormula.realize_sentence
 open Term
-variable {L : Language}{M : Type _}[L.Structure M]
+variable {L : Language}{M : Type}[L.Structure M]
 lemma empty_to_alpha_realize {v₁ : Empty → M} {v₂ : α → M} {xs : Fin n → M}: (t₁ : L.Term (Empty ⊕ Fin n)) → Term.realize (Sum.elim v₁ xs) t₁ = Term.realize (Sum.elim v₂ xs) (Term.empty_to_alpha t₁)
 | .var (.inl v) => by cases v
 | .var (.inr (.mk val isLt)) => by
@@ -74,7 +74,7 @@ lemma empty_to_alpha_realize {v₁ : Empty → M} {v₂ : α → M} {xs : Fin n 
     apply empty_to_alpha_realize
   simp[step1]
 
-lemma to_alpha_realizable {M : Type _} [L.Structure M]{α : Type}{v₁ : Empty → M}{v₂ : α → M} : {n : ℕ} → (φ : L.BoundedFormula Empty n) → {xs : Fin n → M} → BoundedFormula.Realize φ v₁ xs = @BoundedFormula.Realize _ M _ _ _ (to_alpha φ) v₂ xs
+lemma to_alpha_realizable {M : Type} [L.Structure M]{α : Type}{v₁ : Empty → M}{v₂ : α → M} : {n : ℕ} → (φ : L.BoundedFormula Empty n) → {xs : Fin n → M} → BoundedFormula.Realize φ v₁ xs = @BoundedFormula.Realize _ M _ _ _ (to_alpha φ) v₂ xs
 | _, .falsum, xs => by
     unfold BoundedFormula.Realize
     trivial
@@ -105,63 +105,48 @@ lemma to_alpha_realizable {M : Type _} [L.Structure M]{α : Type}{v₁ : Empty �
     rw[(@to_alpha_realizable _ _ _ _ _ _ φ (Fin.snoc xs a))]
     exact (h a)
 
-theorem all_systems_sound : ∀s : @ProofSystem α L, s.Sound := by
-  intro s
+theorem all_systems_sound : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound := by
+  intro Th₁
   unfold Sound
-  intro φ Th₁ h₁
+  intro s φ Th h₁
   unfold Provable at h₁
   unfold Theory.ModelsBoundedFormula
-  intro M v xs
   apply Classical.ofNonempty at h₁
   cases h₁ with
   | ax ψ h₁ =>
     cases h₁ with
     | inl h₁ =>
-      have step1 : M ⊨ ψ := by
-        apply realize_sentence_of_mem Th₁ h₁
+      intro M v xs
       rw[(to_alpha_realizable ψ).symm]
-      unfold Sentence.Realize Formula.Realize at step1
+      have step1 : {} ⊨ᵇ ψ := by
+        apply s.la_tautology ψ h₁
+      unfold Theory.ModelsBoundedFormula at step1
+      let empty_theory : L.Theory := {}
+      have empty_modeltype : empty_theory.ModelType := by
+        apply ModelType.subtheoryModel M
+        unfold empty_theory
+        simp
+      apply step1 at empty_modeltype
+      apply ModelType.subtheoryModel at M
       have step2 : xs = default := by
         simp[Matrix.empty_eq]
-      rw[step2]
-      exact step1
-    | inr h₁ =>
 
+      -- problem : xs is of wrong type
+      --exact empty_modeltype _ xs
       sorry
+
+
+      -- unfold Sentence.Realize Formula.Realize at step1
+      -- rw[step2]
+      -- exact step1
+    | inr h₁ =>
+      sorry
+
   | un => sorry
   | bi => sorry
 end ProofSystem
 
 end FirstOrder.Language
-
-namespace Hidden
-open FirstOrder Language ProofSystem Languages LPA L_T BoundedFormula
-variable {t₁ t₂ t₃ : ℒ.Term (Empty ⊕ Fin 0)}{α : Type}
-def sample_th : ℒ.Theory := {null =' null, numeral 2 =' null}
-def sample_binary_rule : ℒ.Formula α → ℒ.Formula α → ℒ.Formula α
-| φ, ψ => (φ ⊔ ψ)
-def sample_proofsystem : @ProofSystem ℕ ℒ where
-axioms := {}
-unary := {}
-binary := {sample_binary_rule}
-
-open Sentence
-example : ∀φ ∈ (to_alpha '' sample_th), ∀ψ ∈ (to_alpha '' sample_th), sample_th ⊢(sample_proofsystem) (φ ⊔ ψ) := by
-  intro φ h₁ ψ h₂
-  unfold Provable
-  apply Nonempty.intro
-  apply Proof.bi
-  apply Proof.ax
-  apply Or.intro_left
-  exact h₁
-  apply Proof.ax
-  apply Or.intro_left
-  exact h₂
-  apply rfl
-  unfold sample_binary_rule
-  trivial
-
-end Hidden
 
 -- namespace Derivations
 -- open Calculus
