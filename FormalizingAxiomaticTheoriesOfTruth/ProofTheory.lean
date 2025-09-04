@@ -18,6 +18,7 @@ coe := empty_to_alpha
 end Term
 
 namespace Sentence
+open Term
 def to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
 | _, .falsum => .falsum
 | _, .equal t₁ t₂ => .equal t₁ t₂
@@ -25,7 +26,7 @@ def to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
 | _, .imp φ ψ => .imp (to_alpha φ) (to_alpha ψ)
 | _, .all φ => .all (to_alpha φ)
 
-instance : Coe (L.Sentence) (L.Formula α) where
+scoped instance : Coe (L.Sentence) (L.Formula α) where
 coe := to_alpha
 end Sentence
 
@@ -59,50 +60,50 @@ open Theory BoundedFormula
 #check Formula.equivSentence
 
 --  FirstOrder.Language.Theory.ModelsBoundedFormula.realize_sentence
-
-lemma empty_to_alpha_realize {L : Language}{M : Type}[L.Structure M]{v₁ : (Empty ⊕ Fin n) → M} {v₂ : (α ⊕ Fin n) → M}: (t₁ : L.Term (Empty ⊕ Fin n)) → Term.realize v₁ t₁ = Term.realize v₂ (Term.empty_to_alpha t₁)
+open Term
+variable {L : Language}{M : Type _}[L.Structure M]
+lemma empty_to_alpha_realize {v₁ : Empty → M} {v₂ : α → M} {xs : Fin n → M}: (t₁ : L.Term (Empty ⊕ Fin n)) → Term.realize (Sum.elim v₁ xs) t₁ = Term.realize (Sum.elim v₂ xs) (Term.empty_to_alpha t₁)
 | .var (.inl v) => by cases v
-| .var (.inr (Fin.mk _ isLt)) => by
-  sorry -- problems with induction on bfs
-  --trivial
+| .var (.inr (.mk val isLt)) => by
+  unfold Term.empty_to_alpha
+  simp
 | .func f ts => by
-  simp [Term.realize, Term.empty_to_alpha]
-  have step1 : ∀i, Term.realize v₁ (ts i) = Term.realize v₂ (ts i).empty_to_alpha := by
+  simp[empty_to_alpha_realize,empty_to_alpha]
+  have step1 : ∀i, realize (Sum.elim v₁ xs) (ts i) = realize (Sum.elim v₂ xs) (ts i).empty_to_alpha := by
     intro i
     apply empty_to_alpha_realize
   simp[step1]
 
-open Term
-lemma to_alpha_realizable {M : Type} [L.Structure M]{α : Type}{v₂ : Empty → M}{v₁ : α → M} : {n : ℕ} → {φ : L.BoundedFormula Empty n} → {xs : Fin n → M} → BoundedFormula.Realize φ v₂ xs = @BoundedFormula.Realize _ M _ _ _ (to_alpha φ) v₁ xs
+lemma to_alpha_realizable {M : Type _} [L.Structure M]{α : Type}{v₁ : Empty → M}{v₂ : α → M} : {n : ℕ} → (φ : L.BoundedFormula Empty n) → {xs : Fin n → M} → BoundedFormula.Realize φ v₁ xs = @BoundedFormula.Realize _ M _ _ _ (to_alpha φ) v₂ xs
 | _, .falsum, xs => by
     unfold BoundedFormula.Realize
     trivial
 | _, .equal t₁ t₂, xs => by
     unfold BoundedFormula.Realize to_alpha
-    rw[(empty_to_alpha_realize t₁)]
-    sorry
-    sorry
-    sorry
-
-| n, .rel r ts, xs => by
-    unfold BoundedFormula.Realize at h
-    have step1 : ∀v₁ : _ → M,∀v₂ : (α ⊕ Fin n) → M,∀i, Term.realize v₁ (ts i) = @Term.realize L _ _ _ v₂ (ts i).empty_to_alpha := by
-      intro v₁ v₂ i
-      apply empty_to_alpha_realize
-    simp[to_alpha,BoundedFormula.Realize]
-    simp[(step1 (Sum.elim v₂ xs) (Sum.elim v₁ xs))] at h
-    exact h
+    -- mp
+    rw[empty_to_alpha_realize t₁]
+    rw[empty_to_alpha_realize t₂]
+| _, .rel r ts, xs => by
+    unfold BoundedFormula.Realize to_alpha
+    have step1 : ∀i, @realize L _ _ _ (Sum.elim v₁ xs) (ts i) = realize (Sum.elim v₂ xs) (ts i).empty_to_alpha := by
+      intro i
+      rw[empty_to_alpha_realize (ts i)]
+    simp[step1]
 | _, .imp φ ψ, xs => by
-    unfold BoundedFormula.Realize at h
     simp[BoundedFormula.Realize,to_alpha]
-    /-
-    apply to_alpha_realizable.contrapose at h₂
-    We should be able to contrapose our way out of this;
-    or something like that the realizations are the same (Prop) -/
-    sorry
-| _, .all φ, _ => by
-    exact to_alpha_realizable h
-termination_by ℕ
+    rw[(to_alpha_realizable φ)]
+    rw[(to_alpha_realizable ψ)]
+| _, .all φ, xs => by
+    simp[BoundedFormula.Realize, to_alpha]
+    apply Iff.intro
+    -- mp
+    intro h a
+    rw[(@to_alpha_realizable _ _ _ _ _ _ φ (Fin.snoc xs a)).symm]
+    exact (h a)
+    -- mpr
+    intro h a
+    rw[(@to_alpha_realizable _ _ _ _ _ _ φ (Fin.snoc xs a))]
+    exact (h a)
 
 theorem all_systems_sound : ∀s : @ProofSystem α L, s.Sound := by
   intro s
@@ -118,20 +119,12 @@ theorem all_systems_sound : ∀s : @ProofSystem α L, s.Sound := by
     | inl h₁ =>
       have step1 : M ⊨ ψ := by
         apply realize_sentence_of_mem Th₁ h₁
-
-      -- we need that
-      cases ψ with
-      | falsum =>
-        apply realize_bot.mp at step1
-        trivial
-      | equal t₁ t₂ =>
-        match t₁, t₂ with
-        | .var v, _ =>
-
-          sorry
-        | _, .var v => sorry
-        | .func f₁ ts₁, .func f₂ ts₂ => sorry
-      | _ => sorry
+      rw[(to_alpha_realizable ψ).symm]
+      unfold Sentence.Realize Formula.Realize at step1
+      have step2 : xs = default := by
+        simp[Matrix.empty_eq]
+      rw[step2]
+      exact step1
     | inr h₁ =>
 
       sorry
