@@ -37,9 +37,9 @@ structure ProofSystem (L : Language) : Type where
   binary : Set (L.Formula α → L.Formula α → L.Formula α)
 
 inductive Proof : (Th : L.Theory) → (s : @ProofSystem α L) →  L.Formula α → Type _
-| ax {Th s} : (φ : L.Sentence) → φ ∈ s.la ∪ Th → Proof Th s φ
-| un {Th s ψ φ} {r : L.Formula α → L.Formula α} : Proof Th s ψ → (r ∈ s.unary) → (r ψ = φ) → Proof Th s φ
-| bi {Th s ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} : Proof Th s ψ₁ → Proof Th s ψ₂ → (r ∈ s.binary) → (r ψ₁ ψ₂ = φ) → Proof Th s φ
+| ax {Th s}  (φ : L.Sentence) (h : φ ∈ s.la ∪ Th) : Proof Th s φ
+| un {Th s ψ φ} {r : L.Formula α → L.Formula α} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
+| bi {Th s ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
 namespace ProofSystem
 variable {α : Type}
@@ -48,7 +48,7 @@ def Provable (Th : L.Theory) (s : @ProofSystem α L) (φ : L.Formula α) : Prop 
 notation Th " ⊢("s") " φ => Provable Th s φ
 
 def Sound (s : @ProofSystem α L) : Prop :=
- ∀φ : L.Formula α, ∀Th, (Th ⊢(s) φ) → (Th ⊨ᵇ φ)
+  ∀φ : L.Formula α, ∀Th, (Th ⊢(s) φ) → (Th ⊨ᵇ φ)
 def Complete (s : @ProofSystem α L) : Prop :=
   ∀φ : L.Formula α, ∀Th, (Th ⊨ᵇ φ) → (Th ⊢(s) φ)
 

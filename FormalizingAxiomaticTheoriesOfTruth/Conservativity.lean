@@ -49,11 +49,40 @@ namespace Conservativity
   def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
     ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
 
-  open Theory
-  variable {α : Type} {s : @ProofSystem α ℒₜ}{φ : ℒ.Formula α}[Encodable ℒ.Sentence]
-  def to_pa : Proof s 𝐓𝐁 (ϕ.onFormula φ) → Proof s 𝐏𝐀 φ := by
-    intro p₁
-    sorry
+  open Theory ProofSystem
+  variable {α : Type} {s : @ProofSystem α ℒₜ}{φ : ℒ.Formula α}{ψ} {h : ϕ.onFormula φ = ψ}[Encodable ℒ.Sentence]
+  lemma to_pa {sound : s.Sound}{complete : s.Complete} : (𝐓𝐁 ⊢(s) ψ) → (𝐏𝐀 ⊢(s) ψ) := by
+    intro h₁
+    unfold Provable at h₁
+    apply Classical.ofNonempty at h₁
+    induction h₁ with
+    | ax q w =>
+      cases w with
+      | inl w =>
+        apply Nonempty.intro
+        apply Proof.ax
+        apply Or.intro_left
+        exact w
+      | inr w =>
+        cases w with
+        | inl w =>
+          cases w with
+          | inl w =>
+            apply Nonempty.intro
+            apply Proof.ax
+            apply Or.intro_right
+            apply Or.intro_left
+            exact w
+          | inr w =>
+            sorry
+        | inr w =>
+
+          sorry
+    | un q w e p_ih =>
+      apply Nonempty.intro at q
+
+      sorry
+    | bi q w e r => sorry
 
   open Classical
   open ProofSystem
