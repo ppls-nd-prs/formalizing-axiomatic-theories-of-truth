@@ -124,37 +124,72 @@ lemma sound_system_taut_axioms : ∀s : @ProofSystem α L, s.Sound → (∀φ �
   exact not_taut
 
 lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
-intro Th s
-contrapose
-intro h₁
-simp at h₁
-let r : L.Formula α → L.Formula α := h₁.choose
-let φ : L.Formula α := h₁.choose_spec.right.choose
-have provable_φ : Th ⊢(s) φ := by
-  apply h₁.choose_spec.right.choose_spec.left
-unfold Provable at provable_φ
-apply Classical.ofNonempty at provable_φ
-have r_in_unary : r ∈ s.unary := by
-  apply h₁.choose_spec.left
-have provable : Th ⊢(s) r φ := by
-  unfold Provable
-  apply Nonempty.intro
-  apply Proof.un
-  apply provable_φ
-  apply r_in_unary
-  rfl
-unfold Sound
-simp
-apply Exists.intro (r φ)
-apply Exists.intro Th
-apply And.intro
--- left
-exact provable
--- right
-apply h₁.choose_spec.right.choose_spec.right
+  intro Th s
+  contrapose
+  intro h₁
+  simp at h₁
+  let r : L.Formula α → L.Formula α := h₁.choose
+  let φ : L.Formula α := h₁.choose_spec.right.choose
+  have provable_φ : Th ⊢(s) φ := by
+    apply h₁.choose_spec.right.choose_spec.left
+  unfold Provable at provable_φ
+  apply Classical.ofNonempty at provable_φ
+  have r_in_unary : r ∈ s.unary := by
+    apply h₁.choose_spec.left
+  have provable : Th ⊢(s) r φ := by
+    unfold Provable
+    apply Nonempty.intro
+    apply Proof.un
+    apply provable_φ
+    apply r_in_unary
+    rfl
+  unfold Sound
+  simp
+  apply Exists.intro (r φ)
+  apply Exists.intro Th
+  apply And.intro
+  -- left
+  exact provable
+  -- right
+  apply h₁.choose_spec.right.choose_spec.right
 
 lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.binary,∀φ₁ φ₂ ψ, (Th ⊢(s) φ₁) → (Th ⊢(s) φ₂) → r φ₁ φ₂ = ψ → Th ⊨ᵇ ψ) := by
-sorry
+  intro Th s
+  contrapose
+  intro h₁
+  simp at h₁
+  unfold Sound
+  simp
+  let r : L.Formula α → L.Formula α → L.Formula α := h₁.choose
+  #check h₁.choose_spec.right.choose
+  let φ₁ : L.Formula α := h₁.choose_spec.right.choose
+  #check h₁.choose_spec.right.choose_spec.right.choose
+  let φ₂ : L.Formula α := h₁.choose_spec.right.choose_spec.right.choose
+  apply Exists.intro
+  apply Exists.intro
+  apply And.intro
+  -- left
+  have φ₁_provable : Th ⊢(s) φ₁ := by
+    apply h₁.choose_spec.right.choose_spec.left
+  apply Classical.ofNonempty at φ₁_provable
+  have φ₂_provable : Th ⊢(s) φ₂ := by
+    #check h₁.choose_spec.right.choose_spec.right.choose_spec.left
+    apply h₁.choose_spec.right.choose_spec.right.choose_spec.left
+  apply Classical.ofNonempty at φ₂_provable
+  have r_in_bi : r ∈ s.binary := by
+    #check h₁.choose_spec.left
+    apply h₁.choose_spec.left
+  have φ_φ_provable : Th ⊢(s) r φ₁ φ₂ := by
+    unfold Provable
+    apply Nonempty.intro
+    apply Proof.bi
+    apply φ₁_provable
+    apply φ₂_provable
+    exact r_in_bi
+    rfl
+  exact φ_φ_provable
+  -- right
+  apply h₁.choose_spec.right.choose_spec.right.choose_spec.right
 
 end ProofSystem
 
