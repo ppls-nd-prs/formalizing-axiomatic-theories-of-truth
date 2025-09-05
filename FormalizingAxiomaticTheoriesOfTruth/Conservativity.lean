@@ -46,8 +46,8 @@ namespace Conservativity
     intro φ
     simp[empty]
 
-  def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
-    ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
+  def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
+    ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ (ϕ.onFormula φ))
 
   open Theory ProofSystem
   variable {α : Type} {s : @ProofSystem α ℒₜ}{φ : ℒ.Formula α}{ψ} {h : ϕ.onFormula φ = ψ}[Encodable ℒ.Sentence]
@@ -56,59 +56,52 @@ namespace Conservativity
     unfold Provable at h₁
     apply Classical.ofNonempty at h₁
     induction h₁ with
-    | ax q w =>
-      cases w with
-      | inl w =>
+    | ax φ h =>
+      cases h with
+      | inl h =>
         apply Nonempty.intro
         apply Proof.ax
         apply Or.intro_left
-        exact w
-      | inr w =>
-        cases w with
-        | inl w =>
-          cases w with
-          | inl w =>
+        exact h
+      | inr h =>
+        cases h with
+        | inl h =>
+          cases h with
+          | inl h =>
             apply Nonempty.intro
             apply Proof.ax
             apply Or.intro_right
             apply Or.intro_left
-            exact w
-          | inr w =>
+            exact h
+          | inr h =>
+
             sorry
-        | inr w =>
+        | inr h =>
 
           sorry
-    | un q w e p_ih =>
-      apply Nonempty.intro at q
-
-      sorry
-    | bi q w e r => sorry
+    | un _ h₁ h₂ p_ih =>
+      unfold Provable at p_ih
+      apply Classical.ofNonempty at p_ih
+      unfold Provable
+      apply Nonempty.intro
+      apply Proof.un p_ih h₁ h₂
+    | bi _ _ h₁ h₂ p_ih₁ p_ih₂ =>
+      unfold Provable
+      apply Nonempty.intro
+      unfold Provable at p_ih₁
+      apply Classical.ofNonempty at p_ih₁
+      unfold Provable at p_ih₂
+      apply Classical.ofNonempty at p_ih₂
+      apply Proof.bi p_ih₁ p_ih₂ h₁ h₂
 
   open Classical
   open ProofSystem
   theorem conservativity_of_tb {α} {s : @ProofSystem α ℒₜ}{sound : s.Sound}{complete : s.Complete}{n : Nat}: @Conservative α 𝐓𝐁 𝐏𝐀 := by
     simp[Conservative]
     intro φ h
-    apply (complete φ 𝐓𝐁) at h
-    unfold ProofSystem.Provable at h
-    apply @Classical.ofNonempty at h
-    apply sound φ 𝐏𝐀
-    unfold ProofSystem.Provable
-    apply Nonempty.intro
-    exact to_pa h
-
-    -- #check sound φ 𝐓𝐁
-    -- apply sound φ 𝐓𝐁 at h
-    -- simp only [ModelsBoundedFormula]
-    -- simp only [ModelsBoundedFormula] at h
-    -- intro M
-    -- induction φ with
-    -- | falsum =>
-
-
-    --   sorry
-    -- | _ => sorry
-
-
+    apply complete at h
+    apply @to_pa _ _ _ _ sound complete at h
+    apply sound at h
+    exact h
 
 end Conservativity
