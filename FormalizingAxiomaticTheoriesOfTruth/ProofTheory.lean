@@ -156,57 +156,6 @@ apply h₁.choose_spec.right.choose_spec.right
 lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.binary,∀φ₁ φ₂ ψ, (Th ⊢(s) φ₁) → (Th ⊢(s) φ₂) → r φ₁ φ₂ = ψ → Th ⊨ᵇ ψ) := by
 sorry
 
-theorem sound_system_sound_rules : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀φ ∈ (@to_alpha α _ _ '' s.la), {} ⊨ᵇ φ) ∧ (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
-intro Th s
-contrapose
-intro h₁
-simp at h₁
-by_cases h₂ : ∀φ ∈ (@to_alpha α _ _ '' s.la), {} ⊨ᵇ φ
--- pos
-simp at h₂
-apply h₁ at h₂
-let r : L.Formula α → L.Formula α := h₂.choose
-let φ : L.Formula α := h₂.choose_spec.right.choose
-have provable_φ : Th ⊢(s) φ := by
-  apply h₂.choose_spec.right.choose_spec.left
-unfold Provable at provable_φ
-apply Classical.ofNonempty at provable_φ
-have r_in_unary : r ∈ s.unary := by
-  apply h₂.choose_spec.left
-have provable : Th ⊢(s) r φ := by
-  unfold Provable
-  apply Nonempty.intro
-  apply Proof.un
-  apply provable_φ
-  apply r_in_unary
-  rfl
-unfold Sound
-simp
-apply Exists.intro (r φ)
-apply Exists.intro Th
-apply And.intro
--- left
-exact provable
--- right
-apply h₂.choose_spec.right.choose_spec.right
--- neg
-simp at h₂
-let φ : L.Formula α := to_alpha h₂.choose
-have not_taut : ¬{} ⊨ᵇ φ := by
-  apply h₂.choose_spec.right
-unfold Sound
-simp
-apply Exists.intro φ
-apply Exists.intro {}
-apply And.intro
--- left
-apply Nonempty.intro
-apply Proof.ax
-apply Or.intro_left
-apply h₂.choose_spec.left
--- right
-exact not_taut
-
 end ProofSystem
 
 end FirstOrder.Language
