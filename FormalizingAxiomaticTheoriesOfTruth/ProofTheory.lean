@@ -33,11 +33,8 @@ end Sentence
 open Sentence
 structure ProofSystem (L : Language) : Type where
   la : Set (L.Sentence)
-  la_tautology : ∀φ ∈ la, {} ⊨ᵇ φ
   unary : Set (L.Formula α → L.Formula α)
-  unary_sound {M : Type}[L.Structure M] : ∀v : α → M, ∀r ∈ unary, ∀ψ φ, r ψ = φ → (ψ.Realize v → φ.Realize v)
   binary : Set (L.Formula α → L.Formula α → L.Formula α)
-  binary_sound {M: Type}[L.Structure M] : ∀v : α → M, ∀r ∈ binary, ∀ψ₁ ψ₂ φ, r ψ₁ ψ₂ = φ → (ψ₁.Realize v → ψ₂.Realize v → φ.Realize v)
 
 inductive Proof : (Th : L.Theory) → (s : @ProofSystem α L) →  L.Formula α → Type _
 | ax {Th s} : (φ : L.Sentence) → φ ∈ s.la ∪ Th → Proof Th s φ
@@ -105,45 +102,111 @@ lemma to_alpha_realizable {M : Type} [L.Structure M]{α : Type}{v₁ : Empty →
     rw[(@to_alpha_realizable _ _ _ _ _ _ φ (Fin.snoc xs a))]
     exact (h a)
 
-theorem all_systems_sound : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound := by
-  intro Th₁
+lemma sound_system_taut_axioms : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈ (@to_alpha α _ _ '' s.la), {} ⊨ᵇ φ) := by
+  intro s
+  contrapose
+  intro h₁
+  simp at h₁
+  let φ : L.Formula α := to_alpha h₁.choose
+  have not_taut : ¬{} ⊨ᵇ φ := by
+    apply h₁.choose_spec.right
   unfold Sound
-  intro s φ Th h₁
-  unfold Provable at h₁
-  unfold Theory.ModelsBoundedFormula
-  apply Classical.ofNonempty at h₁
-  cases h₁ with
-  | ax ψ h₁ =>
-    cases h₁ with
-    | inl h₁ =>
-      intro M v xs
-      rw[(to_alpha_realizable ψ).symm]
-      have step1 : {} ⊨ᵇ ψ := by
-        apply s.la_tautology ψ h₁
-      unfold Theory.ModelsBoundedFormula at step1
-      let empty_theory : L.Theory := {}
-      have empty_modeltype : empty_theory.ModelType := by
-        apply ModelType.subtheoryModel M
-        unfold empty_theory
-        simp
-      apply step1 at empty_modeltype
-      apply ModelType.subtheoryModel at M
-      have step2 : xs = default := by
-        simp[Matrix.empty_eq]
+  simp
+  apply Exists.intro φ
+  apply Exists.intro {}
+  apply And.intro
+  -- left
+  apply Nonempty.intro
+  apply Proof.ax
+  apply Or.intro_left
+  apply h₁.choose_spec.left
+  -- right
+  exact not_taut
 
-      -- problem : xs is of wrong type
-      --exact empty_modeltype _ xs
-      sorry
+lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
+intro Th s
+contrapose
+intro h₁
+simp at h₁
+let r : L.Formula α → L.Formula α := h₁.choose
+let φ : L.Formula α := h₁.choose_spec.right.choose
+have provable_φ : Th ⊢(s) φ := by
+  apply h₁.choose_spec.right.choose_spec.left
+unfold Provable at provable_φ
+apply Classical.ofNonempty at provable_φ
+have r_in_unary : r ∈ s.unary := by
+  apply h₁.choose_spec.left
+have provable : Th ⊢(s) r φ := by
+  unfold Provable
+  apply Nonempty.intro
+  apply Proof.un
+  apply provable_φ
+  apply r_in_unary
+  rfl
+unfold Sound
+simp
+apply Exists.intro (r φ)
+apply Exists.intro Th
+apply And.intro
+-- left
+exact provable
+-- right
+apply h₁.choose_spec.right.choose_spec.right
 
+lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.binary,∀φ₁ φ₂ ψ, (Th ⊢(s) φ₁) → (Th ⊢(s) φ₂) → r φ₁ φ₂ = ψ → Th ⊨ᵇ ψ) := by
+sorry
 
-      -- unfold Sentence.Realize Formula.Realize at step1
-      -- rw[step2]
-      -- exact step1
-    | inr h₁ =>
-      sorry
+theorem sound_system_sound_rules : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀φ ∈ (@to_alpha α _ _ '' s.la), {} ⊨ᵇ φ) ∧ (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
+intro Th s
+contrapose
+intro h₁
+simp at h₁
+by_cases h₂ : ∀φ ∈ (@to_alpha α _ _ '' s.la), {} ⊨ᵇ φ
+-- pos
+simp at h₂
+apply h₁ at h₂
+let r : L.Formula α → L.Formula α := h₂.choose
+let φ : L.Formula α := h₂.choose_spec.right.choose
+have provable_φ : Th ⊢(s) φ := by
+  apply h₂.choose_spec.right.choose_spec.left
+unfold Provable at provable_φ
+apply Classical.ofNonempty at provable_φ
+have r_in_unary : r ∈ s.unary := by
+  apply h₂.choose_spec.left
+have provable : Th ⊢(s) r φ := by
+  unfold Provable
+  apply Nonempty.intro
+  apply Proof.un
+  apply provable_φ
+  apply r_in_unary
+  rfl
+unfold Sound
+simp
+apply Exists.intro (r φ)
+apply Exists.intro Th
+apply And.intro
+-- left
+exact provable
+-- right
+apply h₂.choose_spec.right.choose_spec.right
+-- neg
+simp at h₂
+let φ : L.Formula α := to_alpha h₂.choose
+have not_taut : ¬{} ⊨ᵇ φ := by
+  apply h₂.choose_spec.right
+unfold Sound
+simp
+apply Exists.intro φ
+apply Exists.intro {}
+apply And.intro
+-- left
+apply Nonempty.intro
+apply Proof.ax
+apply Or.intro_left
+apply h₂.choose_spec.left
+-- right
+exact not_taut
 
-  | un => sorry
-  | bi => sorry
 end ProofSystem
 
 end FirstOrder.Language
