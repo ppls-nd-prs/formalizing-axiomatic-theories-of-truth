@@ -41,11 +41,20 @@ namespace Conservativity
 
   notation φ"/ₜ["ψ"]" => subs_t ψ φ
 
+  variable {α : Type}{n : Nat}{L : Language}
+  @[simp]
+  def bdEqual_iff {t₁ t₂ : L.Term (α ⊕ Fin n)} : t₁ =' t₂ = .equal t₁ t₂ := Eq.refl (t₁ =' t₂)
+
   open PA Languages
-  def pax_unchanged :∀φ, φ ∈ peano_axioms → ∀τ, φ/ₜ[τ] = φ := by
+  def pax_unchanged {α : Type} : ∀φ, φ ∈ peano_axioms → ∀{τ}, (@Sentence.to_alpha α _ _ φ)/ₜ[τ] = (Sentence.to_alpha φ) := by
     intro φ h₁ τ
     cases h₁
-    repeat trivial
+    trivial
+    trivial
+    trivial
+    trivial
+    trivial
+    trivial
 
   variable {α : Type}{n : Nat}{Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}
 
@@ -63,17 +72,28 @@ namespace Conservativity
       | inl h =>
         cases h with
         | inl h =>
-          apply Exists.intro ⊥
+          apply Exists.intro ⊤
           apply Nonempty.intro
-          apply pax_unchanged φ at h
-          simp[h]
+          rw[(pax_unchanged φ h)]
           apply Proof.ax
-          apply Or.intro_right
           apply Or.intro_left
           exact h
         | inr h =>
+          apply Exists.intro ⊤
+          apply Nonempty.intro
+          match φ with
+          | .falsum =>
+            simp[ind] at h
+          | .equal t₁ t₂ =>
+            simp[ind] at h
+          | .rel r ts =>
+            simp[ind] at h
+          | .imp f₁ f₂ =>
+            simp[ind] at h
 
-          sorry
+            sorry
+          | _ => sorry
+
       | inr h =>
 
         sorry

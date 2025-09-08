@@ -19,6 +19,7 @@ end Term
 
 namespace Sentence
 open Term
+@[simp]
 def to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
 | _, .falsum => .falsum
 | _, .equal t₁ t₂ => .equal t₁ t₂
