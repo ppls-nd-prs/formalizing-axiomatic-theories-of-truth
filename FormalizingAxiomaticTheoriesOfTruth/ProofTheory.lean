@@ -32,12 +32,11 @@ end Sentence
 
 open Sentence
 structure ProofSystem (L : Language) : Type where
-  la : Set (L.Sentence)
   unary : Set (L.Formula α → L.Formula α)
   binary : Set (L.Formula α → L.Formula α → L.Formula α)
 
 inductive Proof : (Th : L.Theory) → (s : @ProofSystem α L) →  L.Formula α → Type _
-| ax {Th s}  (φ : L.Sentence) (h : φ ∈ s.la ∪ Th) : Proof Th s φ
+| ax {Th s}  (φ : L.Sentence) (h : φ ∈ Th) : Proof Th s φ
 | un {Th s ψ φ} {r : L.Formula α → L.Formula α} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
 | bi {Th s ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
@@ -102,26 +101,26 @@ lemma to_alpha_realizable {M : Type} [L.Structure M]{α : Type}{v₁ : Empty →
     rw[(@to_alpha_realizable _ _ _ _ _ _ φ (Fin.snoc xs a))]
     exact (h a)
 
-lemma sound_system_taut_axioms : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈ (@to_alpha α _ _ '' s.la), {} ⊨ᵇ φ) := by
-  intro s
-  contrapose
-  intro h₁
-  simp at h₁
-  let φ : L.Formula α := to_alpha h₁.choose
-  have not_taut : ¬{} ⊨ᵇ φ := by
-    apply h₁.choose_spec.right
-  unfold Sound
-  simp
-  apply Exists.intro φ
-  apply Exists.intro {}
-  apply And.intro
-  -- left
-  apply Nonempty.intro
-  apply Proof.ax
-  apply Or.intro_left
-  apply h₁.choose_spec.left
-  -- right
-  exact not_taut
+-- lemma sound_system_taut_axioms : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈ (@to_alpha α _ _ '' s.la), {} ⊨ᵇ φ) := by
+--   intro s
+--   contrapose
+--   intro h₁
+--   simp at h₁
+--   let φ : L.Formula α := to_alpha h₁.choose
+--   have not_taut : ¬{} ⊨ᵇ φ := by
+--     apply h₁.choose_spec.right
+--   unfold Sound
+--   simp
+--   apply Exists.intro φ
+--   apply Exists.intro {}
+--   apply And.intro
+--   -- left
+--   apply Nonempty.intro
+--   apply Proof.ax
+--   apply Or.intro_left
+--   apply h₁.choose_spec.left
+--   -- right
+--   exact not_taut
 
 lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
   intro Th s

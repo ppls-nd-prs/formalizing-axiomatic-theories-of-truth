@@ -14,7 +14,7 @@ namespace Conservativity
   open Languages LPA L_T FirstOrder.Language.BoundedFormula
 
   @[simp]
-  def subs_t {α : Type} : {n : ℕ} →  ({m : Nat} → {β : Type} → ℒ.Term (β ⊕ Fin m) → ℒ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒ.BoundedFormula α n
+  def subs_t {α : Type} : {n : ℕ} →  ({m : Nat} → {β : Type} → (t : ℒ.Term (β ⊕ Fin m)) → ℒₜ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒₜ.BoundedFormula α n
   | _, _, .falsum  => .falsum
   | _, _, .equal t₁ t₂ => .equal (t₁) (t₂)
   | _, φ, .rel R ts =>
@@ -41,44 +41,42 @@ namespace Conservativity
 
   notation φ"/ₜ["ψ"]" => subs_t ψ φ
 
-  def empty : Set (ℒₜ.Formula ℕ) := ∅
-  lemma empty_replacement : ∀φ : ({n : Nat} → {α : Type} → ℒ.Term (α ⊕ Fin n) → ℒ.BoundedFormula α n), (empty.image (subs_t φ)) = ∅ := by
-    intro φ
-    simp[empty]
+  open PA Languages
+  def pax_unchanged :∀φ, φ ∈ peano_axioms → ∀τ, φ/ₜ[τ] = φ := by
+    intro φ h₁ τ
+    cases h₁
+    repeat trivial
+
+  variable {α : Type}{n : Nat}{Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}
 
   def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
     ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ (ϕ.onFormula φ))
 
   open Theory ProofSystem
-  variable {α : Type} {s : @ProofSystem α ℒₜ}{φ : ℒ.Formula α}{ψ} {h : ϕ.onFormula φ = ψ}[Encodable ℒ.Sentence]
-  lemma to_pa {sound : s.Sound}{complete : s.Complete} : (𝐓𝐁 ⊢(s) ψ) → (𝐏𝐀 ⊢(s) ψ) := by
-    intro h₁
+  variable {α : Type} {s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
+  lemma to_pa {sound : s.Sound}{complete : s.Complete} : ∀ψ : ℒₜ.Formula α, (p : 𝐓𝐁 ⊢(s) ψ) → ∃τ, (𝐏𝐀 ⊢(s) ψ/ₜ[τ]) := by
+    intro ψ h₁
     unfold Provable at h₁
     apply Classical.ofNonempty at h₁
     induction h₁ with
-    | ax φ h =>
-      cases h with
+    | ax φ h => cases h with
       | inl h =>
-        apply Nonempty.intro
-        apply Proof.ax
-        apply Or.intro_left
-        exact h
-      | inr h =>
         cases h with
         | inl h =>
-          cases h with
-          | inl h =>
-            apply Nonempty.intro
-            apply Proof.ax
-            apply Or.intro_right
-            apply Or.intro_left
-            exact h
-          | inr h =>
-
-            sorry
+          apply Exists.intro ⊥
+          apply Nonempty.intro
+          apply pax_unchanged φ at h
+          simp[h]
+          apply Proof.ax
+          apply Or.intro_right
+          apply Or.intro_left
+          exact h
         | inr h =>
 
           sorry
+      | inr h =>
+
+        sorry
     | un _ h₁ h₂ p_ih =>
       unfold Provable at p_ih
       apply Classical.ofNonempty at p_ih
@@ -100,7 +98,7 @@ namespace Conservativity
     simp[Conservative]
     intro φ h
     apply complete at h
-    apply @to_pa _ _ _ _ sound complete at h
+    apply to_pa at h
     apply sound at h
     exact h
 
