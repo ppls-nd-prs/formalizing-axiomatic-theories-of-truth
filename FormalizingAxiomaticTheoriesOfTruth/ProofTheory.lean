@@ -7,35 +7,16 @@ import Mathlib.Data.Set.Basic
 namespace FirstOrder.Language
 variable {α : Type} {L : Language} {n : Nat}
 
-namespace Term
-def empty_to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
-| .var (.inl v) => by cases v
-| .var (.inr v) => .var (.inr v)
-| .func f ts => .func f (fun i => empty_to_alpha (ts i))
-
-instance : Coe (L.Term (Empty ⊕ Fin n)) (L.Term (α ⊕ Fin n)) where
-coe := empty_to_alpha
-end Term
-
-namespace Sentence
-open Term
-@[simp]
-def to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
-| _, .falsum => .falsum
-| _, .equal t₁ t₂ => .equal t₁ t₂
-| _, .rel r ts => .rel r (fun i => ts i)
-| _, .imp φ ψ => .imp (to_alpha φ) (to_alpha ψ)
-| _, .all φ => .all (to_alpha φ)
-
-scoped instance : Coe (L.Sentence) (L.Formula α) where
-coe := to_alpha
-end Sentence
-
 open Sentence
 structure ProofSystem (L : Language) : Type where
   la : Set (L.Sentence)
   unary : Set (L.Formula α → L.Formula α)
   binary : Set (L.Formula α → L.Formula α → L.Formula α)
+
+open BoundedFormula
+variable [Inhabited α]
+instance : Coe (L.Sentence) (L.Formula α) where
+coe := fun s => relabel (fun _ => .inl Inhabited.default) s
 
 inductive Proof : (Th : L.Theory) → (s : @ProofSystem α L) →  L.Formula α → Type _
 | ax {Th s}  (φ : L.Sentence) (h : φ ∈ s.la ∪ Th) : Proof Th s φ
@@ -43,7 +24,7 @@ inductive Proof : (Th : L.Theory) → (s : @ProofSystem α L) →  L.Formula α 
 | bi {Th s ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
 namespace ProofSystem
-variable {α : Type}
+variable {α : Type}[Inhabited α]
 def Provable (Th : L.Theory) (s : @ProofSystem α L) (φ : L.Formula α) : Prop :=
   Nonempty (Proof Th s φ)
 notation Th " ⊢("s") " φ => Provable Th s φ
@@ -55,62 +36,13 @@ def Complete (s : @ProofSystem α L) : Prop :=
 
 open Theory BoundedFormula
 
-#check Formula.equivSentence
-
---  FirstOrder.Language.Theory.ModelsBoundedFormula.realize_sentence
-open Term
-variable {L : Language}{M : Type}[L.Structure M]
-lemma empty_to_alpha_realize {v₁ : Empty → M} {v₂ : α → M} {xs : Fin n → M}: (t₁ : L.Term (Empty ⊕ Fin n)) → Term.realize (Sum.elim v₁ xs) t₁ = Term.realize (Sum.elim v₂ xs) (Term.empty_to_alpha t₁)
-| .var (.inl v) => by cases v
-| .var (.inr (.mk val isLt)) => by
-  unfold Term.empty_to_alpha
-  simp
-| .func f ts => by
-  simp[empty_to_alpha_realize,empty_to_alpha]
-  have step1 : ∀i, realize (Sum.elim v₁ xs) (ts i) = realize (Sum.elim v₂ xs) (ts i).empty_to_alpha := by
-    intro i
-    apply empty_to_alpha_realize
-  simp[step1]
-
-lemma to_alpha_realizable {M : Type} [L.Structure M]{α : Type}{v₁ : Empty → M}{v₂ : α → M} : {n : ℕ} → (φ : L.BoundedFormula Empty n) → {xs : Fin n → M} → BoundedFormula.Realize φ v₁ xs = @BoundedFormula.Realize _ M _ _ _ (to_alpha φ) v₂ xs
-| _, .falsum, xs => by
-    unfold BoundedFormula.Realize
-    trivial
-| _, .equal t₁ t₂, xs => by
-    unfold BoundedFormula.Realize to_alpha
-    -- mp
-    rw[empty_to_alpha_realize t₁]
-    rw[empty_to_alpha_realize t₂]
-| _, .rel r ts, xs => by
-    unfold BoundedFormula.Realize to_alpha
-    have step1 : ∀i, @realize L _ _ _ (Sum.elim v₁ xs) (ts i) = realize (Sum.elim v₂ xs) (ts i).empty_to_alpha := by
-      intro i
-      rw[empty_to_alpha_realize (ts i)]
-    simp[step1]
-| _, .imp φ ψ, xs => by
-    simp[BoundedFormula.Realize,to_alpha]
-    rw[(to_alpha_realizable φ)]
-    rw[(to_alpha_realizable ψ)]
-| _, .all φ, xs => by
-    simp[BoundedFormula.Realize, to_alpha]
-    apply Iff.intro
-    -- mp
-    intro h a
-    rw[(@to_alpha_realizable _ _ _ _ _ _ φ (Fin.snoc xs a)).symm]
-    exact (h a)
-    -- mpr
-    intro h a
-    rw[(@to_alpha_realizable _ _ _ _ _ _ φ (Fin.snoc xs a))]
-    exact (h a)
-
-lemma sound_system_taut_axioms : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈ (@to_alpha α _ _ '' s.la), {} ⊨ᵇ φ) := by
+lemma sound_system_taut_axiom : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈ s.la, {} ⊨ᵇ φ) := by
   intro s
   contrapose
   intro h₁
   simp at h₁
-  let φ : L.Formula α := to_alpha h₁.choose
-  have not_taut : ¬{} ⊨ᵇ φ := by
-    apply h₁.choose_spec.right
+  let pre_φ : L.Sentence := h₁.choose
+  let φ : L.Formula α := h₁.choose
   unfold Sound
   simp
   apply Exists.intro φ
@@ -122,7 +54,30 @@ lemma sound_system_taut_axioms : ∀s : @ProofSystem α L, s.Sound → (∀φ �
   apply Or.intro_left
   apply h₁.choose_spec.left
   -- right
-  exact not_taut
+  #check h₁.choose_spec.right
+  unfold Theory.ModelsBoundedFormula
+  have ax_no_taut : ¬∅ ⊨ᵇ h₁.choose := by
+    apply h₁.choose_spec.right
+  unfold Theory.ModelsBoundedFormula at ax_no_taut
+  simp at ax_no_taut
+  simp
+  unfold φ
+  apply Exists.intro ax_no_taut.choose
+  #check Inhabited ax_no_taut.choose.Carrier
+  have nonempty : Nonempty (ax_no_taut.choose.Carrier) := by
+    apply ModelType.instNonempty
+  have inhabited_2 : Inhabited (ax_no_taut.choose.Carrier) := by
+    apply Classical.ofNonempty at nonempty
+    apply Inhabited.mk nonempty
+  apply Exists.intro (fun i => Inhabited.default)
+  simp
+  unfold default
+
+
+
+
+
+  sorry
 
 lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
   intro Th s

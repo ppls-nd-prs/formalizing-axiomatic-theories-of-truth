@@ -12,9 +12,9 @@ open Induction
 
 namespace Conservativity
   open Languages LPA L_T FirstOrder.Language.BoundedFormula
-
+  variable {α : Type}{n : Nat}
   @[simp]
-  def subs_t {α : Type} : {n : ℕ} →  ({m : Nat} → {β : Type} → ℒ.Term (β ⊕ Fin m) → ℒ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒ.BoundedFormula α n
+  def subs_t : {n : ℕ} →  ({m : Nat} → {β : Type} → ℒ.Term (β ⊕ Fin m) → ℒ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒ.BoundedFormula α n
   | _, _, .falsum  => .falsum
   | _, _, .equal t₁ t₂ => .equal (t₁) (t₂)
   | _, φ, .rel R ts =>
@@ -41,7 +41,25 @@ namespace Conservativity
 
   notation φ"/ₜ["ψ"]" => subs_t ψ φ
 
-  variable {α : Type}{n : Nat}{L : Language}
+  open BoundedFormula Classical
+  variable {L : Language}{m : Nat}
+  instance : Coe (ℒ.Sentence) (ℒ.BoundedFormula (Fin 1) n) where
+  coe := relabel (fun _ => (.inl 0))
+
+  variable {Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
+  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : Proof Th s φ → List (ℒ.BoundedFormula (Fin 1) n)
+  | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ) then {Coe.coe h.choose} else {}
+  | .un p _ h₁ => get_disq_φs p
+  | .bi p₁ p₂ _ h₁ => get_disq_φs p₁ ∪ get_disq_φs p₂
+
+  def list_to_bf : List (ℒ.Formula (Fin 1)) → ℒ.Formula (Fin 1)
+  | .nil => ⊥
+  | .cons a lst => a ⊔ list_to_bf lst
+
+  noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒ.Formula (Fin 1) :=
+    fun p => list_to_bf (get_disq_φs p)
+
+  variable {L : Language}
   @[simp]
   def bdEqual_iff {t₁ t₂ : L.Term (α ⊕ Fin n)} : t₁ =' t₂ = .equal t₁ t₂ := Eq.refl (t₁ =' t₂)
 

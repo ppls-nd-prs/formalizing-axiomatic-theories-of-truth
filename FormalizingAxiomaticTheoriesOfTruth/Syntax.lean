@@ -6,6 +6,33 @@ open FirstOrder
 open Language
 
 namespace FirstOrder.Language
+namespace Term
+variable {L : Language}{n : Nat}
+def to_closed : L.Term (Fin 1 ⊕ Fin n) → L.Term (Empty ⊕ Fin n) → L.Term (Empty ⊕ Fin n)
+| .var (.inl _), t_in => t_in
+| .var (.inr v), _ => .var (.inr v)
+| .func f ts, t => .func f (fun i => to_closed (ts i) t)
+end Term
+
+namespace BoundedFormula
+open Term
+variable {L : Language}
+def to_prop_func : {n : Nat} → L.BoundedFormula (Fin 1) n → (L.Term (Empty ⊕ Fin n) → L.BoundedFormula Empty n)
+| _, .falsum => fun _ => .falsum
+| _, .equal t₁ t₂ => fun t_in => .equal (to_closed t₁ t_in) (to_closed t₂ t_in)
+| _, .rel r ts => fun t_in => .rel r (fun i => to_closed (ts i) t_in)
+| _, .imp φ₁ φ₂ => fun t_in => .imp (to_prop_func φ₁ t_in) (to_prop_func φ₂ t_in)
+| _, .all φ => fun t_in => .all ((to_prop_func φ) (t_in.liftAt 1 1))
+end BoundedFormula
+
+namespace Formula
+open Term
+variable {L : Language}
+@[simp]
+def to_bf {α} : {n : Nat} → L.BoundedFormula α n → L.BoundedFormula α (n + 1) :=
+  fun {n} => fun φ => @BoundedFormula.castLE _ _ n (n + 1) (by simp) φ
+end Formula
+
 /-- A language is arithmetic when it has +, ×, 0 and S. -/
 class Arithmetical (L : Language) where
   zero_symbol : L.Functions 0

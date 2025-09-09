@@ -76,9 +76,12 @@ end SyntaxTheory
 namespace Induction
 open BoundedFormula
 
+instance : Coe (L.BoundedFormula (Fin 1) 0) (L.BoundedFormula Empty (0 + 1)) where
+coe := (fun bf => relabel (fun i : Fin 1 => .inr i) bf)
+
 variable {L : Language}[Arithmetical L]
-def ind (φ : {n : ℕ} →  L.Term (Empty ⊕ Fin n) → L.BoundedFormula Empty n) : L.Sentence :=
-  ((φ (null) ⊔ (∀'((φ (&0)) ⟹ φ (S(&0))))) ⟹ ∀' φ (&0))
+def ind (φ : {n : Nat} → {α : Type} → L.BoundedFormula α n) : L.Sentence :=
+  ((φ.subst ![null]) ⊔ (∀'(φ ⟹ (Coe.coe (@subst _ (Fin 1) (Fin 1) 0 φ (fun _ : Fin 1 => S(.var 0)))))) ⟹ ∀'φ)
 
 end Induction
 
@@ -86,7 +89,7 @@ namespace PA
   open Languages LPA L_T BoundedFormula SyntaxTheory Induction
   variable {L : Language}[Arithmetical L]
   /-- Peano arithemtic -/
-  inductive peano_axioms : ℒₜ.Theory where
+  inductive peano_axioms : L.Theory where
     | first : peano_axioms (∀' ∼(null =' S(&0)))
     | second :peano_axioms (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : peano_axioms (∀' ((&0 add null) =' &0))
@@ -94,16 +97,7 @@ namespace PA
     | fifth : peano_axioms (∀' ((&0 mult null) =' null))
     | sixth : peano_axioms (∀' ∀' ((&1 mult S(&0)) =' ((&1 mult &0)) add &1))
 
-  def prop_func_to_lt (φ : {n : Nat} → {α : Type} → ℒ.Term (α ⊕ Fin n) → ℒ.BoundedFormula α n) :
-    {n : Nat} → {α : Type} → ℒₜ.Term (α ⊕ Fin n) → ℒₜ.BoundedFormula α n
-    := by
-    intro n α t
-    apply lt_l_onTerm at t
-    apply φ at t
-    apply ϕ.onBoundedFormula at t
-    exact t
-
-  def pa : ℒₜ.Theory := peano_axioms ∪ {φ | ∃ψ : {n : Nat} → {α : Type} → ℒ.Term (α ⊕ Fin n) → ℒ.BoundedFormula α n, φ = ind (prop_func_to_lt ψ)}
+  def pa : ℒₜ.Theory := peano_axioms ∪ {φ | ∃ψ : {n : Nat} → {α : Type} → ℒ.BoundedFormula α n, φ = ind ψ}
 
   notation "𝐏𝐀" => pa
 
