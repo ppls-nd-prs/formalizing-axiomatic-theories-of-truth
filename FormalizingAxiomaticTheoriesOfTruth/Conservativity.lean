@@ -48,45 +48,4 @@ namespace Conservativity
   def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
     ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
 
-    unfold Provable at h₁
-    apply Classical.ofNonempty at h₁
-    induction h₁ with
-    | ax q w =>
-      cases w with
-      | inl w =>
-        apply Nonempty.intro
-        apply Proof.ax
-        apply Or.intro_left
-        exact w
-      | inr w =>
-        cases w with
-        | inl w =>
-          cases w with
-          | inl w =>
-            apply Nonempty.intro
-            apply Proof.ax
-            apply Or.intro_right
-            apply Or.intro_left
-            exact w
-          | inr w =>
-            sorry
-        | inr w =>
-
-          sorry
-    | un q w e p_ih =>
-      apply Nonempty.intro at q
-
-      sorry
-    | bi q w e r => sorry
-
-  open Classical
-  open ProofSystem
-  theorem conservativity_of_tb {α} {s : @ProofSystem α ℒₜ}{sound : s.Sound}{complete : s.Complete}{n : Nat}: @Conservative α 𝐓𝐁 𝐏𝐀 := by
-    simp[Conservative]
-    intro φ h
-    apply complete at h
-    apply @to_pa _ _ _ _ sound complete at h
-    apply sound at h
-    exact h
-
 end Conservativity
