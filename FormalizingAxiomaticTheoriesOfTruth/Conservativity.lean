@@ -61,10 +61,12 @@ namespace Conservativity
   def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
     ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ (ϕ.onFormula φ))
 
-  open Theory ProofSystem
+  open Theory ProofSystem Sentence
   variable {α : Type} {s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
+
   lemma to_pa {sound : s.Sound}{complete : s.Complete} : ∀ψ : ℒₜ.Formula α, (p : 𝐓𝐁 ⊢(s) ψ) → ∃τ, (𝐏𝐀 ⊢(s) ψ/ₜ[τ]) := by
     intro ψ h₁
+
     unfold Provable at h₁
     apply Classical.ofNonempty at h₁
     induction h₁ with
@@ -80,7 +82,6 @@ namespace Conservativity
           exact h
         | inr h =>
           apply Exists.intro ⊤
-          apply Nonempty.intro
           match φ with
           | .falsum =>
             simp[ind] at h
@@ -89,9 +90,11 @@ namespace Conservativity
           | .rel r ts =>
             simp[ind] at h
           | .imp f₁ f₂ =>
-            simp[ind] at h
-
-            sorry
+            simp [ind] at h
+            simp[Max.max, BoundedFormula.not] at h
+            cases f₁ with
+            | imp f₁ f₂ => sorry
+            | _ => simp at h
           | _ => sorry
 
       | inr h =>
@@ -99,7 +102,11 @@ namespace Conservativity
         sorry
     | un _ h₁ h₂ p_ih =>
       unfold Provable at p_ih
-      apply Classical.ofNonempty at p_ih
+      let τ : {m : ℕ} → {β : Type} → ℒ.Term (β ⊕ Fin m) → ℒₜ.BoundedFormula β m :=
+        p_ih.choose
+
+      #check p_ih.choose_spec
+      simp[Classical.ofNonempty] at p_ih
       unfold Provable
       apply Nonempty.intro
       apply Proof.un p_ih h₁ h₂
