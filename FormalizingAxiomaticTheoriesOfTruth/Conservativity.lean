@@ -14,7 +14,7 @@ namespace Conservativity
   open Languages LPA L_T FirstOrder.Language.BoundedFormula
 
   @[simp]
-  def subs_t {α : Type} : {n : ℕ} →  ({m : Nat} → {β : Type} → (t : ℒ.Term (β ⊕ Fin m)) → ℒₜ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒₜ.BoundedFormula α n
+  def subs_t {α : Type} : {n : ℕ} →  ({m : Nat} → {β : Type} → ℒ.Term (β ⊕ Fin m) → ℒ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒ.BoundedFormula α n
   | _, _, .falsum  => .falsum
   | _, _, .equal t₁ t₂ => .equal (t₁) (t₂)
   | _, φ, .rel R ts =>
@@ -84,26 +84,9 @@ namespace Conservativity
   theorem conservativity_of_tb {α} {s : @ProofSystem α ℒₜ}{sound : s.Sound}{complete : s.Complete}{n : Nat}: @Conservative α 𝐓𝐁 𝐏𝐀 := by
     simp[Conservative]
     intro φ h
-    apply (complete φ 𝐓𝐁) at h
-    unfold ProofSystem.Provable at h
-    apply @Classical.ofNonempty at h
-    apply sound φ 𝐏𝐀
-    unfold ProofSystem.Provable
-    apply Nonempty.intro
-    exact to_pa h
-
-    -- #check sound φ 𝐓𝐁
-    -- apply sound φ 𝐓𝐁 at h
-    -- simp only [ModelsBoundedFormula]
-    -- simp only [ModelsBoundedFormula] at h
-    -- intro M
-    -- induction φ with
-    -- | falsum =>
-
-
-    --   sorry
-    -- | _ => sorry
-
-
+    apply complete at h
+    apply @to_pa _ _ _ _ sound complete at h
+    apply sound at h
+    exact h
 
 end Conservativity
