@@ -45,27 +45,8 @@ namespace Conservativity
   @[simp]
   def bdEqual_iff {t₁ t₂ : L.Term (α ⊕ Fin n)} : t₁ =' t₂ = .equal t₁ t₂ := Eq.refl (t₁ =' t₂)
 
-  open PA Languages
-  def pax_unchanged {α : Type} : ∀φ, φ ∈ peano_axioms → ∀{τ}, (@Sentence.to_alpha α _ _ φ)/ₜ[τ] = (Sentence.to_alpha φ) := by
-    intro φ h₁ τ
-    cases h₁
-    trivial
-    trivial
-    trivial
-    trivial
-    trivial
-    trivial
-
-  variable {α : Type}{n : Nat}{Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}
-
   def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
     ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
-
-  open Theory ProofSystem Sentence
-  variable {α : Type} {s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
-
-  lemma to_pa {sound : s.Sound}{complete : s.Complete} : ∀ψ : ℒₜ.Formula α, (p : 𝐓𝐁 ⊢(s) ψ) → ∃τ, (𝐏𝐀 ⊢(s) ψ/ₜ[τ]) := by
-    intro ψ h₁
 
     unfold Provable at h₁
     apply Classical.ofNonempty at h₁
