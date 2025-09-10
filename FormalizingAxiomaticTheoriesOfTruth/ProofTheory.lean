@@ -9,17 +9,20 @@ variable {α : Type} {L : Language} {n : Nat}
 
 open Sentence
 structure ProofSystem (L : Language) : Type where
-  la : Set (L.Sentence)
+  la : Set (L.Formula α)
   unary : Set (L.Formula α → L.Formula α)
   binary : Set (L.Formula α → L.Formula α → L.Formula α)
 
 open BoundedFormula
 variable [Inhabited α]
+namespace Sentence
+def to_fml : L.Sentence → L.Formula α := fun s => relabel (fun _ => .inl Inhabited.default) s
 instance : Coe (L.Sentence) (L.Formula α) where
-coe := fun s => relabel (fun _ => .inl Inhabited.default) s
+coe := to_fml
+end Sentence
 
 inductive Proof : (Th : L.Theory) → (s : @ProofSystem α L) →  L.Formula α → Type _
-| ax {Th s}  (φ : L.Sentence) (h : φ ∈ s.la ∪ Th) : Proof Th s φ
+| ax {Th s}  (φ : L.Formula α) (h : φ ∈ s.la ∪ (to_fml '' Th)) : Proof Th s φ
 | un {Th s ψ φ} {r : L.Formula α → L.Formula α} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
 | bi {Th s ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
@@ -41,7 +44,6 @@ lemma sound_system_taut_axiom : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈
   contrapose
   intro h₁
   simp at h₁
-  let pre_φ : L.Sentence := h₁.choose
   let φ : L.Formula α := h₁.choose
   unfold Sound
   simp
@@ -54,30 +56,7 @@ lemma sound_system_taut_axiom : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈
   apply Or.intro_left
   apply h₁.choose_spec.left
   -- right
-  #check h₁.choose_spec.right
-  unfold Theory.ModelsBoundedFormula
-  have ax_no_taut : ¬∅ ⊨ᵇ h₁.choose := by
-    apply h₁.choose_spec.right
-  unfold Theory.ModelsBoundedFormula at ax_no_taut
-  simp at ax_no_taut
-  simp
-  unfold φ
-  apply Exists.intro ax_no_taut.choose
-  #check Inhabited ax_no_taut.choose.Carrier
-  have nonempty : Nonempty (ax_no_taut.choose.Carrier) := by
-    apply ModelType.instNonempty
-  have inhabited_2 : Inhabited (ax_no_taut.choose.Carrier) := by
-    apply Classical.ofNonempty at nonempty
-    apply Inhabited.mk nonempty
-  apply Exists.intro (fun i => Inhabited.default)
-  simp
-  unfold default
-
-
-
-
-
-  sorry
+  apply h₁.choose_spec.right
 
 lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
   intro Th s
