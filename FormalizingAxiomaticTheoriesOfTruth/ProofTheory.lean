@@ -9,37 +9,42 @@ variable {α : Type} {L : Language} {n : Nat}
 
 open Sentence
 structure ProofSystem (L : Language) : Type where
-  la : Set (L.Formula α)
-  unary : Set (L.Formula α → L.Formula α)
-  binary : Set (L.Formula α → L.Formula α → L.Formula α)
+  la : Set (L.BoundedFormula α n)
+  unary : Set (L.BoundedFormula α n → L.BoundedFormula α n)
+  binary : Set (L.BoundedFormula α n → L.BoundedFormula α n  → L.BoundedFormula α n)
+
+def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
+| .var (.inl v) => by contradiction
+| .var (.inr v) => .var (.inr v)
+| .func f ts => .func f (fun i => .to_alpha (ts i))
+
+def BoundedFormula.to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
+| _, .falsum => .falsum
+| _, .equal t₁ t₂ => .equal t₁.to_alpha t₂.to_alpha
+| _, .rel r ts => .rel r (fun i => (ts i).to_alpha)
+| _, .imp φ₁ φ₂ => .imp φ₁.to_alpha φ₂.to_alpha
+| _, .all φ => .all φ.to_alpha
 
 open BoundedFormula
-variable [Inhabited α]
-namespace Sentence
-def to_fml : L.Sentence → L.Formula α := fun s => relabel (fun _ => .inl Inhabited.default) s
-instance : Coe (L.Sentence) (L.Formula α) where
-coe := to_fml
-end Sentence
-
-inductive Proof : (Th : L.Theory) → (s : @ProofSystem α L) →  L.Formula α → Type _
-| ax {Th s}  (φ : L.Formula α) (h : φ ∈ s.la ∪ (to_fml '' Th)) : Proof Th s φ
-| un {Th s ψ φ} {r : L.Formula α → L.Formula α} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
-| bi {Th s ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
-
+inductive Proof : (Th : Set (L.BoundedFormula Empty n)) → (s : @ProofSystem α n L) →  L.BoundedFormula α n → Type _
+| ax {Th s} (φ : L.BoundedFormula α n) (h : φ ∈ s.la ∪ (.to_alpha '' Th)) : Proof Th s φ
+| un {Th s ψ φ} {r : L.BoundedFormula α n → L.BoundedFormula α n} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
+| bi {Th s ψ₁ ψ₂ φ} {r : L.BoundedFormula α n → L.BoundedFormula α n → L.BoundedFormula α n} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
+#check Proof
 namespace ProofSystem
-variable {α : Type}[Inhabited α]
-def Provable (Th : L.Theory) (s : @ProofSystem α L) (φ : L.Formula α) : Prop :=
-  Nonempty (Proof Th s φ)
+variable {α : Type}
+def Provable (Th : Set (L.BoundedFormula Empty 0)) (s : @ProofSystem α 0 L) (φ : L.BoundedFormula α 0) : Prop :=
+  Nonempty (@Proof _ _ 0 Th s φ)
 notation Th " ⊢("s") " φ => Provable Th s φ
 
-def Sound (s : @ProofSystem α L) : Prop :=
+def Sound (s : @ProofSystem α 0 L) : Prop :=
   ∀φ : L.Formula α, ∀Th, (Th ⊢(s) φ) → (Th ⊨ᵇ φ)
-def Complete (s : @ProofSystem α L) : Prop :=
+def Complete (s : @ProofSystem α 0 L) : Prop :=
   ∀φ : L.Formula α, ∀Th, (Th ⊨ᵇ φ) → (Th ⊢(s) φ)
 
 open Theory BoundedFormula
 
-lemma sound_system_taut_axiom : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈ s.la, {} ⊨ᵇ φ) := by
+lemma sound_system_taut_axiom : ∀s : @ProofSystem α 0 L, s.Sound → (∀φ ∈ s.la, {} ⊨ᵇ φ) := by
   intro s
   contrapose
   intro h₁
@@ -58,7 +63,7 @@ lemma sound_system_taut_axiom : ∀s : @ProofSystem α L, s.Sound → (∀φ ∈
   -- right
   apply h₁.choose_spec.right
 
-lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
+lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem α 0 L, s.Sound → (∀r ∈ s.unary,∀φ ψ, (Th ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
   intro Th s
   contrapose
   intro h₁
@@ -88,7 +93,7 @@ lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Soun
   -- right
   apply h₁.choose_spec.right.choose_spec.right
 
-lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem α L, s.Sound → (∀r ∈ s.binary,∀φ₁ φ₂ ψ, (Th ⊢(s) φ₁) → (Th ⊢(s) φ₂) → r φ₁ φ₂ = ψ → Th ⊨ᵇ ψ) := by
+lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem α 0 L, s.Sound → (∀r ∈ s.binary,∀φ₁ φ₂ ψ, (Th ⊢(s) φ₁) → (Th ⊢(s) φ₂) → r φ₁ φ₂ = ψ → Th ⊨ᵇ ψ) := by
   intro Th s
   contrapose
   intro h₁

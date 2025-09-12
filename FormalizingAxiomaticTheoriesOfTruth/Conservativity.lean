@@ -46,18 +46,44 @@ namespace Conservativity
   instance : Coe (ℒ.Sentence) (ℒ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
-  variable {Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
-  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : Proof Th s φ → List (ℒ.BoundedFormula (Fin 1) n)
-  | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ) then {Coe.coe h.choose} else {}
+  variable {Th : }{s : @ProofSystem α 0 ℒₜ}[Encodable ℒ.Sentence]
+  noncomputable def get_disq_φs : {n : Nat} → {φ : ℒₜ.BoundedFormula α n} → @Proof α ℒₜ n Th s φ → List (ℒ.Sentence)
+  | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ) then {h.choose} else {}
   | .un p _ h₁ => get_disq_φs p
   | .bi p₁ p₂ _ h₁ => get_disq_φs p₁ ∪ get_disq_φs p₂
 
-  def list_to_bf : List (ℒ.Formula (Fin 1)) → ℒ.Formula (Fin 1)
+  variable [Encodable (ℒₜ.Formula (Fin 1))]
+  def list_to_bf : List (ℒ.Sentence) → ℒₜ.Formula (Fin 1)
   | .nil => ⊥
-  | .cons a lst => a ⊔ list_to_bf lst
+  | .cons a lst => ((#0 =' ⌜a⌝) ⊓ a) ⊔ list_to_bf lst
 
-  noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒ.Formula (Fin 1) :=
+  noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
     fun p => list_to_bf (get_disq_φs p)
+end Conservativity
+  variable {L : Language}{n : Nat}{α : Type}
+
+  namespace Conservativity
+  open L_T ProofSystem
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence]{s : @ProofSystem α ℒₜ}
+  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : {n : Nat} → (ψ : ℒₜ.BoundedFormula α n) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} α _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ (@to_alpha _ α _ (ϕ.onBoundedFormula φ)) := by
+    intro p φ h₁
+    apply Iff.intro
+    -- mp
+    intro h₂
+    unfold ProofSystem.Complete at complete
+    unfold Theory.ModelsBoundedFormula at h₂
+    simp[tau,list_to_bf,get_disq_φs] at h₂
+    unfold Theory.ModelsBoundedFormula
+    intro M v xs
+    apply h₂ M at v
+
+
+
+
+
+    sorry
+    -- mpr
+    sorry
 
   variable {L : Language}
   @[simp]
