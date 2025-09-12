@@ -46,9 +46,9 @@ namespace Conservativity
   instance : Coe (ℒ.Sentence) (ℒ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
-  variable {Th : }{s : @ProofSystem α 0 ℒₜ}[Encodable ℒ.Sentence]
-  noncomputable def get_disq_φs : {n : Nat} → {φ : ℒₜ.BoundedFormula α n} → @Proof α ℒₜ n Th s φ → List (ℒ.Sentence)
-  | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ) then {h.choose} else {}
+  variable {Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
+  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : @Proof α ℒₜ Th s φ → List (ℒ.Sentence)
+  | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha then {h.choose} else {}
   | .un p _ h₁ => get_disq_φs p
   | .bi p₁ p₂ _ h₁ => get_disq_φs p₁ ∪ get_disq_φs p₂
 
@@ -65,8 +65,8 @@ end Conservativity
   namespace Conservativity
   open L_T ProofSystem
   variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence]{s : @ProofSystem α ℒₜ}
-  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : {n : Nat} → (ψ : ℒₜ.BoundedFormula α n) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} α _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ (@to_alpha _ α _ (ϕ.onBoundedFormula φ)) := by
-    intro p φ h₁
+  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} α _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ (ϕ.onBoundedFormula (@to_alpha α _ _ φ)) := by
+    intro ψ p φ h₁
     apply Iff.intro
     -- mp
     intro h₂
@@ -76,13 +76,13 @@ end Conservativity
     unfold Theory.ModelsBoundedFormula
     intro M v xs
     apply h₂ M at v
+    cases φ with
+    | all φ =>
+      simp[to_alpha]
+      sorry
+    | _ => sorry
 
-
-
-
-
-    sorry
-    -- mpr
+    --mpr
     sorry
 
   variable {L : Language}
