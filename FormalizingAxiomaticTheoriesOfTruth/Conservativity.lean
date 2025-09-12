@@ -47,43 +47,63 @@ namespace Conservativity
   coe := relabel (fun _ => (.inl 0))
 
   variable {Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
-  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : @Proof α ℒₜ Th s φ → List (ℒ.Sentence)
-  | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha then {h.choose} else {}
+  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ Th s φ) → List (ℒₜ.Formula (Fin 1))
+  | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha then [h.choose] else []
   | .un p _ h₁ => get_disq_φs p
-  | .bi p₁ p₂ _ h₁ => get_disq_φs p₁ ∪ get_disq_φs p₂
+  | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
-  variable [Encodable (ℒₜ.Formula (Fin 1))]
-  def list_to_bf : List (ℒ.Sentence) → ℒₜ.Formula (Fin 1)
-  | .nil => ⊥
-  | .cons a lst => ((#0 =' ⌜a⌝) ⊓ a) ⊔ list_to_bf lst
+  def make_vec : (l : List (α)) → (Fin l.length → α)
+  | .nil => ![]
+  | .cons a l => Fin.append (make_vec l) ![a]
 
+  #check ![1,2,4]
+  #eval Fin.append ![1,2,3] ![1,2,3]
+  -- instance : ∀Th : ℒₜ.Theory, ∀s : @ProofSystem α ℒₜ, ∀φ, ∀p : Proof Th s φ, Finite (Fin p.nr_axioms) := by
+  --   intro Th s φ p
+  --   apply @Finite.intro _ p.nr_axioms
+  --   rfl
+  -- variable [∀Th: L.Theory, ∀s : @ProofSystem α L, ∀φ, ∀p : Proof Th s φ, Finite (Fin p.nr_axioms)]
+  open Proof
   noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
-    fun p => list_to_bf (get_disq_φs p)
+    fun p => Formula.iSup (make_vec (get_disq_φs p))
 end Conservativity
   variable {L : Language}{n : Nat}{α : Type}
 
   namespace Conservativity
   open L_T ProofSystem
-  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence]{s : @ProofSystem α ℒₜ}
-  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} α _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ (ϕ.onBoundedFormula (@to_alpha α _ _ φ)) := by
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence][Encodable (ℒₜ.Formula (Fin 1))]{s : @ProofSystem α ℒₜ}
+  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} (Fin 1) _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ φ := by
     intro ψ p φ h₁
     apply Iff.intro
     -- mp
     intro h₂
     unfold ProofSystem.Complete at complete
     unfold Theory.ModelsBoundedFormula at h₂
-    simp[tau,list_to_bf,get_disq_φs] at h₂
+    simp[tau,make_vec,get_disq_φs] at h₂
     unfold Theory.ModelsBoundedFormula
     intro M v xs
     apply h₂ M at v
     cases φ with
     | all φ =>
-      simp[to_alpha]
+      simp
+      intro a
+
       sorry
     | _ => sorry
 
     --mpr
-    sorry
+    cases φ with
+    | all φ =>
+      intro h₁
+      unfold Theory.ModelsBoundedFormula at h₁
+      unfold Theory.ModelsBoundedFormula
+      intro M v xs
+      apply h₁ M v at xs
+      unfold tau
+      simp
+
+      sorry
+    | _ => sorry
 
   variable {L : Language}
   @[simp]

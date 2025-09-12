@@ -31,6 +31,12 @@ inductive Proof : (Th : Set (L.Sentence)) → (s : @ProofSystem α L) →  L.For
 | un {Th s ψ φ} {r : L.Formula α → L.Formula α} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
 | bi {Th s ψ₁ ψ₂ φ} {r : L.Formula α → L.Formula α → L.Formula α} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
+variable {L : Language}{α : Type}{n : Nat}{s : @ProofSystem α L}{Th : L.Theory}
+def Proof.nr_axioms {φ : L.Formula α} : Proof Th s φ → Nat
+| .ax _ _ => 1
+| .un p _ _ => p.nr_axioms
+| .bi p₁ p₂ _ _ => p₁.nr_axioms + p₂.nr_axioms
+
 namespace ProofSystem
 variable {α : Type}
 def Provable (Th : L.Theory) (s : @ProofSystem α L) (φ : L.Formula α) : Prop :=
