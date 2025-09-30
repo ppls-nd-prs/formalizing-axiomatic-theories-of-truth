@@ -47,14 +47,13 @@ namespace Conservativity
   coe := relabel (fun _ => (.inl 0))
 
   variable {Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
+  @[simp]
   noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ Th s φ) → List (ℒₜ.Formula (Fin 1))
   | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha then [h.choose] else []
   | .un p _ h₁ => get_disq_φs p
   | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
-  def make_vec : (l : List (α)) → (Fin l.length → α)
-  | .nil => ![]
-  | .cons a l => Fin.append (make_vec l) ![a]
+  #check [1,2,3].get (1 : Fin 3)
 
   #check ![1,2,4]
   #eval Fin.append ![1,2,3] ![1,2,3]
@@ -65,13 +64,13 @@ namespace Conservativity
   -- variable [∀Th: L.Theory, ∀s : @ProofSystem α L, ∀φ, ∀p : Proof Th s φ, Finite (Fin p.nr_axioms)]
   open Proof
   noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
-    fun p => Formula.iSup (make_vec (get_disq_φs p))
+    fun p => Formula.iSup (get_disq_φs p).get
 end Conservativity
   variable {L : Language}{n : Nat}{α : Type}
 
   namespace Conservativity
   open L_T ProofSystem
-  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence][Encodable (ℒₜ.Formula (Fin 1))]{s : @ProofSystem α ℒₜ}
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence][Encodable (ℒₜ.Formula (Fin 1))][BEq (ℒₜ.BoundedFormula (Fin 1) 0)]{s : @ProofSystem α ℒₜ}
   lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} (Fin 1) _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ φ := by
     intro ψ p φ h₁
     apply Iff.intro
@@ -79,7 +78,7 @@ end Conservativity
     intro h₂
     unfold ProofSystem.Complete at complete
     unfold Theory.ModelsBoundedFormula at h₂
-    simp[tau,make_vec,get_disq_φs] at h₂
+    simp[tau,get_disq_φs] at h₂
     unfold Theory.ModelsBoundedFormula
     intro M v xs
     apply h₂ M at v
@@ -87,23 +86,27 @@ end Conservativity
     | all φ =>
       simp
       intro a
+      apply realize_all.mp
 
       sorry
     | _ => sorry
-
     --mpr
-    cases φ with
-    | all φ =>
-      intro h₁
-      unfold Theory.ModelsBoundedFormula at h₁
-      unfold Theory.ModelsBoundedFormula
-      intro M v xs
-      apply h₁ M v at xs
-      unfold tau
-      simp
-
-      sorry
-    | _ => sorry
+    intro h₂
+    unfold Theory.ModelsBoundedFormula at h₂
+    unfold Theory.ModelsBoundedFormula
+    intro M v xs
+    #check h₂ M v xs
+    unfold tau
+    simp
+    apply realize_iSup.mpr
+    --apply Exists.intro (List.idxOf (∀'φ))
+    have ext : ∃ n, (get_disq_φs p).get n = φ := by
+      apply List.mem_iff_get.mp h₁
+    apply Exists.intro ext.choose
+    have eq : ((get_disq_φs p).get ext.choose) = φ := by
+      exact ext.choose_spec
+    rw[eq]
+    apply h₂ M ((fun a ↦ Term.realize v ⌜φ⌝)) xs
 
   variable {L : Language}
   @[simp]
