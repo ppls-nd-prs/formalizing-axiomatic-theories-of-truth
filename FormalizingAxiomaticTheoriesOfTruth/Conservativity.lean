@@ -48,48 +48,55 @@ namespace Conservativity
 
   variable {Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
   @[simp]
-  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ Th s φ) → List (ℒₜ.Formula (Fin 1))
+  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ Th s φ) → List (ℒ.Sentence)
   | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha then [h.choose] else []
   | .un p _ h₁ => get_disq_φs p
   | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
-  #check [1,2,3].get (1 : Fin 3)
+  variable [Encodable (ℒₜ.Formula (Fin 1))]
+  @[simp]
+  def make_tau_equivs (s : ℒ.Sentence) : ℒ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
 
-  #check ![1,2,4]
-  #eval Fin.append ![1,2,3] ![1,2,3]
-  -- instance : ∀Th : ℒₜ.Theory, ∀s : @ProofSystem α ℒₜ, ∀φ, ∀p : Proof Th s φ, Finite (Fin p.nr_axioms) := by
-  --   intro Th s φ p
-  --   apply @Finite.intro _ p.nr_axioms
-  --   rfl
-  -- variable [∀Th: L.Theory, ∀s : @ProofSystem α L, ∀φ, ∀p : Proof Th s φ, Finite (Fin p.nr_axioms)]
+  lemma lengths_eq {φ} : ∀p : @Proof α ℒₜ Th s φ, (get_disq_φs p).length = ((get_disq_φs p).map make_tau_equivs).length := by
+    intro p
+    rw[List.length_map]
+
+  lemma fins_eq {φ} : ∀{p : @Proof α ℒₜ Th s φ}, Fin (get_disq_φs p).length = Fin ((get_disq_φs p).map make_tau_equivs).length := by
+    intro p
+    rw[lengths_eq]
+
+  lemma all_n_m {φ} {p : @Proof α ℒₜ Th s φ} : ∀n : Fin (get_disq_φs p).length, Fin.val (fins_eq.mp n) = Fin.val n := by
+    intro n
+    simp[Fin.cast_eq_cast']
+
+
+
+
+
+
+
+
   open Proof
-  noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
-    fun p => Formula.iSup (get_disq_φs p).get
+  noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒ.Formula (Fin 1) :=
+    fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
+
 end Conservativity
   variable {L : Language}{n : Nat}{α : Type}
 
   namespace Conservativity
   open L_T ProofSystem
-  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence][Encodable (ℒₜ.Formula (Fin 1))][BEq (ℒₜ.BoundedFormula (Fin 1) 0)]{s : @ProofSystem α ℒₜ}
-  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} (Fin 1) _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ φ := by
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence][Encodable (ℒ.Formula (Fin 1))][Encodable (ℒₜ.Formula (Fin 1))][BEq (ℒₜ.BoundedFormula (Fin 1) 0)]{s : @ProofSystem α ℒₜ}
+
+  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} (Empty) _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ φ := by
     intro ψ p φ h₁
     apply Iff.intro
     -- mp
-    intro h₂
-    unfold ProofSystem.Complete at complete
-    unfold Theory.ModelsBoundedFormula at h₂
-    simp[tau,get_disq_φs] at h₂
     unfold Theory.ModelsBoundedFormula
+    intro h₂
     intro M v xs
-    apply h₂ M at v
-    cases φ with
-    | all φ =>
-      simp
-      intro a
-      apply realize_all.mp
 
-      sorry
-    | _ => sorry
+
+    sorry
     --mpr
     intro h₂
     unfold Theory.ModelsBoundedFormula at h₂
@@ -99,14 +106,59 @@ end Conservativity
     unfold tau
     simp
     apply realize_iSup.mpr
-    --apply Exists.intro (List.idxOf (∀'φ))
     have ext : ∃ n, (get_disq_φs p).get n = φ := by
       apply List.mem_iff_get.mp h₁
-    apply Exists.intro ext.choose
-    have eq : ((get_disq_φs p).get ext.choose) = φ := by
-      exact ext.choose_spec
-    rw[eq]
-    apply h₂ M ((fun a ↦ Term.realize v ⌜φ⌝)) xs
+    let n : Fin (get_disq_φs p).length := ext.choose
+    let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
+      rw[List.length_map]
+      exact n
+    apply Exists.intro m
+
+    rw[List.get_eq_getElem]
+    rw[List.getElem_map]
+
+    have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
+      simp[m,Fin.cast_eq_cast']
+    simp only [m_val_eq_n_val]
+    have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
+      apply ext.choose_spec
+    rw[is_phi]
+    unfold make_tau_equivs
+    apply BoundedFormula.realize_inf.mpr
+    apply And.intro
+    apply (BoundedFormula.realize_bdEqual _ _).mpr
+    simp
+    induction (Encodable.encode φ : Nat) with
+    | zero =>
+      simp[Matrix.empty_eq]
+    | succ n ih =>
+      unfold numeral
+      rw[Term.realize_func]
+      simp only [Matrix.vec_single_eq_const]
+
+
+
+
+
+
+
+
+
+      sorry
+
+    simp
+
+
+    have m_eq_phi : ⌜(get_disq_φs p)[↑m]⌝ = (⌜φ⌝ : Term ℒ Empty) := by
+      sorry
+
+    -- apply Exists.intro m
+
+    sorry
+    -- have eq : ((get_disq_φs p).get ext.choose) = φ := by
+    --   exact ext.choose_spec
+    -- rw[eq]
+    -- apply h₂ M ((fun a ↦ Term.realize v ⌜φ⌝)) xs
 
   variable {L : Language}
   @[simp]
