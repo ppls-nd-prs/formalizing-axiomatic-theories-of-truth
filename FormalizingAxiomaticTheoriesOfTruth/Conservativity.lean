@@ -49,7 +49,11 @@ namespace Conservativity
   variable {Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
   @[simp]
   noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ Th s φ) → List (ℒ.Sentence)
-  | .ax φ h => if h : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha then [h.choose] else []
+  | .ax φ h₁ => if th : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha
+    then
+    [th.choose]
+    else
+    []
   | .un p _ h₁ => get_disq_φs p
   | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
@@ -58,6 +62,7 @@ namespace Conservativity
   def make_tau_equivs (s : ℒ.Sentence) : ℒ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
 
   open Proof
+  @[simp]
   noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒ.Formula (Fin 1) :=
     fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
 
@@ -82,15 +87,66 @@ end Conservativity
     intro ψ p φ h₁
     apply Iff.intro
     -- mp
-    unfold Theory.ModelsBoundedFormula
-    intro h₂
-    intro M v xs
-
+    simp only [Theory.models_sentence_iff]
+    intro h₆
+    intro M
+    have realizable : ↑M ⊨ subst (tau p) ![⌜φ⌝] := by
+      exact h₆ M
+    apply realize_subst.mp at realizable
+    apply realize_iSup.mp at realizable
+    have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
+      apply List.mem_iff_get.mp
+      exact h₁
+    have eq_length : Fin (List.map make_tau_equivs (get_disq_φs p)).length = Fin ((get_disq_φs p)).length := by
+      simp[Fin.cast_eq_cast']
+    have realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒ _ _ _ v (![⌜φ⌝] a)) xs := by
+      apply Exists.choose_spec realizable
+    rw[List.get_eq_getElem] at realization
+    rw[List.getElem_map] at realization
+    if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
+    rw[h₄] at realization
+    simp at realization
+    apply And.right at realization
 
     sorry
+    else
+    sorry
+
+
+
+
+
+
+
+    -- have realizable : (subst (tau p) ![⌜φ⌝]).Realize v xs := by
+    --   exact h₂ M v xs
+
+    -- -- simp only [realize_subst] at realizable
+    -- -- unfold tau at realizable
+    -- -- unfold make_tau_equivs at realizable
+    -- induction p with
+    -- | ax ψ h₃ =>
+    --   if h₄ : ψ = (TB.tarski_biconditional φ).to_alpha then
+    --   have exs : ∃ψ_1, ψ = (TB.tarski_biconditional ψ_1).to_alpha := by
+    --     apply Exists.intro φ
+    --     exact h₄
+    --   have exs_true : ∃ψ_1, ψ = (TB.tarski_biconditional ψ_1).to_alpha = True := by
+    --     simp[exs]
+    --   simp at realizable
+
+
+    --   sorry
+    --   else
+    --   sorry
+    -- | un p r h₃ ih => sorry
+    -- | bi p₁ p₂ h₃ h₄ ih₁ ih₂ => sorry
+
+
+
+
+
     --mpr
-    intro h₂
-    intro M v xs
+    intro h₂ M v xs
     apply realize_subst.mpr; apply realize_iSup.mpr
     have ext : ∃ n, (get_disq_φs p).get n = φ := by
       apply List.mem_iff_get.mp h₁
@@ -98,27 +154,19 @@ end Conservativity
     let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
       rw[List.length_map]
       exact n
-    apply Exists.intro m
-
-    rw[List.get_eq_getElem]
-    rw[List.getElem_map]
+    apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
 
     have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
       simp[m,Fin.cast_eq_cast']
     simp only [m_val_eq_n_val]
     have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
       apply ext.choose_spec
-    rw[is_phi]
-    apply BoundedFormula.realize_inf.mpr
-    apply And.intro
+    rw[is_phi]; apply BoundedFormula.realize_inf.mpr; apply And.intro
     -- left
-    #check (BoundedFormula.realize_bdEqual _ _).mpr
-    apply (BoundedFormula.realize_bdEqual _ _).mpr
-    simp
+    apply (BoundedFormula.realize_bdEqual _ _).mpr; simp
     rw[num_all_v ((Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs)) v]
     --right
-    simp
-    exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
+    simp; exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
 
   variable {L : Language}
   @[simp]
