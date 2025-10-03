@@ -57,31 +57,22 @@ namespace Conservativity
   @[simp]
   def make_tau_equivs (s : ℒ.Sentence) : ℒ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
 
-  lemma lengths_eq {φ} : ∀p : @Proof α ℒₜ Th s φ, (get_disq_φs p).length = ((get_disq_φs p).map make_tau_equivs).length := by
-    intro p
-    rw[List.length_map]
-
-  lemma fins_eq {φ} : ∀{p : @Proof α ℒₜ Th s φ}, Fin (get_disq_φs p).length = Fin ((get_disq_φs p).map make_tau_equivs).length := by
-    intro p
-    rw[lengths_eq]
-
-  lemma all_n_m {φ} {p : @Proof α ℒₜ Th s φ} : ∀n : Fin (get_disq_φs p).length, Fin.val (fins_eq.mp n) = Fin.val n := by
-    intro n
-    simp[Fin.cast_eq_cast']
-
-
-
-
-
-
-
-
   open Proof
   noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒ.Formula (Fin 1) :=
     fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
 
 end Conservativity
-  variable {L : Language}{n : Nat}{α : Type}
+
+  variable {M : Type w} [ℒ.Structure M]
+  lemma num_all_v : ∀{n}, ∀{α : Type}, ∀{β : Type}, ∀v : α → ↑M, ∀z : β → ↑M, @Term.realize ℒ _ _ _ v (numeral n) = @Term.realize ℒ _ _ _ z (numeral n) := by
+    intro n α β v z
+    induction n with
+    | zero =>
+      simp[Matrix.empty_eq]
+    | succ n ih =>
+      unfold numeral
+      simp
+      rw[ih]
 
   namespace Conservativity
   open L_T ProofSystem
@@ -99,13 +90,8 @@ end Conservativity
     sorry
     --mpr
     intro h₂
-    unfold Theory.ModelsBoundedFormula at h₂
-    unfold Theory.ModelsBoundedFormula
     intro M v xs
-    #check h₂ M v xs
-    unfold tau
-    simp
-    apply realize_iSup.mpr
+    apply realize_subst.mpr; apply realize_iSup.mpr
     have ext : ∃ n, (get_disq_φs p).get n = φ := by
       apply List.mem_iff_get.mp h₁
     let n : Fin (get_disq_φs p).length := ext.choose
@@ -123,42 +109,16 @@ end Conservativity
     have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
       apply ext.choose_spec
     rw[is_phi]
-    unfold make_tau_equivs
     apply BoundedFormula.realize_inf.mpr
     apply And.intro
+    -- left
+    #check (BoundedFormula.realize_bdEqual _ _).mpr
     apply (BoundedFormula.realize_bdEqual _ _).mpr
     simp
-    induction (Encodable.encode φ : Nat) with
-    | zero =>
-      simp[Matrix.empty_eq]
-    | succ n ih =>
-      unfold numeral
-      rw[Term.realize_func]
-      simp only [Matrix.vec_single_eq_const]
-
-
-
-
-
-
-
-
-
-      sorry
-
+    rw[num_all_v ((Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs)) v]
+    --right
     simp
-
-
-    have m_eq_phi : ⌜(get_disq_φs p)[↑m]⌝ = (⌜φ⌝ : Term ℒ Empty) := by
-      sorry
-
-    -- apply Exists.intro m
-
-    sorry
-    -- have eq : ((get_disq_φs p).get ext.choose) = φ := by
-    --   exact ext.choose_spec
-    -- rw[eq]
-    -- apply h₂ M ((fun a ↦ Term.realize v ⌜φ⌝)) xs
+    exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
 
   variable {L : Language}
   @[simp]
