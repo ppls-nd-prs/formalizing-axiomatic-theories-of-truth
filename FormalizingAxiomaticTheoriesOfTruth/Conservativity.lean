@@ -83,34 +83,74 @@ end Conservativity
   open L_T ProofSystem
   variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence][Encodable (ℒ.Formula (Fin 1))][Encodable (ℒₜ.Formula (Fin 1))][BEq (ℒₜ.BoundedFormula (Fin 1) 0)]{s : @ProofSystem α ℒₜ}
 
+  lemma all_disq_phis_tau_makes_true_mpr {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, {} ⊨ᵇ φ → (@Theory.ModelsBoundedFormula _ {} (Empty) _ ((tau p).subst ![⌜φ⌝])) := by
+    intro ψ p φ h₁
+    intro h₂ M v xs
+    apply realize_subst.mpr; apply realize_iSup.mpr
+    have ext : ∃ n, (get_disq_φs p).get n = φ := by
+      apply List.mem_iff_get.mp h₁
+    let n : Fin (get_disq_φs p).length := ext.choose
+    let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
+      rw[List.length_map]
+      exact n
+    apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
+
+    have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
+      simp[m,Fin.cast_eq_cast']
+    simp only [m_val_eq_n_val]
+    have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
+      apply ext.choose_spec
+    rw[is_phi]; apply BoundedFormula.realize_inf.mpr; apply And.intro
+    -- left
+    apply (BoundedFormula.realize_bdEqual _ _).mpr; simp
+    rw[num_all_v ((Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs)) v]
+    --right
+    simp; exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
+
+
   lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} (Empty) _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ φ := by
     intro ψ p φ h₁
     apply Iff.intro
     -- mp
-    simp only [Theory.models_sentence_iff]
-    intro h₆
+    intro h₂
+    apply Theory.models_sentence_iff.mp at h₂
+    apply Theory.models_sentence_iff.mpr
     intro M
     have realizable : ↑M ⊨ subst (tau p) ![⌜φ⌝] := by
-      exact h₆ M
+      exact h₂ M
+    unfold Sentence.Realize Formula.Realize at realizable
     apply realize_subst.mp at realizable
     apply realize_iSup.mp at realizable
     have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
       apply List.mem_iff_get.mp
       exact h₁
-    have eq_length : Fin (List.map make_tau_equivs (get_disq_φs p)).length = Fin ((get_disq_φs p)).length := by
-      simp[Fin.cast_eq_cast']
-    have realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒ _ _ _ v (![⌜φ⌝] a)) xs := by
-      apply Exists.choose_spec realizable
+    let realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
+      exact realizable.choose_spec
+
     rw[List.get_eq_getElem] at realization
     rw[List.getElem_map] at realization
     if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
-    rw[h₄] at realization
-    simp at realization
-    apply And.right at realization
+      apply Exists.choose_spec at realizable
+      rw[h₄] at realization
+      simp at realization
+      apply And.right at realization
+      unfold Sentence.Realize Formula.Realize
+      rw[Unique.default_eq]
+      rw[Unique.default_eq]
+      exact realization
 
-    sorry
-    else
-    sorry
+      else
+      simp at h₄
+
+      sorry
+
+    -- rw[h₄] at realization
+    -- simp at realization
+    -- apply And.right at realization
+
+    -- sorry
+    -- else
+    -- sorry
 
 
 
