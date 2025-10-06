@@ -130,7 +130,6 @@ end Conservativity
     rw[List.get_eq_getElem] at realization
     rw[List.getElem_map] at realization
     if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
-      apply Exists.choose_spec at realizable
       rw[h₄] at realization
       simp at realization
       apply And.right at realization
@@ -140,7 +139,12 @@ end Conservativity
       exact realization
 
       else
-      simp at h₄
+      simp at realization
+      apply And.left at realization
+      -- iets met injectief (bewezen in syntax voor ℒ)
+
+
+
 
       sorry
 
