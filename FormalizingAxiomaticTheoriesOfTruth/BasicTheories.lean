@@ -97,7 +97,7 @@ namespace PA
     | fifth : peano_axioms (∀' ((&0 mult null) =' null))
     | sixth : peano_axioms (∀' ∀' ((&1 mult S(&0)) =' ((&1 mult &0)) add &1))
 
-  def pa : ℒₜ.Theory := peano_axioms ∪ {φ | ∃ψ : {n : Nat} → {α : Type} → ℒ.BoundedFormula α n, φ = ind ψ}
+  def pa : ℒ.Theory := peano_axioms ∪ {φ | ∃ψ : {n : Nat} → {α : Type} → ℒ.BoundedFormula α n, φ = ind ψ}
 
   notation "𝐏𝐀" => pa
 
