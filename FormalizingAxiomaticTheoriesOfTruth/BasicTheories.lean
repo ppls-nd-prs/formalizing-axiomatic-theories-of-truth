@@ -1,4 +1,6 @@
 import FormalizingAxiomaticTheoriesOfTruth.Syntax
+import Mathlib.ModelTheory.Satisfiability
+import Mathlib.ModelTheory.Semantics
 
 open FirstOrder
 open Language
@@ -100,6 +102,47 @@ namespace PA
   def pa : ℒ.Theory := peano_axioms ∪ {φ | ∃ψ : {n : Nat} → {α : Type} → ℒ.BoundedFormula α n, φ = ind ψ}
 
   notation "𝐏𝐀" => pa
+
+  open Theory
+  lemma PA.succ_ne_zero : ∀t : ℒ.Term (Empty ⊕ Fin 0), 𝐏𝐀 ⊨ᵇ ∼(S(t) =' null : ℒ.Sentence) := by
+    intro t
+    have pa_first : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
+      apply models_sentence_of_mem
+      unfold pa
+      apply Or.intro_left
+      apply peano_axioms.first
+    apply models_sentence_iff.mpr
+    intro M
+    apply models_sentence_iff.mp at pa_first
+    apply pa_first at M
+    apply realize_all.mp at M
+    apply realize_not.mpr
+    simp [(realize_bdEqual _ _),Term.realize_func,Matrix.empty_eq]
+    simp [realize_not,Matrix.empty_eq,Fin.snoc] at M
+
+
+
+
+
+    sorry
+
+  lemma neq_terms_neq_realize : ∀n m : Nat, @numeral Empty ℒ _ n ≠ numeral m → 𝐏𝐀 ⊨ᵇ (∼(@numeral (Empty ⊕ Fin 0) ℒ _ n =' numeral m)) := by
+    intro n m h₁
+    have first_ax : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
+      apply models_sentence_of_mem
+      unfold pa
+      apply Or.intro_left
+      apply peano_axioms.first
+
+    induction n with
+    | zero =>
+      cases m with
+      | zero =>
+        contradiction
+      | succ p =>
+
+        sorry
+    | succ n ih => sorry
 
 end PA
 

@@ -283,8 +283,11 @@ end Conservativity
       unfold PA.pa
       apply Or.intro_left
       apply PA.peano_axioms.first
+
     #check first_ax M default default
-    /- Het moet nog worden bewezen dat het te bewijzen is in 𝐏𝐀 dat voor twee termen t₁ en t₂ die enkel uit zero_symbol en succ_symbol bestaan en niet gelijk zijn aan elkaar
+    /- Het moet nog worden bewezen dat het te bewijzen is in 𝐏𝐀
+    dat voor twee termen t₁ en t₂ die enkel uit zero_symbol en
+    succ_symbol bestaan en niet gelijk zijn aan elkaar
     hun interpretaties ook niet gelijk zijn aan elkaar.
     Dit lijkt vanzelfsprekend maar is dat niet, want er zijn ook
     termen die geïnterpreteerd mogen worden als hetzelfde ookal
