@@ -130,7 +130,34 @@ end Conservativity
     apply num_inj
     exact h
 
-  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ {} (Empty) _ ((tau p).subst ![⌜φ⌝])) ↔ {} ⊨ᵇ φ := by
+  variable {M β γ: Type}{n : Nat}[ℒ.Structure M]{t : β → ↑M}{v : γ → ↑M}[Inhabited (γ → ↑M)][Encodable (ℒ.BoundedFormula γ n)]
+  lemma lem1 : ∀φ: ℒ.Sentence, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : γ → ↑M) (⌜φ⌝ : ℒ.Term _) := by
+    intro φ
+    induction (Encodable.encode φ) with
+    | zero =>
+      simp[Matrix.empty_eq]
+    | succ n ih =>
+      simp[ih]
+
+  lemma term_realize_inj : ∀a₁ a₂ : ℒ.Sentence, (⌜a₁⌝ : ℒ.Term α) ≠ ⌜a₂⌝ → Term.realize v (⌜a₁⌝ : ℒ.Term _) ≠ (Term.realize t (⌜a₂⌝ : ℒ.Term _)) := by
+    intro a₁ a₂
+    induction (Encodable.encode a₁) with
+    | zero =>
+      simp[Matrix.vec_single_eq_const,Matrix.empty_eq]
+
+
+
+      sorry
+    | succ n ih => sorry
+
+
+  lemma all_n_must_eq {m} : (𝐏𝐀 ⊨ᵇ ((numeral n =' numeral m) : ℒ.Sentence)) → n = m := by
+    intro h₁
+
+    sorry
+
+
+  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ 𝐏𝐀 (Empty) _ ((tau p).subst ![⌜φ⌝])) ↔ 𝐏𝐀 ⊨ᵇ φ := by
     intro ψ p φ h₁
     apply Iff.intro
     -- mp
@@ -161,9 +188,10 @@ end Conservativity
       rw[Unique.default_eq]
       exact realization
 
-      else
-      simp at realization
+    else
+      simp only [make_tau_equivs,realize_inf] at realization
       apply And.left at realization
+      simp at realization
       -- iets met injectief (bewezen in syntax voor ℒ)
       -- de sleutel is dat de realization moet kloppen in elke M,
       -- dus ook in die waar het de interpretatie van getallen krijgt
@@ -177,13 +205,14 @@ end Conservativity
       -- we hebben hier peano_arithmetic regels nodig
 
 
-
-
-
-
-
-
       sorry
+
+
+
+
+
+
+
 
     -- rw[h₄] at realization
     -- simp at realization
@@ -281,7 +310,7 @@ end Conservativity
     have first_ax : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
       apply Theory.models_sentence_of_mem
       unfold PA.pa
-      apply Or.intro_left
+      -- apply Or.intro_left
       apply PA.peano_axioms.first
 
     #check first_ax M default default

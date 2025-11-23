@@ -106,6 +106,56 @@ namespace PA
 
   open Theory
 
+  lemma all_nums : ∀n m : Nat, n ≠ m → 𝐏𝐀 ⊨ᵇ (∼(numeral (n) =' (numeral m)) : ℒ.Sentence) := by
+    intro n m
+    induction n with
+    | zero =>
+      induction m with
+      | zero =>
+        intro h₁
+        simp at h₁
+      | succ n ih =>
+        intro h₁
+        simp only [numeral]
+        #check Theory.models_sentence_of_mem peano_axioms.first
+        have step1 : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
+          exact Theory.models_sentence_of_mem peano_axioms.first
+        apply models_sentence_iff.mpr
+        intro M
+        apply models_sentence_iff.mp at step1
+        apply step1 at M
+        apply realize_all.mp at M
+        simp[Matrix.empty_eq,Matrix.vec_single_eq_const,Fin.snoc] at M
+        unfold Sentence.Realize Formula.Realize
+        apply realize_not.mpr
+        simp[Matrix.empty_eq,Matrix.vec_single_eq_const]
+        apply M (Term.realize (Sum.elim default ![]) (numeral n))
+
+    | succ n ih₁ =>
+
+      induction m with
+      | zero =>
+        intro h₁
+        simp only [numeral]
+        #check Theory.models_sentence_of_mem peano_axioms.first
+        have step1 : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
+          exact Theory.models_sentence_of_mem peano_axioms.first
+        apply models_sentence_iff.mpr
+        intro M
+        apply models_sentence_iff.mp at step1
+        apply step1 at M
+        apply realize_all.mp at M
+        simp[Matrix.empty_eq,Matrix.vec_single_eq_const,Fin.snoc] at M
+        unfold Sentence.Realize Formula.Realize
+        apply realize_not.mpr
+        simp[Matrix.empty_eq,Matrix.vec_single_eq_const]
+        intro h
+        symm at h
+        simp[M] at h
+
+      | succ n₂ ih₂ =>
+
+        sorry
 
   lemma PA.succ_ne_zero : ∀t : ℒ.Term (Empty ⊕ Fin 0), 𝐏𝐀 ⊨ᵇ ∼(S(t) =' null : ℒ.Sentence) := by
     intro t
@@ -114,95 +164,25 @@ namespace PA
       unfold pa
       apply peano_axioms.first
 
-    have pa_first_base : 𝐏𝐀 ⊨ᵇ (∼(null =' (S(null))) : ℒ.Sentence) := by
+    match t with
+    | .var (.inl v) => contradiction
+    | .var (.inr (.mk val isLt)) => contradiction
+    | .func f ts =>
       apply models_sentence_iff.mpr
       intro M
-      apply models_sentence_iff.mp at pa_first
-      have realization : ↑M ⊨ (∀'∼(null =' S((var ∘ Sum.inr) 0)) : ℒ.Sentence) := by
-        exact pa_first M
-      apply realize_all.mp at realization
-      simp[Matrix.empty_eq] at realization
       apply realize_not.mpr
-      simp only [realize_bdEqual]
       simp [Matrix.empty_eq]
-      have ex : ∃a : ↑M, @Structure.funMap ℒ _ _ _ Arithmetical.zero_symbol ![] = a := by
-        simp
-      have a_realization := realization ex.choose
-      simp [ex.choose_spec.symm,Fin.snoc] at a_realization
-      exact a_realization
-
-    have pa_first_is : 𝐏𝐀 ⊨ᵇ ((∀' (∼(null =' S(&0)) ⟹ (∼(null =' S(S(&0)))))) : ℒ.Sentence) := by
-      apply models_sentence_iff.mpr
-      intro M
-      apply realize_all.mpr
-      intro a
-      apply realize_imp.mpr
-      intro h₁
-      apply realize_not.mpr
-      simp [(realize_bdEqual _ _),Matrix.empty_eq]
       apply models_sentence_iff.mp at pa_first
       have realization := pa_first M
       apply realize_all.mp at realization
-      have ex : ∃b : ↑M, b = @Structure.funMap ℒ _ _ _ Arithmetical.succ_symbol ![a] := by
+      simp [Matrix.empty_eq,Fin.snoc] at M
+      have ex : ∃a : ↑M, (Structure.funMap f fun i ↦ Term.realize (Sum.elim default ![]) (ts i)) = a := by
         simp
-      have b_realization := realization ex.choose
-      simp[Matrix.empty_eq,Fin.snoc,Matrix.vec_single_eq_const] at b_realization
-      simp [Fin.snoc]
-      exact b_realization
-
-    let ψ : ℒ.Formula (Fin 1) := (∼(null =' S(#0)))
-    have ind : 𝐏𝐀 ⊨ᵇ ind ψ := by
-      apply models_sentence_of_mem
-      apply peano_axioms.induction ψ
-
-    have forall_succ_ne_zero : 𝐏𝐀 ⊨ᵇ (∀'(∼(null =' &0)) : ℒ.Sentence) := by
-      unfold Induction.ind at ind
-
-      sorry
-
-    unfold Induction.ind at ind
-
-    apply models_sentence_iff.mp at ind
-    apply models_sentence_iff.mpr
-
-    intro M
-    apply ind at M
-    apply realize_imp.mp at M
-
-
-
-    apply models_sentence_iff.mpr
-    intro M
-    apply models_sentence_iff.mp at pa_first
-    apply pa_first at M
-    apply realize_all.mp at M
-    apply realize_not.mpr
-    simp [(realize_bdEqual _ _),Term.realize_func,Matrix.empty_eq]
-    simp [realize_not,Matrix.empty_eq,Fin.snoc] at M
-
-
-
-
-
-    sorry
-
-  lemma neq_terms_neq_realize : ∀n m : Nat, @numeral Empty ℒ _ n ≠ numeral m → 𝐏𝐀 ⊨ᵇ (∼(@numeral (Empty ⊕ Fin 0) ℒ _ n =' numeral m)) := by
-    intro n m h₁
-    have first_ax : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
-      apply models_sentence_of_mem
-      unfold pa
-      apply Or.intro_left
-      apply peano_axioms.first
-
-    induction n with
-    | zero =>
-      cases m with
-      | zero =>
-        contradiction
-      | succ p =>
-
-        sorry
-    | succ n ih => sorry
+      have a_realization := realization ex.choose
+      simp [Matrix.empty_eq,Fin.snoc] at a_realization
+      intro h₂
+      apply a_realization
+      exact h₂.symm
 
 end PA
 
