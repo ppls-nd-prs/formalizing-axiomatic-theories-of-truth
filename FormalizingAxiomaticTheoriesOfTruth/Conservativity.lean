@@ -191,7 +191,22 @@ end Conservativity
   @[simp]
   def bdEqual_iff {t₁ t₂ : L.Term (α ⊕ Fin n)} : t₁ =' t₂ = .equal t₁ t₂ := Eq.refl (t₁ =' t₂)
 
-  def Conservative {α : Type} (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
-    ∀φ : ℒ.Formula α, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
+  def Conservative (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
+    ∀φ : ℒ.Formula Nat, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
+
+  theorem conservativity_tb_pa {p₁ : @ProofSystem Nat ℒ}{p₂ : @ProofSystem Nat ℒₜ}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
+    intro φ h₁
+    apply complete₂ at h₁
+    apply Classical.choice at h₁
+    match h₁ with
+    | .ax φ₁ h₂ =>
+      cases h₂ with
+      | inl h₃ =>
+        -- have step1 : φ₁ ∈ p₂.la → φ₁ ∈ p₁.la := by
+
+        -- sorry
+        sorry
+      | inr h₃ => sorry
+    | _ => sorry
 
 end Conservativity
