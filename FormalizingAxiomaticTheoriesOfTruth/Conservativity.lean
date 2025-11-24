@@ -83,53 +83,6 @@ end Conservativity
   open L_T ProofSystem
   variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[Encodable ℒ.Sentence]{s : @ProofSystem α ℒₜ}
 
-  lemma all_disq_phis_tau_makes_true_mpr : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, {} ⊨ᵇ φ → (@Theory.ModelsBoundedFormula _ {} (Empty) _ ((tau p).subst ![⌜φ⌝])) := by
-    intro ψ p φ h₁
-    intro h₂ M v xs
-    apply realize_subst.mpr; apply realize_iSup.mpr
-    have ext : ∃ n, (get_disq_φs p).get n = φ := by
-      apply List.mem_iff_get.mp h₁
-    let n : Fin (get_disq_φs p).length := ext.choose
-    let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
-      rw[List.length_map]
-      exact n
-    apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
-
-    have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
-      simp[m,Fin.cast_eq_cast']
-    simp only [m_val_eq_n_val]
-    have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
-      apply ext.choose_spec
-    rw[is_phi]; apply BoundedFormula.realize_inf.mpr; apply And.intro
-    -- left
-    apply (BoundedFormula.realize_bdEqual _ _).mpr; simp
-    rw[num_all_v ((Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs)) v]
-    --right
-    simp; exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
-
-  def funInterpret : ℒ.Functions n → (Fin n → Nat) → Nat
-  | .zero_symbol, _ => 0
-  | .succ_symbol, ts => (ts 0).succ
-  | .add_symbol, ts => (ts 0) + (ts 1)
-  | .mult_symbol, ts => (ts 0) * (ts 1)
-
-  def RelInterpret : ℒ.Relations n → (Fin n → Nat) → Prop := by
-  intro a
-  cases a
-
-  instance interpret : ℒ.Structure Nat where
-  funMap := funInterpret
-  RelMap := RelInterpret
-
-  def nat_modeltype : (∅: ℒ.Theory).ModelType where
-  Carrier := Nat
-
-  def term_encoding_inj {φ ψ : ℒ.Sentence} : ⌜φ⌝ = (⌜ψ⌝ : ℒ.Term Empty) → φ = ψ := by
-    intro h
-    apply Encodable.encode_injective
-    apply num_inj
-    exact h
-
   variable {M β γ δ: Type}{n : Nat}[ℒ.Structure M]{t : β → ↑M}{v : (β ⊕ δ) → ↑M}[Encodable (ℒ.BoundedFormula γ n)]
 
   lemma lem1 : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
@@ -147,93 +100,6 @@ end Conservativity
       simp[Matrix.empty_eq]
     | succ n ih =>
       simp[ih]
-
-  lemma all_disq_phis_tau_makes_true : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ 𝐏𝐀 (Empty) _ ((tau p).subst ![⌜φ⌝])) ↔ 𝐏𝐀 ⊨ᵇ φ := by
-    intro ψ p φ h₁
-    apply Iff.intro
-    -- mp
-    intro h₂
-    apply Theory.models_sentence_iff.mp at h₂
-    apply Theory.models_sentence_iff.mpr
-    intro M
-    have realizable : ↑M ⊨ subst (tau p) ![⌜φ⌝] := by
-      exact h₂ M
-    unfold Sentence.Realize Formula.Realize at realizable
-    apply realize_subst.mp at realizable
-    apply realize_iSup.mp at realizable
-    have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
-      apply List.mem_iff_get.mp
-      exact h₁
-    let realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
-      exact realizable.choose_spec
-
-    rw[List.get_eq_getElem] at realization
-    rw[List.getElem_map] at realization
-
-    if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
-      rw[h₄] at realization
-      simp at realization
-      apply And.right at realization
-      unfold Sentence.Realize Formula.Realize
-      rw[Unique.default_eq]
-      rw[Unique.default_eq]
-      exact realization
-
-    else
-      simp only [make_tau_equivs,realize_inf] at realization
-      apply And.left at realization
-
-      simp at realization
-
-      -- iets met injectief (bewezen in syntax voor ℒ)
-      -- de sleutel is dat de realization moet kloppen in elke M,
-      -- dus ook in die waar het de interpretatie van getallen krijgt
-      -- we moeten bewijzen dat Nat een ∅.ModelType is
-
-      have not_eq : ¬⌜(get_disq_φs p)[↑realizable.choose]⌝ = (⌜φ⌝ : ℒ.Term Empty) := by
-        intro h
-        apply term_encoding_inj at h
-        contradiction
-
-      simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
-
-      have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒ.Sentence) := by
-        apply PA.all_fs
-        exact h₄
-
-      apply realize_not.mp at step1
-      simp[realize_bdEqual _ _] at step1
-      -- we hebben hier peano_arithmetic regels nodig
-      rw[lem1] at realization
-      simp[lem2] at realization
-      rw[lem1] at step1
-      simp[lem2] at step1
-      symm at realization
-      apply step1 at realization
-      contradiction
-
-    --mpr
-    intro h₂ M v xs
-    apply realize_subst.mpr; apply realize_iSup.mpr
-    have ext : ∃ n, (get_disq_φs p).get n = φ := by
-      apply List.mem_iff_get.mp h₁
-    let n : Fin (get_disq_φs p).length := ext.choose
-    let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
-      rw[List.length_map]
-      exact n
-    apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
-
-    have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
-      simp[m,Fin.cast_eq_cast']
-    simp only [m_val_eq_n_val]
-    have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
-      apply ext.choose_spec
-    rw[is_phi]; apply BoundedFormula.realize_inf.mpr; apply And.intro
-    -- left
-    apply (BoundedFormula.realize_bdEqual _ _).mpr; simp
-    rw[num_all_v ((Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs)) v]
-    --right
-    simp; exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
 
   lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
     intro ψ p φ h₁
@@ -275,11 +141,6 @@ end Conservativity
       -- de sleutel is dat de realization moet kloppen in elke M,
       -- dus ook in die waar het de interpretatie van getallen krijgt
       -- we moeten bewijzen dat Nat een ∅.ModelType is
-
-      have not_eq : ¬⌜(get_disq_φs p)[↑realizable.choose]⌝ = (⌜φ⌝ : ℒ.Term Empty) := by
-        intro h
-        apply term_encoding_inj at h
-        contradiction
 
       simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
 
@@ -325,70 +186,6 @@ end Conservativity
     simp
     rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
     exact h₂
-
-  lemma tau_equiv_provable_pa : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝]) ⟹ φ := by
-    intro ψ p φ h₁
-    apply Theory.models_sentence_iff.mpr
-    intro M
-    apply realize_imp.mpr
-    intro tau_realizable
-    apply realize_subst.mp at tau_realizable
-    apply realize_iSup.mp at tau_realizable
-    let b : Fin (List.map make_tau_equivs (get_disq_φs p)).length :=
-      tau_realizable.choose
-    have tau_realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get b) (fun a ↦ @Term.realize ℒ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
-      exact Exists.choose_spec tau_realizable
-
-    rw[List.get_eq_getElem] at tau_realization
-    rw[List.getElem_map] at tau_realization
-
-    by_cases h₄ : (get_disq_φs p)[Fin.val b] = φ
-    -- pos
-    rw[h₄] at tau_realization
-    simp at tau_realization
-    rw[Unique.default_eq]; rw[Unique.default_eq]
-    exact tau_realization.right
-    -- neg
-    simp at tau_realization
-    apply And.left at tau_realization
-    have not_eq : ¬⌜(get_disq_φs p)[↑b]⌝ = (⌜φ⌝ : ℒ.Term Empty) := by
-      intro h
-      apply term_encoding_inj at h
-      contradiction
-    have first_ax : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
-      apply Theory.models_sentence_of_mem
-      unfold PA.pa
-      -- apply Or.intro_left
-      apply PA.peano_axioms.first
-
-    #check first_ax M default default
-    /- Het moet nog worden bewezen dat het te bewijzen is in 𝐏𝐀
-    dat voor twee termen t₁ en t₂ die enkel uit zero_symbol en
-    succ_symbol bestaan en niet gelijk zijn aan elkaar
-    hun interpretaties ook niet gelijk zijn aan elkaar.
-    Dit lijkt vanzelfsprekend maar is dat niet, want er zijn ook
-    termen die geïnterpreteerd mogen worden als hetzelfde ookal
-    zijn de termen anders, bijvoorbeeld 3 * 3 en 9 + 0. 𝐏𝐀 dwingt
-    echter af dat alle interpretaties van numeralen die ongelijk zijn
-    ook ongelijk zijn.
-    -/
-
-    sorry
-
-  lemma tau_equiv_provable_pa_2 : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝]) ⟹ φ := by
-    intro ψ p φ h₁
-    #check (all_disq_phis_tau_makes_true ψ p φ h₁).mpr
-    apply Theory.models_sentence_iff.mpr
-    intro M
-    apply realize_imp.mpr
-    intro h₂
-
-    -- apply (all_disq_phis_tau_makes_true ψ p φ h₁).mp at h₂
-    -- apply Theory.models_sentence_iff.mpr
-    -- intro M₂
-
-
-    sorry
 
   variable {L : Language}
   @[simp]
