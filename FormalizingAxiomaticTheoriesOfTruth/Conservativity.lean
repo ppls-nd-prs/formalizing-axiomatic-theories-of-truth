@@ -81,9 +81,9 @@ end Conservativity
 
   namespace Conservativity
   open L_T ProofSystem
-  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}[Inhabited α]{n : Nat}[Encodable ℒ.Sentence][Encodable (ℒ.Formula (Fin 1))][Encodable (ℒₜ.Formula (Fin 1))][BEq (ℒₜ.BoundedFormula (Fin 1) 0)]{s : @ProofSystem α ℒₜ}
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[Encodable ℒ.Sentence]{s : @ProofSystem α ℒₜ}
 
-  lemma all_disq_phis_tau_makes_true_mpr {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, {} ⊨ᵇ φ → (@Theory.ModelsBoundedFormula _ {} (Empty) _ ((tau p).subst ![⌜φ⌝])) := by
+  lemma all_disq_phis_tau_makes_true_mpr : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, {} ⊨ᵇ φ → (@Theory.ModelsBoundedFormula _ {} (Empty) _ ((tau p).subst ![⌜φ⌝])) := by
     intro ψ p φ h₁
     intro h₂ M v xs
     apply realize_subst.mpr; apply realize_iSup.mpr
@@ -130,9 +130,9 @@ end Conservativity
     apply num_inj
     exact h
 
-  variable {M β γ δ: Type}{n : Nat}[ℒ.Structure M]{t : β → ↑M}{v : γ → ↑M}[Inhabited (γ → ↑M)][Encodable (ℒ.BoundedFormula γ n)]
+  variable {M β γ δ: Type}{n : Nat}[ℒ.Structure M]{t : β → ↑M}{v : (β ⊕ δ) → ↑M}[Encodable (ℒ.BoundedFormula γ n)]
 
-  lemma lem1 {v : (β ⊕ δ) → ↑M} : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
+  lemma lem1 : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
     intro φ
     induction (Encodable.encode φ) with
     | zero =>
@@ -140,30 +140,13 @@ end Conservativity
     | succ n ih =>
       simp[ih]
 
-  lemma lem2 : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
+  lemma lem2 {v : γ → ↑M} : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
     intro φ
     induction (Encodable.encode φ) with
     | zero =>
       simp[Matrix.empty_eq]
     | succ n ih =>
       simp[ih]
-
-  lemma term_realize_inj : ∀a₁ a₂ : ℒ.Sentence, (⌜a₁⌝ : ℒ.Term α) ≠ ⌜a₂⌝ → Term.realize v (⌜a₁⌝ : ℒ.Term _) ≠ (Term.realize t (⌜a₂⌝ : ℒ.Term _)) := by
-    intro a₁ a₂
-    induction (Encodable.encode a₁) with
-    | zero =>
-      simp[Matrix.vec_single_eq_const,Matrix.empty_eq]
-
-
-
-      sorry
-    | succ n ih => sorry
-
-
-  lemma all_n_must_eq {m} : (𝐏𝐀 ⊨ᵇ ((numeral n =' numeral m) : ℒ.Sentence)) → n = m := by
-    intro h₁
-
-    sorry
 
   lemma all_disq_phis_tau_makes_true : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ 𝐏𝐀 (Empty) _ ((tau p).subst ![⌜φ⌝])) ↔ 𝐏𝐀 ⊨ᵇ φ := by
     intro ψ p φ h₁
@@ -253,7 +236,7 @@ end Conservativity
     simp; exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
 
 
-  lemma tau_equiv_provable_pa {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝]) ⟹ φ := by
+  lemma tau_equiv_provable_pa : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝]) ⟹ φ := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
     intro M
