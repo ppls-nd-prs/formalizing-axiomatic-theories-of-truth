@@ -46,9 +46,9 @@ namespace Conservativity
   instance : Coe (ℒ.Sentence) (ℒ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
-  variable {Th : ℒₜ.Theory}{s : @ProofSystem α ℒₜ}[Encodable ℒ.Sentence]
+  variable {Th : ℒₜ.Theory}{s : @ProofSystem ℒₜ α 0}[Encodable ℒ.Sentence]
   @[simp]
-  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ Th s φ) → List (ℒ.Sentence)
+  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ 0 (to_alpha '' Th) s φ) → List (ℒ.Sentence)
   | .ax φ h₁ => if th : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha
     then
     [th.choose]
@@ -63,7 +63,7 @@ namespace Conservativity
 
   open Proof
   @[simp]
-  noncomputable def tau {φ : ℒₜ.Formula α} : Proof Th s φ → ℒ.Formula (Fin 1) :=
+  noncomputable def tau {φ : ℒₜ.Formula α} : Proof (to_alpha '' Th) s φ → ℒ.Formula (Fin 1) :=
     fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
 
 end Conservativity
@@ -81,7 +81,7 @@ end Conservativity
 
   namespace Conservativity
   open L_T ProofSystem
-  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[Encodable ℒ.Sentence]{s : @ProofSystem α ℒₜ}
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[Encodable ℒ.Sentence]{s : @ProofSystem ℒₜ α 0}
 
   variable {M β γ δ: Type}{n : Nat}[ℒ.Structure M]{t : β → ↑M}{v : (β ⊕ δ) → ↑M}[Encodable (ℒ.BoundedFormula γ n)]
 
@@ -101,7 +101,7 @@ end Conservativity
     | succ n ih =>
       simp[ih]
 
-  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
+  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof (to_alpha '' Th) s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
     intro M
@@ -194,7 +194,7 @@ end Conservativity
   def Conservative (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
     ∀φ : ℒ.Formula Nat, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
 
-  theorem conservativity_tb_pa {p₁ : @ProofSystem Nat ℒ}{p₂ : @ProofSystem Nat ℒₜ}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
+  theorem conservativity_tb_pa {p₁ : @ProofSystem ℒ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
     intro φ h₁
     apply complete₂ at h₁
     apply Classical.choice at h₁
