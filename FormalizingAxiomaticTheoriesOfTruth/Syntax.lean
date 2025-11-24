@@ -167,6 +167,7 @@ namespace Languages
       | succ n ih =>
         simp[ih]
 
+    @[simp]
     lemma num_inj {α} : Function.Injective (@numeral α ℒ _) := by
       unfold Function.Injective
       intro a₁ a₂ h

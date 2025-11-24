@@ -5,7 +5,10 @@ import Mathlib.ModelTheory.Semantics
 open FirstOrder
 open Language
 
-variable {L : Language}[∀α n, Encodable (L.Term (α ⊕ Fin n))][∀α n, Encodable (L.BoundedFormula α n)]
+variable {L : Language}[∀α n, Encodable (L.Term (α ⊕ Fin n))][∀α n, Encodable (L.BoundedFormula α n)][Arithmetical L]
+def term_encoding_1 {α n} : L.BoundedFormula α n → (L.Term (Empty ⊕ Fin 0)) := numeral ∘ Encodable.encode
+def term_encoding_2 {α n} : L.Term (α ⊕ Fin n) → (L.Term (Empty ⊕ Fin 0)) := numeral ∘ Encodable.encode
+
 notation "⌜"t"⌝" => numeral (Encodable.encode t)
 
 namespace SyntaxAxioms
@@ -185,9 +188,22 @@ namespace PA
       contradiction
 
   variable [Encodable ℒ.Sentence]
-  lemma all_fs : ∀φ₁ φ₂ : ℒ.Sentence, φ₁ ≠ φ₂ → 𝐏𝐀 ⊨ᵇ (∼(⌜φ₁⌝ =' ⌜φ₂⌝): ℒ.Sentence) := by
 
-    sorry
+  lemma all_fs : ∀φ₁ φ₂ : ℒ.Sentence, φ₁ ≠ φ₂ → 𝐏𝐀 ⊨ᵇ (∼(⌜φ₁⌝ =' ⌜φ₂⌝): ℒ.Sentence) := by
+    intro φ₁ φ₂ h₁
+    apply models_sentence_iff.mpr
+    intro M
+    apply realize_not.mpr
+    intro h₂
+    apply (realize_bdEqual _ _).mp at h₂
+
+    have step1 : ↑M ⊨ (∼((numeral (Encodable.encode φ₁)) =' (numeral (Encodable.encode φ₂))): ℒ.Sentence) := by
+      apply all_nums (Encodable.encode φ₁) (Encodable.encode φ₂)
+      simp[h₁,Encodable.encode_inj]
+
+    apply realize_not.mp at step1
+    simp[realize_bdEqual _ _] at step1
+    contradiction
 
   lemma PA.succ_ne_zero : ∀{t : ℒ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ ∼(S(t) =' null : ℒ.Sentence) := by
     intro t

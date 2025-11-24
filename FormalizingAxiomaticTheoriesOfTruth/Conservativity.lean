@@ -130,8 +130,17 @@ end Conservativity
     apply num_inj
     exact h
 
-  variable {M β γ: Type}{n : Nat}[ℒ.Structure M]{t : β → ↑M}{v : γ → ↑M}[Inhabited (γ → ↑M)][Encodable (ℒ.BoundedFormula γ n)]
-  lemma lem1 : ∀φ: ℒ.Sentence, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : γ → ↑M) (⌜φ⌝ : ℒ.Term _) := by
+  variable {M β γ δ: Type}{n : Nat}[ℒ.Structure M]{t : β → ↑M}{v : γ → ↑M}[Inhabited (γ → ↑M)][Encodable (ℒ.BoundedFormula γ n)]
+
+  lemma lem1 {v : (β ⊕ δ) → ↑M} : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
+    intro φ
+    induction (Encodable.encode φ) with
+    | zero =>
+      simp[Matrix.empty_eq]
+    | succ n ih =>
+      simp[ih]
+
+  lemma lem2 : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
     intro φ
     induction (Encodable.encode φ) with
     | zero =>
@@ -156,8 +165,7 @@ end Conservativity
 
     sorry
 
-
-  lemma all_disq_phis_tau_makes_true {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ 𝐏𝐀 (Empty) _ ((tau p).subst ![⌜φ⌝])) ↔ 𝐏𝐀 ⊨ᵇ φ := by
+  lemma all_disq_phis_tau_makes_true : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (@Theory.ModelsBoundedFormula _ 𝐏𝐀 (Empty) _ ((tau p).subst ![⌜φ⌝])) ↔ 𝐏𝐀 ⊨ᵇ φ := by
     intro ψ p φ h₁
     apply Iff.intro
     -- mp
@@ -191,7 +199,9 @@ end Conservativity
     else
       simp only [make_tau_equivs,realize_inf] at realization
       apply And.left at realization
+
       simp at realization
+
       -- iets met injectief (bewezen in syntax voor ℒ)
       -- de sleutel is dat de realization moet kloppen in elke M,
       -- dus ook in die waar het de interpretatie van getallen krijgt
@@ -202,59 +212,22 @@ end Conservativity
         apply term_encoding_inj at h
         contradiction
 
+      simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
 
+      have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒ.Sentence) := by
+        apply PA.all_fs
+        exact h₄
+
+      apply realize_not.mp at step1
+      simp[realize_bdEqual _ _] at step1
       -- we hebben hier peano_arithmetic regels nodig
-
-
-      sorry
-
-
-
-
-
-
-
-
-    -- rw[h₄] at realization
-    -- simp at realization
-    -- apply And.right at realization
-
-    -- sorry
-    -- else
-    -- sorry
-
-
-
-
-
-
-
-    -- have realizable : (subst (tau p) ![⌜φ⌝]).Realize v xs := by
-    --   exact h₂ M v xs
-
-    -- -- simp only [realize_subst] at realizable
-    -- -- unfold tau at realizable
-    -- -- unfold make_tau_equivs at realizable
-    -- induction p with
-    -- | ax ψ h₃ =>
-    --   if h₄ : ψ = (TB.tarski_biconditional φ).to_alpha then
-    --   have exs : ∃ψ_1, ψ = (TB.tarski_biconditional ψ_1).to_alpha := by
-    --     apply Exists.intro φ
-    --     exact h₄
-    --   have exs_true : ∃ψ_1, ψ = (TB.tarski_biconditional ψ_1).to_alpha = True := by
-    --     simp[exs]
-    --   simp at realizable
-
-
-    --   sorry
-    --   else
-    --   sorry
-    -- | un p r h₃ ih => sorry
-    -- | bi p₁ p₂ h₃ h₄ ih₁ ih₂ => sorry
-
-
-
-
+      rw[lem1] at realization
+      simp[lem2] at realization
+      rw[lem1] at step1
+      simp[lem2] at step1
+      symm at realization
+      apply step1 at realization
+      contradiction
 
     --mpr
     intro h₂ M v xs
@@ -278,6 +251,7 @@ end Conservativity
     rw[num_all_v ((Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs)) v]
     --right
     simp; exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
+
 
   lemma tau_equiv_provable_pa {complete : s.Complete}{sound : s.Sound} : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝]) ⟹ φ := by
     intro ψ p φ h₁
