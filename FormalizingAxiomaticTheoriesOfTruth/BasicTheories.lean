@@ -104,60 +104,92 @@ namespace PA
 
   notation "𝐏𝐀" => pa
 
-  open Theory
+  open Theory BoundedFormula
+
+  lemma eq_symm : ∀{t₁ t₂ : ℒ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ (t₁ =' t₂) ↔ 𝐏𝐀 ⊨ᵇ (t₂ =' t₁) := by
+    intro t₁ t₂
+    apply Iff.intro
+    --mp
+    simp[models_sentence_iff]
+    intro h₁
+    intro M
+    apply (realize_bdEqual _ _).mpr
+    symm
+    apply h₁ at M
+    exact (realize_bdEqual _ _).mp M
+    --mpr
+    simp[models_sentence_iff]
+    intro h₁
+    intro M
+    apply (realize_bdEqual _ _).mpr
+    symm
+    apply h₁ at M
+    exact (realize_bdEqual _ _).mp M
 
   lemma all_nums : ∀n m : Nat, n ≠ m → 𝐏𝐀 ⊨ᵇ (∼(numeral (n) =' (numeral m)) : ℒ.Sentence) := by
-    intro n m
-    induction n with
-    | zero =>
-      induction m with
-      | zero =>
-        intro h₁
-        simp at h₁
-      | succ n ih =>
-        intro h₁
-        simp only [numeral]
-        #check Theory.models_sentence_of_mem peano_axioms.first
-        have step1 : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
-          exact Theory.models_sentence_of_mem peano_axioms.first
-        apply models_sentence_iff.mpr
-        intro M
-        apply models_sentence_iff.mp at step1
-        apply step1 at M
-        apply realize_all.mp at M
-        simp[Matrix.empty_eq,Matrix.vec_single_eq_const,Fin.snoc] at M
-        unfold Sentence.Realize Formula.Realize
-        apply realize_not.mpr
-        simp[Matrix.empty_eq,Matrix.vec_single_eq_const]
-        apply M (Term.realize (Sum.elim default ![]) (numeral n))
+    intro n m h₁
+    match n, m with
+    | .zero, .zero =>
+      simp at h₁
+    | .zero, .succ n₁ =>
+      apply models_sentence_iff.mpr
+      intro M
+      apply realize_not.mpr
+      simp
 
-    | succ n ih₁ =>
+      have first : ↑M ⊨ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
+        apply models_sentence_of_mem peano_axioms.first
 
-      induction m with
-      | zero =>
-        intro h₁
-        simp only [numeral]
-        #check Theory.models_sentence_of_mem peano_axioms.first
-        have step1 : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
-          exact Theory.models_sentence_of_mem peano_axioms.first
-        apply models_sentence_iff.mpr
-        intro M
-        apply models_sentence_iff.mp at step1
-        apply step1 at M
-        apply realize_all.mp at M
-        simp[Matrix.empty_eq,Matrix.vec_single_eq_const,Fin.snoc] at M
-        unfold Sentence.Realize Formula.Realize
-        apply realize_not.mpr
-        simp[Matrix.empty_eq,Matrix.vec_single_eq_const]
-        intro h
-        symm at h
-        simp[M] at h
+      apply realize_all.mp at first
+      have step := first (Term.realize (Sum.elim default default : (Empty ⊕ Fin 0 → ↑M)) (numeral n₁ : ℒ.Term (Empty ⊕ Fin 0)))
+      simp[Fin.snoc,Matrix.empty_eq] at step
+      simp[Matrix.empty_eq]
+      exact step
 
-      | succ n₂ ih₂ =>
+    | .succ n₁, .zero =>
+      apply models_sentence_iff.mpr
+      intro M
+      apply realize_not.mpr
+      simp
 
-        sorry
+      have first : ↑M ⊨ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
+        apply models_sentence_of_mem peano_axioms.first
 
-  lemma PA.succ_ne_zero : ∀t : ℒ.Term (Empty ⊕ Fin 0), 𝐏𝐀 ⊨ᵇ ∼(S(t) =' null : ℒ.Sentence) := by
+      apply realize_all.mp at first
+      have step := first (Term.realize (Sum.elim default default : (Empty ⊕ Fin 0 → ↑M)) (numeral n₁ : ℒ.Term (Empty ⊕ Fin 0)))
+      simp[Fin.snoc,Matrix.empty_eq] at step
+      simp[Matrix.empty_eq]
+      intro h₂
+      exact step h₂.symm
+
+    | .succ n₁, .succ n₂ =>
+      have step1 : n₁ ≠ n₂ := by
+        revert h₁
+        simp
+      apply models_sentence_iff.mpr
+      intro M
+      have second : ↑M ⊨ ((∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0))): ℒ.Sentence) := by apply models_sentence_of_mem peano_axioms.second
+      apply realize_not.mpr
+      simp[(realize_bdEqual _ _),Matrix.empty_eq]
+      have step2 : ↑M ⊨ (∼(numeral n₁ =' numeral n₂) : ℒ.Sentence) := by
+        apply all_nums n₁ n₂ step1
+      apply realize_all.mp at second
+      have second_a₁ := second (Term.realize (Sum.elim default ![]) (numeral n₂ : ℒ.Term (Empty ⊕ Fin 0)))
+      apply realize_all.mp at second_a₁
+      have second_a₁a₂ := second_a₁ (Term.realize (Sum.elim default ![]) (numeral n₁ : ℒ.Term (Empty ⊕ Fin 0)))
+      simp[Fin.snoc] at second_a₁a₂
+      intro h₂
+      apply second_a₁a₂ at h₂
+      apply realize_not.mp at step2
+      simp[realize_bdEqual _ _,Matrix.empty_eq] at step2
+      contradiction
+
+  variable [Encodable ℒ.Sentence]
+  lemma all_fs : ∀φ₁ φ₂ : ℒ.Sentence, φ₁ ≠ φ₂ → 𝐏𝐀 ⊨ᵇ (∼(⌜φ₁⌝ =' ⌜φ₂⌝): ℒ.Sentence) := by
+
+    sorry
+
+  lemma PA.succ_ne_zero : ∀{t : ℒ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ ∼(S(t) =' null : ℒ.Sentence) := by
     intro t
     have pa_first : 𝐏𝐀 ⊨ᵇ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
       apply models_sentence_of_mem
@@ -184,6 +216,11 @@ namespace PA
       apply a_realization
       exact h₂.symm
 
+  lemma merp : ∀{t : ℒ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ ∼(null =' S(t) : ℒ.Sentence) := by
+    intro t
+    apply PA.succ_ne_zero at t
+    #check (eq_symm).mp
+    sorry
 end PA
 
 namespace PAT

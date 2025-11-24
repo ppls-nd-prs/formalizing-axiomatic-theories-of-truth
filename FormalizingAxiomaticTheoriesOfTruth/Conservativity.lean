@@ -202,6 +202,7 @@ end Conservativity
         apply term_encoding_inj at h
         contradiction
 
+
       -- we hebben hier peano_arithmetic regels nodig
 
 
