@@ -235,6 +235,96 @@ end Conservativity
     --right
     simp; exact h₂ _ (Sum.elim (fun a ↦ Term.realize v ⌜φ⌝) xs ∘ fun x ↦ Sum.inl 0) _
 
+  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
+    intro ψ p φ h₁
+    apply Theory.models_sentence_iff.mpr
+    intro M
+    apply realize_iff.mpr
+    apply Iff.intro
+    -- mp
+    intro h₂
+    have realizable : ↑M ⊨ subst (tau p) ![⌜φ⌝] := by
+      exact h₂
+    unfold Sentence.Realize Formula.Realize at realizable
+    apply realize_subst.mp at realizable
+    apply realize_iSup.mp at realizable
+    have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
+      apply List.mem_iff_get.mp
+      exact h₁
+    let realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
+      exact realizable.choose_spec
+
+    rw[List.get_eq_getElem] at realization
+    rw[List.getElem_map] at realization
+
+    if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
+      rw[h₄] at realization
+      simp at realization
+      apply And.right at realization
+      rw[Unique.default_eq]
+      rw[Unique.default_eq]
+      exact realization
+
+    else
+      simp only [make_tau_equivs,realize_inf] at realization
+      apply And.left at realization
+
+      simp at realization
+
+      -- iets met injectief (bewezen in syntax voor ℒ)
+      -- de sleutel is dat de realization moet kloppen in elke M,
+      -- dus ook in die waar het de interpretatie van getallen krijgt
+      -- we moeten bewijzen dat Nat een ∅.ModelType is
+
+      have not_eq : ¬⌜(get_disq_φs p)[↑realizable.choose]⌝ = (⌜φ⌝ : ℒ.Term Empty) := by
+        intro h
+        apply term_encoding_inj at h
+        contradiction
+
+      simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
+
+      have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒ.Sentence) := by
+        apply PA.all_fs
+        exact h₄
+
+      apply realize_not.mp at step1
+      simp[realize_bdEqual _ _] at step1
+      -- we hebben hier peano_arithmetic regels nodig
+      rw[lem1] at realization
+      simp[lem2] at realization
+      rw[lem1] at step1
+      simp[lem2] at step1
+      symm at realization
+      apply step1 at realization
+      contradiction
+
+    --mpr
+    intro h₂
+    apply realize_subst.mpr; apply realize_iSup.mpr
+    have ext : ∃ n, (get_disq_φs p).get n = φ := by
+      apply List.mem_iff_get.mp h₁
+
+    let n : Fin (get_disq_φs p).length := ext.choose
+    let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
+      rw[List.length_map]
+      exact n
+
+    apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
+
+    have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
+      simp[m,Fin.cast_eq_cast']
+    simp only [m_val_eq_n_val]
+    have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
+      apply ext.choose_spec
+    rw[is_phi]; apply BoundedFormula.realize_inf.mpr; apply And.intro
+
+    -- left
+    apply (realize_bdEqual _ _).mpr; simp
+    rw[num_all_v ((Sum.elim (fun a ↦ Term.realize _ ⌜φ⌝) _)) _]
+    --right
+    simp
+    rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
+    exact h₂
 
   lemma tau_equiv_provable_pa : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝]) ⟹ φ := by
     intro ψ p φ h₁
@@ -282,6 +372,21 @@ end Conservativity
     echter af dat alle interpretaties van numeralen die ongelijk zijn
     ook ongelijk zijn.
     -/
+
+    sorry
+
+  lemma tau_equiv_provable_pa_2 : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝]) ⟹ φ := by
+    intro ψ p φ h₁
+    #check (all_disq_phis_tau_makes_true ψ p φ h₁).mpr
+    apply Theory.models_sentence_iff.mpr
+    intro M
+    apply realize_imp.mpr
+    intro h₂
+
+    -- apply (all_disq_phis_tau_makes_true ψ p φ h₁).mp at h₂
+    -- apply Theory.models_sentence_iff.mpr
+    -- intro M₂
+
 
     sorry
 
