@@ -137,6 +137,44 @@ lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem L α 0, s.So
   -- right
   apply h₁.choose_spec.right.choose_spec.right.choose_spec.right
 
+lemma complete_system_taut_ax : ∀s : @ProofSystem L α 0, s.Complete ∧ s.Sound → (∀φ, {} ⊨ᵇ φ → φ ∈ s.la) := by
+  intro s h₁ φ
+  unfold Complete at h₁
+  have step1 : ∅ ⊨ᵇ φ → (to_alpha '' ∅) ⊢(s) φ := by
+    exact h₁.left φ ∅
+  intro h₂
+  have proof : Proof (to_alpha '' ∅) s φ := by
+    apply step1 at h₂
+    exact Classical.choice h₂
+  induction proof with
+  | ax φ₁ h₃ =>
+    cases h₃ with
+    | inl h₃ =>
+      exact h₃
+    | inr h₃ =>
+      simp at h₃
+  | @un ψ φ r p h₃ h₄ p_ih =>
+    have step2 := sound_system_sound_un ∅ _ h₁.right
+    have step3 := step2 r h₃ ψ φ
+    apply Nonempty.intro at p
+    apply step3 at p
+    apply p at h₄
+    apply h₁.left φ at h₄
+    apply Classical.choice at h₄
+    cases h₄ with
+    | ax φ₁ h =>
+      cases h with
+      | inl h =>
+        exact h
+      | inr h =>
+        simp at h
+    | un =>
+
+
+      sorry
+    | _ => sorry
+  | _ => sorry
+
 end ProofSystem
 
 end FirstOrder.Language

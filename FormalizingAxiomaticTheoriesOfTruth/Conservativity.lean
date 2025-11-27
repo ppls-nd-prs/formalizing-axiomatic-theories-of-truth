@@ -196,17 +196,20 @@ end Conservativity
 
   theorem conservativity_tb_pa {p₁ : @ProofSystem ℒ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
     intro φ h₁
-    apply complete₂ at h₁
-    apply Classical.choice at h₁
-    match h₁ with
-    | .ax φ₁ h₂ =>
-      cases h₂ with
-      | inl h₃ =>
-        -- have step1 : φ₁ ∈ p₂.la → φ₁ ∈ p₁.la := by
-
-        -- sorry
+    have tb_proof : Proof (to_alpha '' 𝐓𝐁) p₂ (ϕ.onFormula φ) := by
+      unfold Complete at complete₂
+      #check complete₂ φ
+      apply Classical.choice
+      apply complete₂ φ
+      exact h₁
+    let tau : ℒ.Formula (Fin 1) := tau tb_proof
+    cases tb_proof with
+    | ax f h =>
+      cases h with
+      | inl h =>
+        -- h ->(by soundness of p₂) {} ⊨ᵇ ϕ.onFormula φ ->(by completeness of p₁) {} ⊢(s₁) φ ->(by superset proves all subset) 𝐏𝐀 ⊨ᵇ φ
         sorry
-      | inr h₃ => sorry
+      | inr h => sorry
     | _ => sorry
 
 end Conservativity
