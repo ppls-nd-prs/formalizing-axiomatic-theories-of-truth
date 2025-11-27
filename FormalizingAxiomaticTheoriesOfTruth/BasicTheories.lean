@@ -105,11 +105,32 @@ namespace PA
 
   def pa : ℒ.Theory := peano_axioms
 
-  notation "𝐏𝐀" => pa
 
   open Theory BoundedFormula
+end PA
 
-  lemma eq_symm : ∀{t₁ t₂ : ℒ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ (t₁ =' t₂) ↔ 𝐏𝐀 ⊨ᵇ (t₂ =' t₁) := by
+namespace PAT
+open Languages PA L_T SyntaxTheory BoundedFormula Induction
+
+def pat : ℒₜ.Theory := peano_axioms ∪ {φ | ∃ψ, φ = ind ψ}
+notation "𝐏𝐀𝐓" => pat
+
+end PAT
+
+namespace TB
+open Languages L_T LPA PAT SyntaxTheory
+
+variable [Encodable (ℒ.Sentence)]
+def tarski_biconditional (ψ : ℒ.Sentence) : ℒₜ.Sentence := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
+def tb : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = (tarski_biconditional ψ)}
+
+def alt_PA : ℒₜ.Theory := {φ | φ ∈ tb ∧ ¬contains_T φ}
+
+notation "𝐓𝐁" => tb
+notation "𝐏𝐀" => alt_PA
+
+open Theory BoundedFormula PA
+  lemma eq_symm : ∀{t₁ t₂ : ℒₜ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ (t₁ =' t₂) ↔ 𝐏𝐀 ⊨ᵇ (t₂ =' t₁) := by
     intro t₁ t₂
     apply Iff.intro
     --mp
@@ -129,7 +150,7 @@ namespace PA
     apply h₁ at M
     exact (realize_bdEqual _ _).mp M
 
-  lemma all_nums : ∀n m : Nat, n ≠ m → 𝐏𝐀 ⊨ᵇ (∼(numeral (n) =' (numeral m)) : ℒ.Sentence) := by
+  lemma all_nums : ∀n m : Nat, n ≠ m → 𝐏𝐀 ⊨ᵇ (∼(numeral (n) =' (numeral m)) : ℒₜ.Sentence) := by
     intro n m h₁
     match n, m with
     | .zero, .zero =>
@@ -140,11 +161,23 @@ namespace PA
       apply realize_not.mpr
       simp
 
-      have first : ↑M ⊨ ((∀' ∼(null =' S(&0))) : ℒ.Sentence) := by
-        apply models_sentence_of_mem peano_axioms.first
+      unfold alt_PA at M
+      unfold TB.tb at M
+      unfold PAT.pat at M
+
+
+      have first : ↑M ⊨ ((∀' ∼(null =' S(&0))) : ℒₜ.Sentence) := by
+        apply Theory.models_sentence_of_mem
+        simp
+        apply And.intro
+        apply Or.intro_left
+        apply Or.intro_left
+        apply peano_axioms.first
+        intro h
+        simp only [Term.bdEqual,contains_T] at h
 
       apply realize_all.mp at first
-      have step := first (Term.realize (Sum.elim default default : (Empty ⊕ Fin 0 → ↑M)) (numeral n₁ : ℒ.Term (Empty ⊕ Fin 0)))
+      have step := first (Term.realize (Sum.elim default default : (Empty ⊕ Fin 0 → ↑M)) (numeral n₁ : ℒₜ.Term (Empty ⊕ Fin 0)))
       simp[Fin.snoc,Matrix.empty_eq] at step
       simp[Matrix.empty_eq]
       exact step
@@ -171,7 +204,7 @@ namespace PA
         simp
       apply models_sentence_iff.mpr
       intro M
-      have second : ↑M ⊨ ((∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0))): ℒ.Sentence) := by apply models_sentence_of_mem peano_axioms.second
+      have second : ↑M ⊨ ((∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0))): ℒₜ.Sentence) := by apply models_sentence_of_mem peano_axioms.second
       apply realize_not.mpr
       simp[(realize_bdEqual _ _),Matrix.empty_eq]
       have step2 : ↑M ⊨ (∼(numeral n₁ =' numeral n₂) : ℒ.Sentence) := by
@@ -237,23 +270,6 @@ namespace PA
     apply PA.succ_ne_zero at t
     #check (eq_symm).mp
     sorry
-end PA
 
-namespace PAT
-open Languages PA L_T SyntaxTheory BoundedFormula Induction
-
-def pat : ℒₜ.Theory := peano_axioms ∪ {φ | ∃ψ, φ = ind ψ}
-notation "𝐏𝐀𝐓" => pat
-
-end PAT
-
-namespace TB
-open Languages L_T LPA PAT SyntaxTheory
-
-variable [Encodable (ℒ.Sentence)]
-def tarski_biconditional (ψ : ℒ.Sentence) : ℒₜ.Sentence := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
-def tb : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = (tarski_biconditional ψ)}
-
-notation "𝐓𝐁" => tb
 
 end TB

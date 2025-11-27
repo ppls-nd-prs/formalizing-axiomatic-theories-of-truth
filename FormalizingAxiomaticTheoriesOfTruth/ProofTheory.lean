@@ -9,7 +9,6 @@ variable {α : Type} {L : Language} {n : Nat}
 
 open Sentence
 structure ProofSystem (L : Language) (α : Type) (n : Nat) : Type where
-  la : Set (L.BoundedFormula α n)
   unary : Set (L.BoundedFormula α n → L.BoundedFormula α n)
   binary : Set (L.BoundedFormula α n → L.BoundedFormula α n  → L.BoundedFormula α n)
 
@@ -27,7 +26,7 @@ def BoundedFormula.to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.Bound
 
 open BoundedFormula
 inductive Proof : (Th : Set (L.BoundedFormula α n)) → (s : @ProofSystem L α n) →  L.BoundedFormula α n → Type _
-| ax {Th s} (φ : L.BoundedFormula α n) (h : φ ∈ s.la ∪ Th) : Proof Th s φ
+| ax {Th s} (φ : L.BoundedFormula α n) (h : φ ∈ Th) : Proof Th s φ
 | un {Th s ψ φ} {r : L.BoundedFormula α n → L.BoundedFormula α n} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
 | bi {Th s ψ₁ ψ₂ φ} {r : L.BoundedFormula α n → L.BoundedFormula α n → L.BoundedFormula α n} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
@@ -50,24 +49,24 @@ def Complete (s : @ProofSystem L α 0) : Prop :=
 
 open Theory BoundedFormula
 
-lemma sound_system_taut_axiom : ∀s : @ProofSystem L α 0, s.Sound → (∀φ ∈ s.la, {} ⊨ᵇ φ) := by
-  intro s
-  contrapose
-  intro h₁
-  simp at h₁
-  let φ : L.Formula α := h₁.choose
-  unfold Sound
-  simp
-  apply Exists.intro φ
-  apply Exists.intro {}
-  apply And.intro
-  -- left
-  apply Nonempty.intro
-  apply Proof.ax
-  apply Or.intro_left
-  apply h₁.choose_spec.left
-  -- right
-  apply h₁.choose_spec.right
+-- lemma sound_system_taut_axiom : ∀s : @ProofSystem L α 0, s.Sound → (∀φ ∈ s.la, {} ⊨ᵇ φ) := by
+--   intro s
+--   contrapose
+--   intro h₁
+--   simp at h₁
+--   let φ : L.Formula α := h₁.choose
+--   unfold Sound
+--   simp
+--   apply Exists.intro φ
+--   apply Exists.intro {}
+--   apply And.intro
+--   -- left
+--   apply Nonempty.intro
+--   apply Proof.ax
+--   apply Or.intro_left
+--   apply h₁.choose_spec.left
+--   -- right
+--   apply h₁.choose_spec.right
 
 lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem L α 0, s.Sound → (∀r ∈ s.unary,∀φ ψ, ((to_alpha '' Th) ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
   intro Th s
@@ -137,43 +136,43 @@ lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem L α 0, s.So
   -- right
   apply h₁.choose_spec.right.choose_spec.right.choose_spec.right
 
-lemma complete_system_taut_ax : ∀s : @ProofSystem L α 0, s.Complete ∧ s.Sound → (∀φ, {} ⊨ᵇ φ → φ ∈ s.la) := by
-  intro s h₁ φ
-  unfold Complete at h₁
-  have step1 : ∅ ⊨ᵇ φ → (to_alpha '' ∅) ⊢(s) φ := by
-    exact h₁.left φ ∅
-  intro h₂
-  have proof : Proof (to_alpha '' ∅) s φ := by
-    apply step1 at h₂
-    exact Classical.choice h₂
-  induction proof with
-  | ax φ₁ h₃ =>
-    cases h₃ with
-    | inl h₃ =>
-      exact h₃
-    | inr h₃ =>
-      simp at h₃
-  | @un ψ φ r p h₃ h₄ p_ih =>
-    have step2 := sound_system_sound_un ∅ _ h₁.right
-    have step3 := step2 r h₃ ψ φ
-    apply Nonempty.intro at p
-    apply step3 at p
-    apply p at h₄
-    apply h₁.left φ at h₄
-    apply Classical.choice at h₄
-    cases h₄ with
-    | ax φ₁ h =>
-      cases h with
-      | inl h =>
-        exact h
-      | inr h =>
-        simp at h
-    | un =>
+-- lemma complete_system_taut_ax : ∀s : @ProofSystem L α 0, s.Complete ∧ s.Sound → (∀φ, {} ⊨ᵇ φ → φ ∈ s.la) := by
+--   intro s h₁ φ
+--   unfold Complete at h₁
+--   have step1 : ∅ ⊨ᵇ φ → (to_alpha '' ∅) ⊢(s) φ := by
+--     exact h₁.left φ ∅
+--   intro h₂
+--   have proof : Proof (to_alpha '' ∅) s φ := by
+--     apply step1 at h₂
+--     exact Classical.choice h₂
+--   induction proof with
+--   | ax φ₁ h₃ =>
+--     cases h₃ with
+--     | inl h₃ =>
+--       exact h₃
+--     | inr h₃ =>
+--       simp at h₃
+--   | @un ψ φ r p h₃ h₄ p_ih =>
+--     have step2 := sound_system_sound_un ∅ _ h₁.right
+--     have step3 := step2 r h₃ ψ φ
+--     apply Nonempty.intro at p
+--     apply step3 at p
+--     apply p at h₄
+--     apply h₁.left φ at h₄
+--     apply Classical.choice at h₄
+--     cases h₄ with
+--     | ax φ₁ h =>
+--       cases h with
+--       | inl h =>
+--         exact h
+--       | inr h =>
+--         simp at h
+--     | un =>
 
 
-      sorry
-    | _ => sorry
-  | _ => sorry
+--       sorry
+--     | _ => sorry
+--   | _ => sorry
 
 end ProofSystem
 

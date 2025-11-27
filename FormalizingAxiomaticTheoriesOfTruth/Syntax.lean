@@ -211,6 +211,41 @@ namespace Languages
 
     abbrev ℒₜ := signature
 
+    @[simp]
+    def contains_T {α} : {n : Nat} → ℒₜ.BoundedFormula α n → Prop
+    | _, .rel R _ =>
+      match R with
+      | .t_symbol => True
+    | _, .imp f₁ f₂ => (contains_T f₁) ∨ (contains_T f₂)
+    | _, .all f₁ => contains_T f₁
+    | _, _ => False
+
+    -- still prove DecidablePred i guess
+    -- def decidable_bf : {n : Nat} → (φ : ℒₜ.BoundedFormula Empty n) → Decidable (contains_T φ)
+    -- | _, .imp f₁ f₂ => by
+    --   simp
+    --   have dec₁ : Decidable (contains_T f₁) := decidable_bf f₁
+    --   have dec₂ : Decidable (contains_T f₂) := decidable_bf f₂
+    --   apply instDecidableOr
+    -- | _, .all f₁ => by
+    --   simp
+    --   exact decidable_bf f₁
+    -- | _, .rel R ts => by
+    --   cases R with
+    --   | t_symbol => apply Decidable.isTrue (True.intro)
+    -- | _, .falsum => by
+    --   apply Decidable.isFalse
+    --   simp
+    -- | _, .equal t₁ t₂ => by
+    --   apply Decidable.isFalse
+    --   simp
+
+
+    -- instance {m : Nat} : DecidablePred (contains_T (α := Empty) (n := m)) := by
+    --   intro a
+    --   exact decidable_bf a
+
+
     instance : Arithmetical ℒₜ where
       zero_symbol := L_T.Func.zero_symbol
       add_symbol := L_T.Func.add_symbol

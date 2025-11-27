@@ -194,6 +194,22 @@ end Conservativity
   def Conservative (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
     ∀φ : ℒ.Formula Nat, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
 
+  noncomputable def back_to_l: (φ : ℒₜ.Formula Nat) → (∃ψ: ℒ.Formula Nat, φ = (ϕ.onFormula ψ)) → ℒ.Formula Nat := by
+    intro φ h
+    exact h.choose
+
+  lemma proof_lt_to_proof_l  {p₁ : @ProofSystem ℒ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete}(φ : ℒ.Formula Nat) : ((to_alpha '' 𝐓𝐁) ⊢(p₂) (ϕ.onFormula φ)) → (to_alpha '' 𝐏𝐀) ⊢(p₁) (φ) := by
+    intro h₁
+    apply Classical.choice at h₁
+    cases h₁ with
+    | ax ψ h₂ =>
+      cases h₂ with
+      | inl h₂ =>
+
+        sorry
+      | inr h₂ => sorry
+    | _ => sorry
+
   theorem conservativity_tb_pa {p₁ : @ProofSystem ℒ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
     intro φ h₁
     have tb_proof : Proof (to_alpha '' 𝐓𝐁) p₂ (ϕ.onFormula φ) := by
@@ -203,11 +219,18 @@ end Conservativity
       apply complete₂ φ
       exact h₁
     let tau : ℒ.Formula (Fin 1) := tau tb_proof
+
     cases tb_proof with
     | ax f h =>
       cases h with
       | inl h =>
         -- h ->(by soundness of p₂) {} ⊨ᵇ ϕ.onFormula φ ->(by completeness of p₁) {} ⊢(s₁) φ ->(by superset proves all subset) 𝐏𝐀 ⊨ᵇ φ
+
+        have proof := Nonempty.intro (Proof.ax (Th := (to_alpha '' {})) (s := p₂) (ϕ.onFormula φ) (by simp[h]))
+
+        have theo := sound₂ (ϕ.onFormula φ) {} proof
+
+
         sorry
       | inr h => sorry
     | _ => sorry
