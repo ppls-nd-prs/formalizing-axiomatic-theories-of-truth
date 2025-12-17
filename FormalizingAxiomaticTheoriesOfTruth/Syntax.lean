@@ -40,22 +40,6 @@ class Arithmetical (L : Language) where
   mult_symbol : L.Functions 2
   add_symbol : L.Functions 2
 
-scoped notation "S("t")" => Term.func Arithmetical.succ_symbol ![t]
-scoped notation t₁ "add" t₂ => Term.func Arithmetical.add_symbol ![t₁, t₂]
-scoped notation t₁ "mult" t₂ => Term.func Arithmetical.mult_symbol ![t₁, t₂]
-
-variable {α : Type}{L : Language}[Arithmetical L]
-@[simp]
-def null : L.Term α :=
-  Term.func Arithmetical.zero_symbol ![]
-
-scoped notation "null" => null
-
-@[simp]
-def numeral : ℕ → L.Term α
-  | .zero => null
-  | .succ n => S(numeral n)
-
 class SyntaxTheoretical (L : Language) where
   neg_symbol : L.Functions 1
   conj_symbol : L.Functions 2
@@ -151,31 +135,6 @@ namespace Languages
     --   sentencel_symbol := LPA.Rel.sentencel_symbol
     --   formlt_symbol := LPA.Rel.formlt_symbol
     --   sentencelt_symbol := LPA.Rel.sentencelt_symbol
-
-    @[simp]
-    def num_inv {α} : ℒ.Term α → Option Nat
-    | .var _ => none
-    | .func .zero_symbol _ => some 0
-    | .func .succ_symbol ts => if h : (num_inv (ts 0)).isSome then some (((num_inv (ts 0)).get h) + 1) else none
-    | _ => none
-
-    lemma num_has_inv {α} : ∀{n}, @num_inv α (numeral n) = n := by
-      intro n
-      induction n with
-      | zero =>
-        simp
-      | succ n ih =>
-        simp[ih]
-
-    @[simp]
-    lemma num_inj {α} : Function.Injective (@numeral α ℒ _) := by
-      unfold Function.Injective
-      intro a₁ a₂ h
-      have inv_eq : @num_inv α (numeral a₁) = @num_inv α (numeral a₂) := by
-        rw[h]
-      simp[num_has_inv] at inv_eq
-      exact inv_eq
-
   end LPA
 
   namespace L_T
@@ -210,6 +169,46 @@ namespace Languages
       ⟨Func, Rel⟩
 
     abbrev ℒₜ := signature
+
+    scoped notation "S("t")" => Term.func L_T.Func.succ_symbol ![t]
+    scoped notation t₁ "add" t₂ => Term.func L_T.Func.add_symbol ![t₁, t₂]
+    scoped notation t₁ "mult" t₂ => Term.func L_T.Func.mult_symbol ![t₁, t₂]
+
+    @[simp]
+    def null : ℒₜ.Term α :=
+      Term.func L_T.Func.zero_symbol ![]
+
+    scoped notation "null" => null
+
+    @[simp]
+    def numeral : ℕ → ℒₜ.Term α
+      | .zero => null
+      | .succ n => S(numeral n)
+
+    @[simp]
+    def num_inv {α} : ℒₜ.Term α → Option Nat
+    | .var _ => none
+    | .func .zero_symbol _ => some 0
+    | .func .succ_symbol ts => if h : (num_inv (ts 0)).isSome then some (((num_inv (ts 0)).get h) + 1) else none
+    | _ => none
+
+    lemma num_has_inv {α} : ∀{n}, @num_inv α (numeral n) = n := by
+      intro n
+      induction n with
+      | zero =>
+        simp
+      | succ n ih =>
+        simp[ih]
+
+    @[simp]
+    lemma num_inj {α} : Function.Injective (@numeral α) := by
+      unfold Function.Injective
+      intro a₁ a₂ h
+      have inv_eq : @num_inv α (numeral a₁) = @num_inv α (numeral a₂) := by
+        rw[h]
+      simp[num_has_inv] at inv_eq
+      exact inv_eq
+
 
     @[simp]
     def contains_T {α} : {n : Nat} → ℒₜ.BoundedFormula α n → Prop

@@ -46,10 +46,10 @@ namespace Conservativity
   instance : Coe (ℒ.Sentence) (ℒ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
-  variable {Th : ℒₜ.Theory}{s : @ProofSystem ℒₜ α 0}[Encodable ℒ.Sentence]
+  variable {Th : ℒₜ.Theory}{s : @ProofSystem ℒₜ α 0}[Encodable ℒₜ.Sentence]
   @[simp]
-  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ 0 (to_alpha '' Th) s φ) → List (ℒ.Sentence)
-  | .ax φ h₁ => if th : ∃ψ, φ = (TB.tarski_biconditional ψ).to_alpha
+  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ 0 (to_alpha '' Th) s φ) → List (ℒₜ.Sentence)
+  | .ax φ h₁ => if th : ∃ψ,∃h, φ = (TB.tarski_biconditional ψ h).to_alpha
     then
     [th.choose]
     else
@@ -59,17 +59,18 @@ namespace Conservativity
 
   variable [Encodable (ℒₜ.Formula (Fin 1))]
   @[simp]
-  def make_tau_equivs (s : ℒ.Sentence) : ℒ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
+  def make_tau_equivs (s : ℒₜ.Sentence) : ℒₜ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s.to_alpha
 
   open Proof
   @[simp]
-  noncomputable def tau {φ : ℒₜ.Formula α} : Proof (to_alpha '' Th) s φ → ℒ.Formula (Fin 1) :=
+  noncomputable def tau {φ : ℒₜ.Formula α} : Proof (to_alpha '' Th) s φ → ℒₜ.Formula (Fin 1) :=
     fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
 
 end Conservativity
 
-  variable {M : Type w} [ℒ.Structure M]
-  lemma num_all_v : ∀{n}, ∀{α : Type}, ∀{β : Type}, ∀v : α → ↑M, ∀z : β → ↑M, @Term.realize ℒ _ _ _ v (numeral n) = @Term.realize ℒ _ _ _ z (numeral n) := by
+  open Languages L_T
+  variable {M : Type w} [ℒₜ.Structure M]
+  lemma num_all_v : ∀{n}, ∀{α : Type}, ∀{β : Type}, ∀v : α → ↑M, ∀z : β → ↑M, @Term.realize ℒₜ _ _ _ v (numeral n) = @Term.realize ℒₜ _ _ _ z (numeral n) := by
     intro n α β v z
     induction n with
     | zero =>
@@ -81,11 +82,11 @@ end Conservativity
 
   namespace Conservativity
   open L_T ProofSystem
-  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[Encodable ℒ.Sentence]{s : @ProofSystem ℒₜ α 0}
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[Encodable ℒₜ.Sentence]{s : @ProofSystem ℒₜ α 0}
 
-  variable {M β γ δ: Type}{n : Nat}[ℒ.Structure M]{t : β → ↑M}{v : (β ⊕ δ) → ↑M}[Encodable (ℒ.BoundedFormula γ n)]
+  variable {M β γ δ: Type}{n : Nat}[ℒₜ.Structure M]{t : β → ↑M}{v : (β ⊕ δ) → ↑M}[Encodable (ℒₜ.BoundedFormula γ n)]
 
-  lemma lem1 : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
+  lemma lem1 : ∀{φ: ℒₜ.Sentence}, Term.realize v (⌜φ⌝ : ℒₜ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒₜ.Term _) := by
     intro φ
     induction (Encodable.encode φ) with
     | zero =>
@@ -93,7 +94,7 @@ end Conservativity
     | succ n ih =>
       simp[ih]
 
-  lemma lem2 {v : γ → ↑M} : ∀{φ: ℒ.Sentence}, Term.realize v (⌜φ⌝ : ℒ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒ.Term _) := by
+  lemma lem2 {v : γ → ↑M} : ∀{φ: ℒₜ.Sentence}, Term.realize v (⌜φ⌝ : ℒₜ.Term _) = Term.realize (default : (Empty ⊕ Fin 0) → ↑M) (⌜φ⌝ : ℒₜ.Term _) := by
     intro φ
     induction (Encodable.encode φ) with
     | zero =>
@@ -117,19 +118,20 @@ end Conservativity
     have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
       apply List.mem_iff_get.mp
       exact h₁
-    let realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
+    let realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒₜ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
       exact realizable.choose_spec
 
     rw[List.get_eq_getElem] at realization
     rw[List.getElem_map] at realization
 
     if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
-      rw[h₄] at realization
-      simp at realization
-      apply And.right at realization
-      rw[Unique.default_eq]
-      rw[Unique.default_eq]
-      exact realization
+      sorry
+      -- rw[h₄] at realization
+      -- simp at realization
+      -- apply And.right at realization
+      -- rw[Unique.default_eq]
+      -- rw[Unique.default_eq]
+      -- exact realization
 
     else
       simp only [make_tau_equivs,realize_inf] at realization
@@ -144,9 +146,10 @@ end Conservativity
 
       simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
 
-      have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒ.Sentence) := by
-        apply PA.all_fs
-        exact h₄
+      have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒₜ.Sentence) := by
+        sorry
+        -- apply PA.all_fs
+        -- exact h₄
 
       apply realize_not.mp at step1
       simp[realize_bdEqual _ _] at step1
@@ -184,55 +187,70 @@ end Conservativity
     rw[num_all_v ((Sum.elim (fun a ↦ Term.realize _ ⌜φ⌝) _)) _]
     --right
     simp
-    rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
-    exact h₂
+    rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
+    -- exact h₂
+    sorry
 
   variable {L : Language}
   @[simp]
   def bdEqual_iff {t₁ t₂ : L.Term (α ⊕ Fin n)} : t₁ =' t₂ = .equal t₁ t₂ := Eq.refl (t₁ =' t₂)
 
-  def Conservative (Th₁ : ℒₜ.Theory) (Th₂ : ℒ.Theory) : Prop :=
-    ∀φ : ℒ.Formula Nat, (Th₁ ⊨ᵇ (ϕ.onFormula φ)) → (Th₂ ⊨ᵇ φ)
+  def Conservative (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
+    ∀φ : ℒₜ.Formula Nat, (Th₁ ⊨ᵇ (φ)) → (Th₂ ⊨ᵇ φ)
 
   noncomputable def back_to_l: (φ : ℒₜ.Formula Nat) → (∃ψ: ℒ.Formula Nat, φ = (ϕ.onFormula ψ)) → ℒ.Formula Nat := by
     intro φ h
     exact h.choose
 
-  lemma proof_lt_to_proof_l  {p₁ : @ProofSystem ℒ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete}(φ : ℒ.Formula Nat) : ((to_alpha '' 𝐓𝐁) ⊢(p₂) (ϕ.onFormula φ)) → (to_alpha '' 𝐏𝐀) ⊢(p₁) (φ) := by
+  lemma proof_lt_to_proof_l  {p₁ : @ProofSystem ℒₜ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete}(φ : ℒₜ.Formula Nat) : ((to_alpha '' 𝐓𝐁) ⊢(p₂) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p₁) (φ) := by
     intro h₁
     apply Classical.choice at h₁
-    cases h₁ with
-    | ax ψ h₂ =>
-      cases h₂ with
-      | inl h₂ =>
+    sorry
+    -- let tau : ℒ.Formula (Fin 1) := tau h₁
+    -- cases h₁ with
+    -- | ax ψ h₂ =>
+    --   simp at h₂
+    --   have chosen := h₂.choose_spec
+    --   have chosen_left := chosen.left
+    --   unfold TB.tb at chosen_left
+    --   sorry
+    --   -- simp at chosen_left
+    --   -- cases chosen_left with
+    --   -- | inl h₃ =>
+    --   --   unfold PAT.pat at h₃
+    --   --   simp at h₃
+    --   --   cases h₃ with
+    --   --   | inl h₃ =>
 
-        sorry
-      | inr h₂ => sorry
-    | _ => sorry
 
-  theorem conservativity_tb_pa {p₁ : @ProofSystem ℒ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
+    --   --     #check Proof.ax (Th := (to_alpha '' 𝐏𝐀))
+    --   --     sorry
+    --   --   | inr h₃ => sorry
+    -- | _ => sorry
+
+  theorem conservativity_tb_pa {p₁ : @ProofSystem ℒₜ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
     intro φ h₁
-    have tb_proof : Proof (to_alpha '' 𝐓𝐁) p₂ (ϕ.onFormula φ) := by
+    have tb_proof : Proof (to_alpha '' 𝐓𝐁) p₂ (φ) := by
       unfold Complete at complete₂
       #check complete₂ φ
       apply Classical.choice
       apply complete₂ φ
       exact h₁
-    let tau : ℒ.Formula (Fin 1) := tau tb_proof
+    let tau : ℒₜ.Formula (Fin 1) := tau tb_proof
 
     cases tb_proof with
     | ax f h =>
-      cases h with
-      | inl h =>
-        -- h ->(by soundness of p₂) {} ⊨ᵇ ϕ.onFormula φ ->(by completeness of p₁) {} ⊢(s₁) φ ->(by superset proves all subset) 𝐏𝐀 ⊨ᵇ φ
+      sorry
+      -- | inl h =>
+      --   -- h ->(by soundness of p₂) {} ⊨ᵇ ϕ.onFormula φ ->(by completeness of p₁) {} ⊢(s₁) φ ->(by superset proves all subset) 𝐏𝐀 ⊨ᵇ φ
 
-        have proof := Nonempty.intro (Proof.ax (Th := (to_alpha '' {})) (s := p₂) (ϕ.onFormula φ) (by simp[h]))
+      --   have proof := Nonempty.intro (Proof.ax (Th := (to_alpha '' {})) (s := p₂) (ϕ.onFormula φ) (by simp[h]))
 
-        have theo := sound₂ (ϕ.onFormula φ) {} proof
+      --   have theo := sound₂ (ϕ.onFormula φ) {} proof
 
 
-        sorry
-      | inr h => sorry
+      --   sorry
+      -- | inr h => sorry
     | _ => sorry
 
 end Conservativity
