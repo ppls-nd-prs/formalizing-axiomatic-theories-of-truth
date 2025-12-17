@@ -14,7 +14,7 @@ namespace Conservativity
   open Languages LPA L_T FirstOrder.Language.BoundedFormula
   variable {α : Type}{n : Nat}
   @[simp]
-  def subs_t : {n : ℕ} →  ({m : Nat} → {β : Type} → ℒ.Term (β ⊕ Fin m) → ℒ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒ.BoundedFormula α n
+  def subs_t : {n : ℕ} →  ({m : Nat} → {β : Type} → ℒₜ.Term (β ⊕ Fin m) → ℒₜ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒₜ.BoundedFormula α n
   | _, _, .falsum  => .falsum
   | _, _, .equal t₁ t₂ => .equal (t₁) (t₂)
   | _, φ, .rel R ts =>
@@ -43,7 +43,7 @@ namespace Conservativity
 
   open BoundedFormula Classical
   variable {L : Language}{m : Nat}
-  instance : Coe (ℒ.Sentence) (ℒ.BoundedFormula (Fin 1) n) where
+  instance : Coe (ℒₜ.Sentence) (ℒₜ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
   variable {Th : ℒₜ.Theory}{s : @ProofSystem ℒₜ α 0}[Encodable ℒₜ.Sentence]
@@ -58,8 +58,11 @@ namespace Conservativity
   | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
   variable [Encodable (ℒₜ.Formula (Fin 1))]
+  -- instance : Coe (ℒₜ.Sentence) (ℒₜ.Formula (Fin 1)) where
+  -- coe := to_alpha
+
   @[simp]
-  def make_tau_equivs (s : ℒₜ.Sentence) : ℒₜ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s.to_alpha
+  def make_tau_equivs (s : ℒₜ.Sentence) : ℒₜ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
 
   open Proof
   @[simp]
@@ -102,6 +105,21 @@ end Conservativity
     | succ n ih =>
       simp[ih]
 
+  lemma lem3 : ∀n : Nat, ∀φ: ℒₜ.BoundedFormula Empty n, 𝐏𝐀 ⊨ᵇ (φ.to_alpha : ℒₜ.BoundedFormula (Fin 1) n) → 𝐏𝐀 ⊨ᵇ φ := by
+    intro n φ h M v xs
+    have realization := by
+      exact h M
+
+    induction φ with
+    | falsum =>
+
+
+
+
+
+      sorry
+    | _ => sorry
+
   lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof (to_alpha '' Th) s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
@@ -125,13 +143,14 @@ end Conservativity
     rw[List.getElem_map] at realization
 
     if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
-      sorry
-      -- rw[h₄] at realization
-      -- simp at realization
-      -- apply And.right at realization
-      -- rw[Unique.default_eq]
-      -- rw[Unique.default_eq]
-      -- exact realization
+      rw[h₄] at realization
+      simp at realization
+      apply And.right at realization
+
+      rw[Unique.default_eq]
+      rw[Unique.default_eq]
+
+      exact realization
 
     else
       simp only [make_tau_equivs,realize_inf] at realization
@@ -147,9 +166,8 @@ end Conservativity
       simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
 
       have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒₜ.Sentence) := by
-        sorry
-        -- apply PA.all_fs
-        -- exact h₄
+        apply PA.all_fs
+        exact h₄
 
       apply realize_not.mp at step1
       simp[realize_bdEqual _ _] at step1
@@ -188,8 +206,7 @@ end Conservativity
     --right
     simp
     rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
-    -- exact h₂
-    sorry
+    exact h₂
 
   variable {L : Language}
   @[simp]
@@ -198,14 +215,143 @@ end Conservativity
   def Conservative (Th₁ : ℒₜ.Theory) (Th₂ : ℒₜ.Theory) : Prop :=
     ∀φ : ℒₜ.Formula Nat, (Th₁ ⊨ᵇ (φ)) → (Th₂ ⊨ᵇ φ)
 
-  noncomputable def back_to_l: (φ : ℒₜ.Formula Nat) → (∃ψ: ℒ.Formula Nat, φ = (ϕ.onFormula ψ)) → ℒ.Formula Nat := by
+  noncomputable def back_to_l: (φ : ℒₜ.Formula Nat) → (∃ψ: ℒₜ.Formula Nat, φ = (ψ)) → ℒₜ.Formula Nat := by
     intro φ h
     exact h.choose
 
-  lemma proof_lt_to_proof_l  {p₁ : @ProofSystem ℒₜ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete}(φ : ℒₜ.Formula Nat) : ((to_alpha '' 𝐓𝐁) ⊢(p₂) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p₁) (φ) := by
-    intro h₁
-    apply Classical.choice at h₁
-    sorry
+  lemma lem4 : ∀n,∀φ,∀Th: Set (ℒₜ.BoundedFormula Empty n), φ ∈ Th → (@to_alpha ℕ _ _ φ) ∈ (to_alpha '' Th) := by
+    intro n φ Th h₁
+    simp
+    induction φ with
+    | falsum =>
+      apply Exists.intro
+      apply And.intro
+      exact h₁
+      rfl
+    | equal t₁ t₂ =>
+      apply Exists.intro
+      apply And.intro
+      exact h₁
+      rfl
+    | rel R ts =>
+      apply Exists.intro
+      apply And.intro
+      exact h₁
+      rfl
+    | imp φ₁ φ₂ ih₁ ih₂ =>
+      apply Exists.intro
+      apply And.intro
+      exact h₁
+      rfl
+    | all φ ih =>
+      apply Exists.intro
+      apply And.intro
+      exact h₁
+      rfl
+
+  lemma lem₅ {ψ}: contains_T ψ → contains_T (TB.ind ψ) := by
+    intro h
+    cases ψ with
+    | falsum => sorry
+    | all φ =>
+      simp[TB.ind]
+      apply Or.intro_left
+      apply Or.intro_left
+      sorry
+    | _ => sorry
+
+  lemma lem₆ {ψ}: contains_T ψ → contains_T (TB.ind ψ) := by
+    intro h
+    cases ψ with
+    | falsum => sorry
+    | all φ =>
+      simp[TB.ind]
+      apply Or.intro_left
+      apply Or.intro_left
+      -- have to show that contains_T perpetuates through variable substitution (use lem₅)
+      sorry
+    | _ => sorry
+
+  lemma proof_lt_to_proof_l  {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}(φ : ℒₜ.Formula Nat)(h₁ : ¬ contains_T φ): ((to_alpha '' 𝐓𝐁) ⊢(p) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p) (φ) := by
+    intro h₂
+    apply Classical.choice at h₂
+    let tau : ℒₜ.Formula (Fin 1) := tau h₂
+    cases h₂ with
+    | ax ψ h₃ =>
+      simp at h₃
+      have chosen := h₃.choose_spec
+      have chosen_left := chosen.left
+      apply Nonempty.intro
+      have step1 : (h₃.choose.to_alpha : ℒₜ.Formula ℕ) ∈ (to_alpha '' 𝐓𝐁) := by
+        apply lem4 _ _ _ chosen_left
+      rw[chosen.right] at step1
+      have step2 : φ ∈ (to_alpha '' 𝐏𝐀) := by
+        cases step1 with
+        | intro w h =>
+          cases h.left with
+          -- | first =>
+          --   unfold PA.pa
+          --   simp
+          --   apply Exists.intro
+          --   apply And.intro
+          --   apply And.intro
+          --   exact h.left
+          --   simp
+          --   exact h.right
+          -- | second =>
+          --   unfold PA.pa
+          --   simp
+          --   apply Exists.intro
+          --   apply And.intro
+          --   apply And.intro
+          --   exact h.left
+          --   simp
+          --   exact h.right
+          -- | third =>
+          --   unfold PA.pa
+          --   simp
+          --   apply Exists.intro
+          --   apply And.intro
+          --   apply And.intro
+          --   exact h.left
+          --   simp
+          --   exact h.right
+          -- | fourth =>
+          --   unfold PA.pa
+          --   simp
+          --   apply Exists.intro
+          --   apply And.intro
+          --   apply And.intro
+          --   exact h.left
+          --   simp
+          --   exact h.right
+          -- | fifth =>
+          --   unfold PA.pa
+          --   simp
+          --   apply Exists.intro
+          --   apply And.intro
+          --   apply And.intro
+          --   exact h.left
+          --   simp
+          --   exact h.right
+          -- | sixth =>
+          --   unfold PA.pa
+          --   simp
+          --   apply Exists.intro
+          --   apply And.intro
+          --   apply And.intro
+          --   exact h.left
+          --   simp
+          --   exact h.right
+          | induction ψ =>
+            if h₂ : contains_T ψ then
+            -- need that contains_T perpetuates through TB.ind (see lem₆)
+            sorry
+            else
+            sorry
+          | _ => sorry
+      sorry
+    | _ => sorry
     -- let tau : ℒ.Formula (Fin 1) := tau h₁
     -- cases h₁ with
     -- | ax ψ h₂ =>

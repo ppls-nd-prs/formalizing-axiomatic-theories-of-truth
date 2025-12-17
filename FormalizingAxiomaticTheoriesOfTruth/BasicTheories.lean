@@ -6,11 +6,9 @@ open FirstOrder
 open Language
 open Languages L_T
 
-variable {L : Language}[∀α n, Encodable (ℒₜ.Term (α ⊕ Fin n))][∀α n, Encodable (ℒₜ.BoundedFormula α n)]
-def term_encoding_1 {α n} : ℒₜ.BoundedFormula α n → (ℒₜ.Term (Empty ⊕ Fin 0)) := numeral ∘ Encodable.encode
-def term_encoding_2 {α n} : ℒₜ.Term (α ⊕ Fin n) → (ℒₜ.Term (Empty ⊕ Fin 0)) := numeral ∘ Encodable.encode
+-- def term_encoding_1 {α n} : ℒₜ.BoundedFormula α n → (ℒₜ.Term (Empty ⊕ Fin 0)) := numeral ∘ Encodable.encode
+-- def term_encoding_2 {α n} : ℒₜ.Term (α ⊕ Fin n) → (ℒₜ.Term (Empty ⊕ Fin 0)) := numeral ∘ Encodable.encode
 
-notation "⌜"t"⌝" => numeral (Encodable.encode t)
 
 -- namespace SyntaxAxioms
 -- open Languages L_T LPA BoundedFormula
@@ -80,6 +78,10 @@ notation "⌜"t"⌝" => numeral (Encodable.encode t)
 -- end SyntaxTheory
 
 namespace Induction
+variable {L : Language}
+[∀α n, Encodable (ℒₜ.Term (α ⊕ Fin n))][∀α n, Encodable (ℒₜ.BoundedFormula α n)]
+notation "⌜"t"⌝" => numeral (Encodable.encode t)
+
 open BoundedFormula
 
 instance : Coe (L.BoundedFormula (Fin 1) 0) (L.BoundedFormula Empty (0 + 1)) where
@@ -114,67 +116,8 @@ namespace PA
   def pa : ℒₜ.Theory := {φ | φ ∈ tb ∧ ¬contains_T φ}
 
   notation "𝐏𝐀" => pa
-end PA
 
--- namespace PA
---   open Languages LPA L_T BoundedFormula SyntaxTheory Induction
---   variable {L : Language}[Arithmetical L]
---   /-- Peano arithemtic -/
---   inductive tb : ℒₜ.Theory where
---     | first : tb (∀' ∼(null =' S(&0)))
---     | second :tb (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
---     | third : tb (∀' ((&0 add null) =' &0))
---     | fourth : tb (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
---     | fifth : tb (∀' ((&0 mult null) =' null))
---     | sixth : tb (∀' ∀' ((&1 mult S(&0)) =' ((&1 mult &0)) add &1))
---     | induction (ψ : L.Formula (Fin 1)) : tb (ind ψ)
-
-
-
---   open Theory BoundedFormula
--- end PA
-
--- namespace PAT
--- open Languages PA L_T SyntaxTheory BoundedFormula Induction
-
--- def pat : ℒₜ.Theory := tb ∪ {φ | ∃ψ, φ = ind ψ}
--- notation "𝐏𝐀𝐓" => pat
-
--- end PAT
-
--- namespace TB
--- open Languages L_T LPA PAT SyntaxTheory
-
--- variable [Encodable (ℒ.Sentence)]
--- def tarski_biconditional (ψ : ℒ.Sentence) : ℒₜ.Sentence := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
--- def tb : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = (tarski_biconditional ψ)}
-
--- def alt_PA : ℒₜ.Theory := {φ | φ ∈ tb ∧ ¬contains_T φ}
-
--- notation "𝐓𝐁" => tb
--- notation "𝐏𝐀" => alt_PA
-
-open Theory BoundedFormula PA Languages L_T
-  variable [Encodable (ℒₜ.Sentence)]
-  lemma eq_symm : ∀{t₁ t₂ : ℒₜ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ (t₁ =' t₂) ↔ 𝐏𝐀 ⊨ᵇ (t₂ =' t₁) := by
-    intro t₁ t₂
-    apply Iff.intro
-    --mp
-    simp[models_sentence_iff]
-    intro h₁
-    intro M
-    apply (realize_bdEqual _ _).mpr
-    symm
-    apply h₁ at M
-    exact (realize_bdEqual _ _).mp M
-    --mpr
-    simp[models_sentence_iff]
-    intro h₁
-    intro M
-    apply (realize_bdEqual _ _).mpr
-    symm
-    apply h₁ at M
-    exact (realize_bdEqual _ _).mp M
+  open Theory BoundedFormula
 
   lemma all_nums : ∀n m : Nat, n ≠ m → 𝐏𝐀 ⊨ᵇ (∼(numeral (n) =' (numeral m)) : ℒₜ.Sentence) := by
     intro n m h₁
@@ -263,7 +206,6 @@ open Theory BoundedFormula PA Languages L_T
       simp[realize_bdEqual _ _,Matrix.empty_eq] at step2
       contradiction
 
-  variable [Encodable ℒₜ.Sentence]
 
   lemma all_fs : ∀φ₁ φ₂ : ℒₜ.Sentence, φ₁ ≠ φ₂ → 𝐏𝐀 ⊨ᵇ (∼(⌜φ₁⌝ =' ⌜φ₂⌝): ℒₜ.Sentence) := by
     intro φ₁ φ₂ h₁
@@ -280,6 +222,71 @@ open Theory BoundedFormula PA Languages L_T
     apply realize_not.mp at step1
     simp[realize_bdEqual _ _] at step1
     contradiction
+
+end PA
+
+-- namespace PA
+--   open Languages LPA L_T BoundedFormula SyntaxTheory Induction
+--   variable {L : Language}[Arithmetical L]
+--   /-- Peano arithemtic -/
+--   inductive tb : ℒₜ.Theory where
+--     | first : tb (∀' ∼(null =' S(&0)))
+--     | second :tb (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
+--     | third : tb (∀' ((&0 add null) =' &0))
+--     | fourth : tb (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
+--     | fifth : tb (∀' ((&0 mult null) =' null))
+--     | sixth : tb (∀' ∀' ((&1 mult S(&0)) =' ((&1 mult &0)) add &1))
+--     | induction (ψ : L.Formula (Fin 1)) : tb (ind ψ)
+
+
+
+--   open Theory BoundedFormula
+-- end PA
+
+-- namespace PAT
+-- open Languages PA L_T SyntaxTheory BoundedFormula Induction
+
+-- def pat : ℒₜ.Theory := tb ∪ {φ | ∃ψ, φ = ind ψ}
+-- notation "𝐏𝐀𝐓" => pat
+
+-- end PAT
+
+-- namespace TB
+-- open Languages L_T LPA PAT SyntaxTheory
+
+-- variable [Encodable (ℒ.Sentence)]
+-- def tarski_biconditional (ψ : ℒ.Sentence) : ℒₜ.Sentence := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
+-- def tb : ℒₜ.Theory := 𝐏𝐀𝐓 ∪ {φ | ∃ψ : ℒ.Sentence, φ = (tarski_biconditional ψ)}
+
+-- def alt_PA : ℒₜ.Theory := {φ | φ ∈ tb ∧ ¬contains_T φ}
+
+-- notation "𝐓𝐁" => tb
+-- notation "𝐏𝐀" => alt_PA
+
+open Theory BoundedFormula PA Languages L_T
+  variable [Encodable (ℒₜ.Sentence)]
+  lemma eq_symm : ∀{t₁ t₂ : ℒₜ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ (t₁ =' t₂) ↔ 𝐏𝐀 ⊨ᵇ (t₂ =' t₁) := by
+    intro t₁ t₂
+    apply Iff.intro
+    --mp
+    simp[models_sentence_iff]
+    intro h₁
+    intro M
+    apply (realize_bdEqual _ _).mpr
+    symm
+    apply h₁ at M
+    exact (realize_bdEqual _ _).mp M
+    --mpr
+    simp[models_sentence_iff]
+    intro h₁
+    intro M
+    apply (realize_bdEqual _ _).mpr
+    symm
+    apply h₁ at M
+    exact (realize_bdEqual _ _).mp M
+
+
+  variable [Encodable ℒₜ.Sentence]
 
   lemma PA.succ_ne_zero : ∀{t : ℒₜ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ ∼(S(t) =' null : ℒₜ.Sentence) := by
     intro t
