@@ -84,16 +84,26 @@ notation "⌜"t"⌝" => numeral (Encodable.encode t)
 
 open BoundedFormula
 
-instance : Coe (L.BoundedFormula (Fin 1) 0) (L.BoundedFormula Empty (0 + 1)) where
-coe := (fun bf => relabel (fun i : Fin 1 => .inr i) bf)
+instance {n} : Coe (L.BoundedFormula (Fin 1) n) (L.BoundedFormula Empty (n + 1)) where
+coe := by
+  rw[Nat.add_comm]
+  apply (fun bf => relabel (fun i : Fin 1 => .inr i) bf)
 
 end Induction
 
 namespace TB
   open Languages L_T Induction BoundedFormula
 
-  def ind (φ : ℒₜ.Formula (Fin 1)) : ℒₜ.Sentence :=
-  ((φ.subst ![null]) ⊓ (∀'(φ ⟹ (Coe.coe (@subst _ (Fin 1) (Fin 1) 0 φ (fun _ : Fin 1 => S(.var 0)))))) ⟹ ∀'φ)
+  def ind {n} (φ : ℒₜ.BoundedFormula (Fin 1) n) : ℒₜ.BoundedFormula Empty n :=
+  ((φ.subst ![null]) ⊓ (∀'(φ ⟹ (Coe.coe (@subst _ (Fin 1) (Fin 1) n φ (fun _ : Fin 1 => S(.var 0)))))) ⟹ ∀'φ)
+
+  def ind₂ : {n : Nat} → Bool → (ℒₜ.BoundedFormula (Fin 1) n) → ℒₜ.BoundedFormula Empty n
+  | _, _, .falsum => (⊥ ⊓ ∀'(⊥ ⟹ ⊥)) ⟹ ⊥
+  | _, _, .all φ =>
+    -- the idea here is to write the substitution of the induction scheme ourselves, so it can be used
+    -- with stumbling over mapTermRel
+    sorry
+  | _, _, _ => sorry
 
   variable [Encodable (ℒₜ.Sentence)]
   def tarski_biconditional (ψ : ℒₜ.Sentence) (_ : ¬ contains_T ψ) : ℒₜ.Sentence := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ

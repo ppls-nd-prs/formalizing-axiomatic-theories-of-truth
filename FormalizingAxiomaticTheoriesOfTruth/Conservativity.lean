@@ -249,28 +249,46 @@ end Conservativity
       exact h₁
       rfl
 
-  lemma lem₅ {ψ}: contains_T ψ → contains_T (TB.ind ψ) := by
+  #check BoundedFormula.subst
+
+  lemma lem₅ {ψ : ℒₜ.BoundedFormula (Fin 1) n} {v} : contains_T ψ → contains_T ((subst ψ v) : ℒₜ.BoundedFormula Empty n) := by
     intro h
     cases ψ with
-    | falsum => sorry
+    | falsum =>
+      simp[subst]
+      sorry
     | all φ =>
-      simp[TB.ind]
-      apply Or.intro_left
-      apply Or.intro_left
       sorry
     | _ => sorry
 
-  lemma lem₆ {ψ}: contains_T ψ → contains_T (TB.ind ψ) := by
+  lemma lem₆ {ψ : ℒₜ.BoundedFormula (Fin 1) n}: contains_T ψ → contains_T (TB.ind ψ) := by
     intro h
-    cases ψ with
-    | falsum => sorry
-    | all φ =>
-      simp[TB.ind]
-      apply Or.intro_left
-      apply Or.intro_left
-      -- have to show that contains_T perpetuates through variable substitution (use lem₅)
+
+    simp[TB.ind]
+    apply Or.intro_left
+    apply Or.intro_left
+
+    induction ψ with
+    | rel R ts => sorry
+    | all φ ih =>
+      simp at h
+      apply ih at h
+      simp[subst]
+
       sorry
     | _ => sorry
+
+      -- have to show that contains_T perpetuates through variable substitution (use lem₅)
+      -- but the syntactic structure of substituted formulas is hard to reason with due to mapTermRel,
+      -- so it's better to define contains_T in semantic terms, via the interpretation of t_symbol.
+
+
+  lemma lem₇: 𝐏𝐀 ⊨ᵇ ((.rel L_T.Rel.t_symbol ![null] ⟹ .rel L_T.Rel.t_symbol ![null]) : ℒₜ.Sentence) := by
+    apply Theory.models_sentence_iff.mpr
+    intro M
+    apply realize_imp.mpr
+    intro h₁
+    exact h₁
 
   lemma proof_lt_to_proof_l  {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}(φ : ℒₜ.Formula Nat)(h₁ : ¬ contains_T φ): ((to_alpha '' 𝐓𝐁) ⊢(p) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p) (φ) := by
     intro h₂
@@ -345,6 +363,7 @@ end Conservativity
           --   exact h.right
           | induction ψ =>
             if h₂ : contains_T ψ then
+
             -- need that contains_T perpetuates through TB.ind (see lem₆)
             sorry
             else
