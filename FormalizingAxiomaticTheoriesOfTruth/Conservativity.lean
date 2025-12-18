@@ -251,20 +251,15 @@ end Conservativity
 
   #check BoundedFormula.subst
 
-  lemma lem₅ {ψ : ℒₜ.BoundedFormula (Fin 1) n} {v} : contains_T ψ → contains_T ((subst ψ v) : ℒₜ.BoundedFormula Empty n) := by
+  lemma lem₅ {ψ : ℒₜ.BoundedFormula (Fin 1) n}: contains_T ψ → contains_T ψ.zero_subst := by
     intro h
-    cases ψ with
-    | falsum =>
-      simp[subst]
-      sorry
-    | all φ =>
-      sorry
+    induction ψ with
     | _ => sorry
 
-  lemma lem₆ {ψ : ℒₜ.BoundedFormula (Fin 1) n}: contains_T ψ → contains_T (TB.ind ψ) := by
+  lemma lem₆ {ψ : ℒₜ.BoundedFormula (Fin 1) n}: contains_T ψ → contains_T (TB.ind₂ ψ) := by
     intro h
 
-    simp[TB.ind]
+    simp[TB.ind₂]
     apply Or.intro_left
     apply Or.intro_left
 
@@ -363,7 +358,10 @@ end Conservativity
           --   exact h.right
           | induction ψ =>
             if h₂ : contains_T ψ then
-
+            have step1 : contains_T φ := by
+              rw[h.right.symm]
+              simp[TB.ind₂]
+              sorry
             -- need that contains_T perpetuates through TB.ind (see lem₆)
             sorry
             else

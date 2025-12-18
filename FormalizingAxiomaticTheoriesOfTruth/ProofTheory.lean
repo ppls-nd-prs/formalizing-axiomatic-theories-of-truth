@@ -12,11 +12,13 @@ structure ProofSystem (L : Language) (α : Type) (n : Nat) : Type where
   unary : Set (L.BoundedFormula α n → L.BoundedFormula α n)
   binary : Set (L.BoundedFormula α n → L.BoundedFormula α n  → L.BoundedFormula α n)
 
+@[simp]
 def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
 | .var (.inl v) => by contradiction
 | .var (.inr v) => .var (.inr v)
 | .func f ts => .func f (fun i => .to_alpha (ts i))
 
+@[simp]
 def BoundedFormula.to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
 | _, .falsum => .falsum
 | _, .equal t₁ t₂ => .equal t₁.to_alpha t₂.to_alpha
