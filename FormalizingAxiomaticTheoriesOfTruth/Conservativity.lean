@@ -360,7 +360,18 @@ end Conservativity
     apply Or.intro_left
     apply True.intro
 
-  -- ↓ Write the translation function
+  /-- ↓ Write the translation function. The thing is that not all translations have to start with
+  a formula that should not contain a T-predicate. There should only be a reference proof on
+  which the tau will be based, but that one has furthermore rather little to do with
+  the translation currently taking place.
+  Also to do:
+  1. construct the proof ...
+  O, wait, perhaps we are now encountering the exact problems we encountered earlier on with a syntactic reasoning? No, because we now have the semantic connection. So,
+  1. Construct the proof that there exists a PA proof of all tau equivalences from the semantic proof 'tau_equivalence'.
+  2. Return the tau_equivalences in the case of tb axioms.
+  3. Return a proof a the induction schema with a tau replacement of the T's, from the proof that the individual formula contains no T's and the induction schema does not add any T's (for that make lem₆ biconditional rather than the current conditional).
+  --/
+
   def proof_tb_to_proof_pa {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}{φ₁ : ℒₜ.Formula Nat}{φ₂ : ℒₜ.Formula Nat}{φ₃ : ℒₜ.Formula Nat}{h₁ : ¬ contains_T φ₁} (reference_p : Proof (to_alpha '' 𝐓𝐁) p φ₁)(h₁ : ¬ contains_T φ₁) : Proof (to_alpha '' 𝐓𝐁) p φ₂ → Proof (to_alpha '' 𝐏𝐀) p φ₃
   | .ax φ₂ h₂ => sorry
   | _ => sorry
