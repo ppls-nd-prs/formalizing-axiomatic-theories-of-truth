@@ -8,6 +8,7 @@ namespace FirstOrder.Language
 variable {α : Type} {L : Language} {n : Nat}
 
 open Sentence
+
 structure ProofSystem (L : Language) (α : Type) (n : Nat) : Type where
   unary : Set (L.BoundedFormula α n → L.BoundedFormula α n)
   binary : Set (L.BoundedFormula α n → L.BoundedFormula α n  → L.BoundedFormula α n)

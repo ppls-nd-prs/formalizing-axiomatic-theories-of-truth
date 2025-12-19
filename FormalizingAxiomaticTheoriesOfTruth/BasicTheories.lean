@@ -149,8 +149,8 @@ namespace TB
   def ind₂ {n : Nat} (φ : ℒₜ.BoundedFormula (Fin 1) n) : ℒₜ.BoundedFormula Empty n :=
     (φ.zero_subst ⊓ ∀'(φ.bf_subst ⟹ φ.bf_succ_subst)) ⟹ ∀'φ.bf_subst
 
-  variable [Encodable (ℒₜ.Sentence)]
-  def tarski_biconditional (ψ : ℒₜ.Sentence) (_ : ¬ contains_T ψ) : ℒₜ.Sentence := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
+  variable [∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
+  def tarski_biconditional {n} (ψ : ℒₜ.BoundedFormula Empty n) (_ : ¬ contains_T ψ) : ℒₜ.BoundedFormula Empty n := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
   inductive tb : ℒₜ.Theory where
     | first : tb (∀' ∼(null =' S(&0)))
     | second :tb (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
@@ -166,7 +166,7 @@ end TB
 
 namespace PA
   open TB Languages L_T
-  variable [Encodable (ℒₜ.Sentence)]
+  variable [∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
   def pa : ℒₜ.Theory := {φ | φ ∈ tb ∧ ¬contains_T φ}
 
   notation "𝐏𝐀" => pa
@@ -318,7 +318,7 @@ end PA
 -- notation "𝐏𝐀" => alt_PA
 
 open Theory BoundedFormula PA Languages L_T
-  variable [Encodable (ℒₜ.Sentence)]
+  variable [∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
   lemma eq_symm : ∀{t₁ t₂ : ℒₜ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ (t₁ =' t₂) ↔ 𝐏𝐀 ⊨ᵇ (t₂ =' t₁) := by
     intro t₁ t₂
     apply Iff.intro

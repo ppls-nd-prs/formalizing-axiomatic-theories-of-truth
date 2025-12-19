@@ -46,7 +46,7 @@ namespace Conservativity
   instance : Coe (ℒₜ.Sentence) (ℒₜ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
-  variable {Th : ℒₜ.Theory}{s : @ProofSystem ℒₜ α 0}[Encodable ℒₜ.Sentence]
+  variable {Th : ℒₜ.Theory}{s : @ProofSystem ℒₜ α 0}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
   @[simp]
   noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ 0 (to_alpha '' Th) s φ) → List (ℒₜ.Sentence)
   | .ax φ h₁ => if th : ∃ψ,∃h, φ = (TB.tarski_biconditional ψ h).to_alpha
@@ -85,7 +85,7 @@ end Conservativity
 
   namespace Conservativity
   open L_T ProofSystem
-  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[Encodable ℒₜ.Sentence]{s : @ProofSystem ℒₜ α 0}
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]{s : @ProofSystem ℒₜ α 0}
 
   variable {M β γ δ: Type}{n : Nat}[ℒₜ.Structure M]{t : β → ↑M}{v : (β ⊕ δ) → ↑M}[Encodable (ℒₜ.BoundedFormula γ n)]
 
@@ -254,42 +254,122 @@ end Conservativity
   lemma lem₅ {ψ : ℒₜ.BoundedFormula (Fin 1) n}: contains_T ψ → contains_T ψ.zero_subst := by
     intro h
     induction ψ with
-    | _ => sorry
+    | rel R ts =>
+      cases R
+      exact h
+    | imp f₁ f₂ ih₁ ih₂ =>
+      simp only [zero_subst,zero_subst,contains_T]
+      simp only [contains_T] at h
+      cases h with
+      | inl h =>
+        apply ih₁ at h
+        apply Or.intro_left
+        exact h
+      | inr h =>
+        apply ih₂ at h
+        apply Or.intro_right
+        exact h
+    | all f₁ ih =>
+      simp [zero_subst,contains_T]
+      simp [contains_T] at h
+      apply ih at h
+      exact h
+    | _ => cases h
 
   lemma lem₆ {ψ : ℒₜ.BoundedFormula (Fin 1) n}: contains_T ψ → contains_T (TB.ind₂ ψ) := by
     intro h
-
     simp[TB.ind₂]
     apply Or.intro_left
     apply Or.intro_left
-
-    induction ψ with
-    | rel R ts => sorry
-    | all φ ih =>
-      simp at h
-      apply ih at h
-      simp[subst]
-
-      sorry
-    | _ => sorry
+    exact lem₅ h
 
       -- have to show that contains_T perpetuates through variable substitution (use lem₅)
       -- but the syntactic structure of substituted formulas is hard to reason with due to mapTermRel,
       -- so it's better to define contains_T in semantic terms, via the interpretation of t_symbol.
 
 
-  lemma lem₇: 𝐏𝐀 ⊨ᵇ ((.rel L_T.Rel.t_symbol ![null] ⟹ .rel L_T.Rel.t_symbol ![null]) : ℒₜ.Sentence) := by
+  lemma lem₇ : 𝐏𝐀 ⊨ᵇ ((.rel L_T.Rel.t_symbol ![null] ⟹ .rel L_T.Rel.t_symbol ![null]) : ℒₜ.Sentence) := by
     apply Theory.models_sentence_iff.mpr
     intro M
     apply realize_imp.mpr
     intro h₁
     exact h₁
 
-  lemma proof_lt_to_proof_l  {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}(φ : ℒₜ.Formula Nat)(h₁ : ¬ contains_T φ): ((to_alpha '' 𝐓𝐁) ⊢(p) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p) (φ) := by
+  lemma lem₈ {n} {ψ : ℒₜ.BoundedFormula Empty n} : contains_T ψ ↔ (contains_T (ψ.to_alpha : ℒₜ.BoundedFormula α n)) := by
+    apply Iff.intro
+    --mp
+    intro h
+
+    induction ψ with
+    | rel R ts =>
+      cases R
+      simp only [to_alpha]
+      exact h
+    | imp f₁ f₂ ih₁ ih₂ =>
+      simp only [to_alpha,contains_T]
+      simp only [contains_T] at h
+      cases h with
+      | inl h =>
+        apply ih₁ at h
+        apply Or.intro_left
+        exact h
+      | inr h =>
+        apply ih₂ at h
+        apply Or.intro_right
+        exact h
+    | all f₁ ih₁ =>
+      simp only [to_alpha,contains_T]
+      simp only [contains_T] at h
+      apply ih₁ at h
+      exact h
+    | _ =>
+      cases h
+
+    --mpr
+    intro h
+
+    induction ψ with
+    | rel R ts =>
+      cases R
+      simp only [to_alpha] at h
+      exact h
+    | imp f₁ f₂ ih₁ ih₂ =>
+      simp only [to_alpha,contains_T] at h
+      simp only [contains_T]
+      cases h with
+      | inl h =>
+        apply ih₁ at h
+        apply Or.intro_left
+        exact h
+      | inr h =>
+        apply ih₂ at h
+        apply Or.intro_right
+        exact h
+    | all f₁ ih₁ =>
+      simp only [to_alpha,contains_T] at h
+      simp only [contains_T]
+      apply ih₁ at h
+      exact h
+    | _ =>
+      cases h
+
+  lemma lem₉ {n} {φ : ℒₜ.BoundedFormula Empty n} {h : ¬ contains_T φ} : contains_T (TB.tarski_biconditional φ h) := by
+    simp only [TB.tarski_biconditional,contains_T,BoundedFormula.iff]
+    apply Or.intro_left
+    apply Or.intro_left
+    apply Or.intro_left
+    apply True.intro
+
+  -- ↓ Write the translation function
+  def proof_tb_to_proof_pa {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}{φ₁ : ℒₜ.Formula Nat}{φ₂ : ℒₜ.Formula Nat}{φ₃ : ℒₜ.Formula Nat}{h₁ : ¬ contains_T φ₁} (reference_p : Proof (to_alpha '' 𝐓𝐁) p φ₁)(h₁ : ¬ contains_T φ₁) : Proof (to_alpha '' 𝐓𝐁) p φ₂ → Proof (to_alpha '' 𝐏𝐀) p φ₃
+  | .ax φ₂ h₂ => sorry
+  | _ => sorry
+
+  lemma provable_tb_to_provable_pa  {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}(φ : ℒₜ.Formula Nat)(h₁ : ¬ contains_T φ): ((to_alpha '' 𝐓𝐁) ⊢(p) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p) (φ) := by
     intro h₂
     apply Classical.choice at h₂
-    let tau : ℒₜ.Formula (Fin 1) := tau h₂
-    cases h₂ with
+    -- let tau : ℒₜ.Formula (Fin 1) := tau h₂
+    induction h₂ with
     | ax ψ h₃ =>
       simp at h₃
       have chosen := h₃.choose_spec
@@ -298,75 +378,67 @@ end Conservativity
       have step1 : (h₃.choose.to_alpha : ℒₜ.Formula ℕ) ∈ (to_alpha '' 𝐓𝐁) := by
         apply lem4 _ _ _ chosen_left
       rw[chosen.right] at step1
-      have step2 : φ ∈ (to_alpha '' 𝐏𝐀) := by
+      have step2 : ψ ∈ (to_alpha '' 𝐏𝐀) := by
         cases step1 with
         | intro w h =>
           cases h.left with
-          -- | first =>
-          --   unfold PA.pa
-          --   simp
-          --   apply Exists.intro
-          --   apply And.intro
-          --   apply And.intro
-          --   exact h.left
-          --   simp
-          --   exact h.right
-          -- | second =>
-          --   unfold PA.pa
-          --   simp
-          --   apply Exists.intro
-          --   apply And.intro
-          --   apply And.intro
-          --   exact h.left
-          --   simp
-          --   exact h.right
-          -- | third =>
-          --   unfold PA.pa
-          --   simp
-          --   apply Exists.intro
-          --   apply And.intro
-          --   apply And.intro
-          --   exact h.left
-          --   simp
-          --   exact h.right
-          -- | fourth =>
-          --   unfold PA.pa
-          --   simp
-          --   apply Exists.intro
-          --   apply And.intro
-          --   apply And.intro
-          --   exact h.left
-          --   simp
-          --   exact h.right
-          -- | fifth =>
-          --   unfold PA.pa
-          --   simp
-          --   apply Exists.intro
-          --   apply And.intro
-          --   apply And.intro
-          --   exact h.left
-          --   simp
-          --   exact h.right
-          -- | sixth =>
-          --   unfold PA.pa
-          --   simp
-          --   apply Exists.intro
-          --   apply And.intro
-          --   apply And.intro
-          --   exact h.left
-          --   simp
-          --   exact h.right
-          | induction ψ =>
-            if h₂ : contains_T ψ then
-            have step1 : contains_T φ := by
-              rw[h.right.symm]
-              simp[TB.ind₂]
-              sorry
-            -- need that contains_T perpetuates through TB.ind (see lem₆)
-            sorry
-            else
-            sorry
+          | bicon φ₂ h₂ => -- this cases should still include the translation to PA proof
+
+            have step1 : contains_T (TB.tarski_biconditional φ₂ h₂) := by
+              exact lem₉
+
+            apply lem₈.mp at step1
+            rw[h.right] at step1
+
+            contradiction
           | _ => sorry
+        -- TAKES LONG BUT DONE
+        -- cases step1 with
+        -- | intro w h =>
+        --   cases h.left with
+        --   | induction ψ₂ =>
+        --     if h₂ : contains_T ψ₂ then
+        --     have step1 : contains_T ψ := by
+        --       rw[h.right.symm]
+        --       simp[TB.ind₂]
+        --       apply Or.intro_left
+        --       apply Or.intro_left
+        --       apply lem₈.mp
+        --       apply lem₅
+        --       exact h₂
+        --     contradiction
+        --     -- use that contains_T perpetuates through TB.ind (see lem₆)
+        --     else
+        --     simp
+        --     apply Exists.intro
+        --     apply And.intro
+        --     unfold PA.pa
+        --     simp
+        --     apply And.intro
+        --     exact chosen_left
+        --     rw[chosen.right.symm] at h₁
+        --     exact lem₈.not.mpr h₁
+        --     exact chosen.right
+        --   | bicon φ₂ h₂ =>
+        --     have step1 : contains_T (TB.tarski_biconditional φ₂ h₂) := by
+        --       exact lem₉
+        --     apply lem₈.mp at step1
+        --     rw[h.right] at step1
+        --     contradiction
+        --   | _ =>
+        --     unfold PA.pa
+        --     simp
+        --     apply Exists.intro
+        --     apply And.intro
+        --     apply And.intro
+        --     exact h.left
+        --     simp
+        --     exact h.right
+
+      exact @Proof.ax _ _ _ _ p ψ step2
+    | un p₁ h₂ h₃ ih_p =>
+
+      #check ih_p
       sorry
     | _ => sorry
     -- let tau : ℒ.Formula (Fin 1) := tau h₁
