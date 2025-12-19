@@ -9,9 +9,14 @@ variable {α : Type} {L : Language} {n : Nat}
 
 open Sentence
 
-structure ProofSystem (L : Language) (α : Type) (n : Nat) : Type where
-  unary : Set (L.BoundedFormula α n → L.BoundedFormula α n)
-  binary : Set (L.BoundedFormula α n → L.BoundedFormula α n  → L.BoundedFormula α n)
+inductive ProofTree (L : Language) where
+| nil : ProofTree L
+| ax : L.Sentence → ProofTree L
+| node {α} : ProofTree L → ProofTree L → L.Formula α → ProofTree L
+
+structure ProofSystem (L : Language) : Type _ where
+  axs : L.Theory → ProofTree L
+  inference_rules : Set (ProofTree L → ProofTree L → ProofTree L)
 
 @[simp]
 def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
@@ -28,13 +33,10 @@ def BoundedFormula.to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.Bound
 | _, .all φ => .all φ.to_alpha
 
 open BoundedFormula
-inductive Proof : (Th : Set (L.BoundedFormula α n)) → (s : @ProofSystem L α n) →  L.BoundedFormula α n → Type _
-| ax {Th s} (φ : L.BoundedFormula α n) (h : φ ∈ Th) : Proof Th s φ
-| un {Th s ψ φ} {r : L.BoundedFormula α n → L.BoundedFormula α n} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
-| bi {Th s ψ₁ ψ₂ φ} {r : L.BoundedFormula α n → L.BoundedFormula α n → L.BoundedFormula α n} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
-variable {L : Language}{α : Type}{n : Nat}{s : @ProofSystem L α n}{Th : Set (L.BoundedFormula α n)}
-def Proof.nr_axioms {φ : L.BoundedFormula α n} : Proof Th s φ → Nat
+
+variable {L : Language}{s : ProofSystem L}
+def Proof.nr_axioms : ProofTree L → Nat
 | .ax _ _ => 1
 | .un p _ _ => p.nr_axioms
 | .bi p₁ p₂ _ _ => p₁.nr_axioms + p₂.nr_axioms
@@ -42,7 +44,7 @@ def Proof.nr_axioms {φ : L.BoundedFormula α n} : Proof Th s φ → Nat
 namespace ProofSystem
 variable {α : Type}
 def Provable (Th : Set (L.BoundedFormula α n)) (s : @ProofSystem L α n) (φ : L.BoundedFormula α n) : Prop :=
-  Nonempty (Proof Th s φ)
+  Nonempty (ProofTree Th s φ)
 notation Th " ⊢("s") " φ => Provable Th s φ
 
 def Sound (s : @ProofSystem L α 0) : Prop :=

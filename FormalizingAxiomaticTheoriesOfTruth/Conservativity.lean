@@ -48,7 +48,7 @@ namespace Conservativity
 
   variable {Th : ℒₜ.Theory}{s : @ProofSystem ℒₜ α 0}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
   @[simp]
-  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @Proof α ℒₜ 0 (to_alpha '' Th) s φ) → List (ℒₜ.Sentence)
+  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @ProofTree α ℒₜ 0 (to_alpha '' Th) s φ) → List (ℒₜ.Sentence)
   | .ax φ h₁ => if th : ∃ψ,∃h, φ = (TB.tarski_biconditional ψ h).to_alpha
     then
     [th.choose]
@@ -66,7 +66,7 @@ namespace Conservativity
 
   open Proof
   @[simp]
-  noncomputable def tau {φ : ℒₜ.Formula α} : Proof (to_alpha '' Th) s φ → ℒₜ.Formula (Fin 1) :=
+  noncomputable def tau {φ : ℒₜ.Formula α} : ProofTree (to_alpha '' Th) s φ → ℒₜ.Formula (Fin 1) :=
     fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
 
 end Conservativity
@@ -120,7 +120,7 @@ end Conservativity
       sorry
     | _ => sorry
 
-  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof (to_alpha '' Th) s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
+  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : ProofTree (to_alpha '' Th) s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
     intro M
@@ -372,8 +372,11 @@ end Conservativity
   3. Return a proof a the induction schema with a tau replacement of the T's, from the proof that the individual formula contains no T's and the induction schema does not add any T's (for that make lem₆ biconditional rather than the current conditional).
   --/
 
-  def proof_tb_to_proof_pa {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}{φ₁ : ℒₜ.Formula Nat}{φ₂ : ℒₜ.Formula Nat}{φ₃ : ℒₜ.Formula Nat}{h₁ : ¬ contains_T φ₁} (reference_p : Proof (to_alpha '' 𝐓𝐁) p φ₁)(h₁ : ¬ contains_T φ₁) : Proof (to_alpha '' 𝐓𝐁) p φ₂ → Proof (to_alpha '' 𝐏𝐀) p φ₃
-  | .ax φ₂ h₂ => sorry
+  def proof_tb_to_proof_pa {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}{φ₁ : ℒₜ.Formula Nat}{φ₂ : ℒₜ.Formula Nat}{φ₃ : ℒₜ.Formula Nat}{h₁ : ¬ contains_T φ₁} (reference_p : ProofTree (to_alpha '' 𝐓𝐁) p φ₁)(h₁ : ¬ contains_T φ₁) : ProofTree (to_alpha '' 𝐓𝐁) p φ₂ → ProofTree (to_alpha '' 𝐏𝐀) p φ₃
+  | .ax φ₂ h₂ =>
+    match h₂ with
+    | .intro f g => sorry
+
   | _ => sorry
 
   lemma provable_tb_to_provable_pa  {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}(φ : ℒₜ.Formula Nat)(h₁ : ¬ contains_T φ): ((to_alpha '' 𝐓𝐁) ⊢(p) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p) (φ) := by
@@ -476,7 +479,7 @@ end Conservativity
 
   theorem conservativity_tb_pa {p₁ : @ProofSystem ℒₜ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
     intro φ h₁
-    have tb_proof : Proof (to_alpha '' 𝐓𝐁) p₂ (φ) := by
+    have tb_proof : ProofTree (to_alpha '' 𝐓𝐁) p₂ (φ) := by
       unfold Complete at complete₂
       #check complete₂ φ
       apply Classical.choice
