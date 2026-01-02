@@ -9,58 +9,49 @@ variable {α : Type} {L : Language} {n : Nat}
 
 open Sentence
 
-/-
-↓ gestript, want beperkingen moeten in het proofsystem zelf worden gedefinieerd.
-Misschien is een structure beter? Maar dan definieer je niet tegelijk Proof, dus
-niet helemaal duidelijk hoe dat zou werken.
--/
-variable {L : Language}
-abbrev Sequent := (Finset (L.Sentence ⊕ L.Formula α) × Finset (L.Sentence ⊕ L.Formula α))
-
-structure ProofSystem where
- rules : Set (Sequent (L := L) (α := α) → Sequent (L := L) (α := α) → Sequent (L := L) (α := α))
-
-variable [DecidableEq (L.Sentence ⊕ Formula L α)]
-inductive Derivation : L.Theory → ProofSystem → Finset (L.Sentence ⊕ L.Formula α) → Finset (L.Sentence ⊕ L.Formula α) → Type _
-| nil {Th ps} : Derivation Th ps ∅ ∅
-| node {Th ps Γ₁ Δ₁ Γ₂ Δ₂ Γ₃ Δ₃} : Derivation Th ps Γ₁ Δ₁ → Derivation Th ps Γ₂ Δ₂ → (∃r ∈ ps.rules, (r ⟨Γ₁,Δ₁⟩ ⟨Γ₂,Δ₂⟩) = ⟨Γ₃,Δ₃⟩) → Derivation Th ps Γ₃ Δ₃
-
-/-
-Perhaps specific proof systems can be indicated with classes of proofs.
--/
-
--- @[simp]
--- def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
--- | .var (.inl v) => by contradiction
--- | .var (.inr v) => .var (.inr v)
--- | .func f ts => .func f (fun i => .to_alpha (ts i))
-
--- @[simp]
--- def BoundedFormula.to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
--- | _, .falsum => .falsum
--- | _, .equal t₁ t₂ => .equal t₁.to_alpha t₂.to_alpha
--- | _, .rel r ts => .rel r (fun i => (ts i).to_alpha)
--- | _, .imp φ₁ φ₂ => .imp φ₁.to_alpha φ₂.to_alpha
--- | _, .all φ => .all φ.to_alpha
-
--- open BoundedFormula
+inductive ProofTree (L : Language) where
+| nil : ProofTree L
+| ax : L.Sentence → ProofTree L
+| node {α} : ProofTree L → ProofTree L → L.Formula α → ProofTree L
 
 
--- variable {L : Language}{s : ProofSystem L}
--- def ProofTree.nr_axioms : ProofTree L → Nat
--- | .nil => 0
--- | .ax _ => 1
--- | .node p₁ p₂ _ => p₁.nr_axioms + p₂.nr_axioms
+structure ProofSystem (L : Language) : Type _ where
+  axs : L.Theory → ProofTree L
+  inference_rules : Set (ProofTree L → ProofTree L → ProofTree L)
 
-namespace Proof
-def Provable (Th : L.Theory) (ps : ProofSystem (L := L) (α := α)) (φ : (L.Sentence ⊕ L.Formula α)) : Prop :=
-  ∃Γ Δ, ∃_ : Derivation Th ps Γ Δ, φ ∈ Δ
-notation Th "⊢("ps")" φ => Provable Th ps φ
-def Sound (ps : ProofSystem (L := L) (α := α)) : Prop :=
-  ∀Th,∀φ : L.Sentence,∀ψ : L.Formula α, ((Th ⊢(ps) .inl φ) → (Th ⊨ᵇ φ)) ∧ ((Th ⊢(ps) .inr ψ) → (Th ⊨ᵇ ψ))
-def Complete (ps : ProofSystem (L := L) (α := α)) : Prop :=
-  ∀Th,∀φ : L.Sentence,∀ψ : L.Formula α, ((Th ⊨ᵇ φ) → (Th ⊢(ps) .inl φ)) ∧ ((Th ⊨ᵇ ψ) → (Th ⊢(ps) .inr ψ))
-end Proof
+@[simp]
+def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
+| .var (.inl v) => by contradiction
+| .var (.inr v) => .var (.inr v)
+| .func f ts => .func f (fun i => .to_alpha (ts i))
+
+@[simp]
+def BoundedFormula.to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
+| _, .falsum => .falsum
+| _, .equal t₁ t₂ => .equal t₁.to_alpha t₂.to_alpha
+| _, .rel r ts => .rel r (fun i => (ts i).to_alpha)
+| _, .imp φ₁ φ₂ => .imp φ₁.to_alpha φ₂.to_alpha
+| _, .all φ => .all φ.to_alpha
+
+open BoundedFormula
+
+
+variable {L : Language}{s : ProofSystem L}
+def Proof.nr_axioms : ProofTree L → Nat
+| .ax _ _ => 1
+| .un p _ _ => p.nr_axioms
+| .bi p₁ p₂ _ _ => p₁.nr_axioms + p₂.nr_axioms
+
+namespace ProofSystem
+variable {α : Type}
+def Provable (Th : Set (L.BoundedFormula α n)) (s : @ProofSystem L α n) (φ : L.BoundedFormula α n) : Prop :=
+  Nonempty (ProofTree Th s φ)
+notation Th " ⊢("s") " φ => Provable Th s φ
+
+def Sound (s : @ProofSystem L α 0) : Prop :=
+  ∀φ : L.Formula α, ∀Th, ((to_alpha '' Th) ⊢(s) φ) → (Th ⊨ᵇ φ)
+def Complete (s : @ProofSystem L α 0) : Prop :=
+  ∀φ : L.Formula α, ∀Th, (Th ⊨ᵇ φ) → ((to_alpha '' Th) ⊢(s) φ)
 
 open Theory BoundedFormula
 
@@ -83,73 +74,73 @@ open Theory BoundedFormula
 --   -- right
 --   apply h₁.choose_spec.right
 
--- lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem L α 0, s.Sound → (∀r ∈ s.unary,∀φ ψ, ((to_alpha '' Th) ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
---   intro Th s
---   contrapose
---   intro h₁
---   simp at h₁
---   let r : L.Formula α → L.Formula α := h₁.choose
---   let φ : L.Formula α := h₁.choose_spec.right.choose
---   have provable_φ : (to_alpha '' Th) ⊢(s) φ := by
---     apply h₁.choose_spec.right.choose_spec.left
---   unfold Provable at provable_φ
---   apply Classical.ofNonempty at provable_φ
---   have r_in_unary : r ∈ s.unary := by
---     apply h₁.choose_spec.left
---   have provable : (to_alpha '' Th) ⊢(s) r φ := by
---     unfold Provable
---     apply Nonempty.intro
---     apply Proof.un
---     apply provable_φ
---     apply r_in_unary
---     rfl
---   unfold Sound
---   simp
---   apply Exists.intro (r φ)
---   apply Exists.intro Th
---   apply And.intro
---   -- left
---   exact provable
---   -- right
---   apply h₁.choose_spec.right.choose_spec.right
+lemma sound_system_sound_un : ∀Th : L.Theory, ∀s : @ProofSystem L α 0, s.Sound → (∀r ∈ s.unary,∀φ ψ, ((to_alpha '' Th) ⊢(s) φ) → r φ = ψ → Th ⊨ᵇ ψ) := by
+  intro Th s
+  contrapose
+  intro h₁
+  simp at h₁
+  let r : L.Formula α → L.Formula α := h₁.choose
+  let φ : L.Formula α := h₁.choose_spec.right.choose
+  have provable_φ : (to_alpha '' Th) ⊢(s) φ := by
+    apply h₁.choose_spec.right.choose_spec.left
+  unfold Provable at provable_φ
+  apply Classical.ofNonempty at provable_φ
+  have r_in_unary : r ∈ s.unary := by
+    apply h₁.choose_spec.left
+  have provable : (to_alpha '' Th) ⊢(s) r φ := by
+    unfold Provable
+    apply Nonempty.intro
+    apply Proof.un
+    apply provable_φ
+    apply r_in_unary
+    rfl
+  unfold Sound
+  simp
+  apply Exists.intro (r φ)
+  apply Exists.intro Th
+  apply And.intro
+  -- left
+  exact provable
+  -- right
+  apply h₁.choose_spec.right.choose_spec.right
 
--- lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem L α 0, s.Sound → (∀r ∈ s.binary,∀φ₁ φ₂ ψ, ((to_alpha '' Th) ⊢(s) φ₁) → ((to_alpha '' Th) ⊢(s) φ₂) → r φ₁ φ₂ = ψ → Th ⊨ᵇ ψ) := by
---   intro Th s
---   contrapose
---   intro h₁
---   simp at h₁
---   unfold Sound
---   simp
---   let r : L.Formula α → L.Formula α → L.Formula α := h₁.choose
---   #check h₁.choose_spec.right.choose
---   let φ₁ : L.Formula α := h₁.choose_spec.right.choose
---   #check h₁.choose_spec.right.choose_spec.right.choose
---   let φ₂ : L.Formula α := h₁.choose_spec.right.choose_spec.right.choose
---   apply Exists.intro
---   apply Exists.intro
---   apply And.intro
---   -- left
---   have φ₁_provable : (to_alpha '' Th) ⊢(s) φ₁ := by
---     apply h₁.choose_spec.right.choose_spec.left
---   apply Classical.ofNonempty at φ₁_provable
---   have φ₂_provable : (to_alpha '' Th) ⊢(s) φ₂ := by
---     #check h₁.choose_spec.right.choose_spec.right.choose_spec.left
---     apply h₁.choose_spec.right.choose_spec.right.choose_spec.left
---   apply Classical.ofNonempty at φ₂_provable
---   have r_in_bi : r ∈ s.binary := by
---     #check h₁.choose_spec.left
---     apply h₁.choose_spec.left
---   have φ_φ_provable : (to_alpha '' Th) ⊢(s) r φ₁ φ₂ := by
---     unfold Provable
---     apply Nonempty.intro
---     apply Proof.bi
---     apply φ₁_provable
---     apply φ₂_provable
---     exact r_in_bi
---     rfl
---   exact φ_φ_provable
---   -- right
---   apply h₁.choose_spec.right.choose_spec.right.choose_spec.right
+lemma sound_system_sound_bi : ∀Th : L.Theory, ∀s : @ProofSystem L α 0, s.Sound → (∀r ∈ s.binary,∀φ₁ φ₂ ψ, ((to_alpha '' Th) ⊢(s) φ₁) → ((to_alpha '' Th) ⊢(s) φ₂) → r φ₁ φ₂ = ψ → Th ⊨ᵇ ψ) := by
+  intro Th s
+  contrapose
+  intro h₁
+  simp at h₁
+  unfold Sound
+  simp
+  let r : L.Formula α → L.Formula α → L.Formula α := h₁.choose
+  #check h₁.choose_spec.right.choose
+  let φ₁ : L.Formula α := h₁.choose_spec.right.choose
+  #check h₁.choose_spec.right.choose_spec.right.choose
+  let φ₂ : L.Formula α := h₁.choose_spec.right.choose_spec.right.choose
+  apply Exists.intro
+  apply Exists.intro
+  apply And.intro
+  -- left
+  have φ₁_provable : (to_alpha '' Th) ⊢(s) φ₁ := by
+    apply h₁.choose_spec.right.choose_spec.left
+  apply Classical.ofNonempty at φ₁_provable
+  have φ₂_provable : (to_alpha '' Th) ⊢(s) φ₂ := by
+    #check h₁.choose_spec.right.choose_spec.right.choose_spec.left
+    apply h₁.choose_spec.right.choose_spec.right.choose_spec.left
+  apply Classical.ofNonempty at φ₂_provable
+  have r_in_bi : r ∈ s.binary := by
+    #check h₁.choose_spec.left
+    apply h₁.choose_spec.left
+  have φ_φ_provable : (to_alpha '' Th) ⊢(s) r φ₁ φ₂ := by
+    unfold Provable
+    apply Nonempty.intro
+    apply Proof.bi
+    apply φ₁_provable
+    apply φ₂_provable
+    exact r_in_bi
+    rfl
+  exact φ_φ_provable
+  -- right
+  apply h₁.choose_spec.right.choose_spec.right.choose_spec.right
 
 -- lemma complete_system_taut_ax : ∀s : @ProofSystem L α 0, s.Complete ∧ s.Sound → (∀φ, {} ⊨ᵇ φ → φ ∈ s.la) := by
 --   intro s h₁ φ
@@ -189,7 +180,9 @@ open Theory BoundedFormula
 --     | _ => sorry
 --   | _ => sorry
 
+end ProofSystem
 
+end FirstOrder.Language
 
 -- namespace Derivations
 -- open Calculus
