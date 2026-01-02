@@ -9,15 +9,25 @@ variable {α : Type} {L : Language} {n : Nat}
 
 open Sentence
 
-/--
+/-
 ↓ gestript, want beperkingen moeten in het proofsystem zelf worden gedefinieerd.
 Misschien is een structure beter? Maar dan definieer je niet tegelijk Proof, dus
 niet helemaal duidelijk hoe dat zou werken.
 -/
-inductive Proof (L : Language) (Th : L.Theory) : Type _
-| nil : Proof L Th
-| ax : (φ : L.Sentence) → (φ ∈ Th) → Proof L Th
-| node {α : Type} : Proof L Th → Proof L Th → L.Formula α → Proof L Th
+variable {L : Language}
+abbrev Sequent := (Finset (L.Sentence ⊕ L.Formula α) × Finset (L.Sentence ⊕ L.Formula α))
+
+structure ProofSystem where
+ rules : Set (Sequent (L := L) (α := α) → Sequent (L := L) (α := α) → Sequent (L := L) (α := α))
+
+variable [DecidableEq (L.Sentence ⊕ Formula L α)]
+inductive Derivation : L.Theory → ProofSystem → Finset (L.Sentence ⊕ L.Formula α) → Finset (L.Sentence ⊕ L.Formula α) → Type _
+| nil {Th ps} : Derivation Th ps ∅ ∅
+| node {Th ps Γ₁ Δ₁ Γ₂ Δ₂ Γ₃ Δ₃} : Derivation Th ps Γ₁ Δ₁ → Derivation Th ps Γ₂ Δ₂ → (∃r ∈ ps.rules, (r ⟨Γ₁,Δ₁⟩ ⟨Γ₂,Δ₂⟩) = ⟨Γ₃,Δ₃⟩) → Derivation Th ps Γ₃ Δ₃
+
+/-
+Perhaps specific proof systems can be indicated with classes of proofs.
+-/
 
 -- @[simp]
 -- def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
@@ -43,14 +53,13 @@ inductive Proof (L : Language) (Th : L.Theory) : Type _
 -- | .node p₁ p₂ _ => p₁.nr_axioms + p₂.nr_axioms
 
 namespace Proof
-variable (Th : L.Theory)
-def Proves (p₁ : Proof L Th) (φ : L.Formula α) : Prop :=
-  ∃p₂ p₃ : Proof L Th, p₁ = Proof.node p₂ p₃ φ
-notation Th "⊢("p")" φ => Proves Th p φ
-def Sound (p : Proof L Th) : Prop :=
-  ∀φ : L.Formula α, (Th ⊢(p) φ) → (Th ⊨ᵇ φ)
-def Complete (p : Proof L Th) : Prop :=
-  ∀φ : L.Formula α, (Th ⊨ᵇ φ) → (Th ⊢(p) φ)
+def Provable (Th : L.Theory) (ps : ProofSystem (L := L) (α := α)) (φ : (L.Sentence ⊕ L.Formula α)) : Prop :=
+  ∃Γ Δ, ∃_ : Derivation Th ps Γ Δ, φ ∈ Δ
+notation Th "⊢("ps")" φ => Provable Th ps φ
+def Sound (ps : ProofSystem (L := L) (α := α)) : Prop :=
+  ∀Th,∀φ : L.Sentence,∀ψ : L.Formula α, ((Th ⊢(ps) .inl φ) → (Th ⊨ᵇ φ)) ∧ ((Th ⊢(ps) .inr ψ) → (Th ⊨ᵇ ψ))
+def Complete (ps : ProofSystem (L := L) (α := α)) : Prop :=
+  ∀Th,∀φ : L.Sentence,∀ψ : L.Formula α, ((Th ⊨ᵇ φ) → (Th ⊢(ps) .inl φ)) ∧ ((Th ⊨ᵇ ψ) → (Th ⊢(ps) .inr ψ))
 end Proof
 
 open Theory BoundedFormula
