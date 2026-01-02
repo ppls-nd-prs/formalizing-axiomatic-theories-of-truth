@@ -46,16 +46,17 @@ namespace Conservativity
   instance : Coe (ℒₜ.Sentence) (ℒₜ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
-  variable {Th : ℒₜ.Theory}{s : @ProofSystem ℒₜ α 0}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
+  variable {Th : ℒₜ.Theory}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
   @[simp]
-  noncomputable def get_disq_φs {φ : ℒₜ.Formula α} : (p : @ProofTree α ℒₜ 0 (to_alpha '' Th) s φ) → List (ℒₜ.Sentence)
-  | .ax φ h₁ => if th : ∃ψ,∃h, φ = (TB.tarski_biconditional ψ h).to_alpha
+  noncomputable def get_disq_φs : (d : Derivation Th ps Γ Δ) → List (ℒₜ.Sentence)
+  | .nil => []
+  | .ax φ _ => if th : ∃ψ,∃h, φ = (TB.tarski_biconditional ψ h)
     then
     [th.choose]
     else
     []
-  | .un p _ h₁ => get_disq_φs p
-  | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
+  | .node p₁ p₂ _ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
+
 
   variable [Encodable (ℒₜ.Formula (Fin 1))]
   -- instance : Coe (ℒₜ.Sentence) (ℒₜ.Formula (Fin 1)) where
@@ -66,7 +67,7 @@ namespace Conservativity
 
   open Proof
   @[simp]
-  noncomputable def tau {φ : ℒₜ.Formula α} : ProofTree (to_alpha '' Th) s φ → ℒₜ.Formula (Fin 1) :=
+  noncomputable def tau : Proof ℒₜ Th → ℒₜ.Formula (Fin 1) :=
     fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
 
 end Conservativity
@@ -84,8 +85,8 @@ end Conservativity
       rw[ih]
 
   namespace Conservativity
-  open L_T ProofSystem
-  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]{s : @ProofSystem ℒₜ α 0}
+  open L_T
+  variable {L : Language}{Th : ℒₜ.Theory}{α : Type}{n : Nat}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]{s : Proof ℒₜ Th}
 
   variable {M β γ δ: Type}{n : Nat}[ℒₜ.Structure M]{t : β → ↑M}{v : (β ⊕ δ) → ↑M}[Encodable (ℒₜ.BoundedFormula γ n)]
 
@@ -105,22 +106,22 @@ end Conservativity
     | succ n ih =>
       simp[ih]
 
-  lemma lem3 : ∀n : Nat, ∀φ: ℒₜ.BoundedFormula Empty n, 𝐏𝐀 ⊨ᵇ (φ.to_alpha : ℒₜ.BoundedFormula (Fin 1) n) → 𝐏𝐀 ⊨ᵇ φ := by
-    intro n φ h M v xs
-    have realization := by
-      exact h M
+  -- lemma lem3 : ∀n : Nat, ∀φ: ℒₜ.BoundedFormula Empty n, 𝐏𝐀 ⊨ᵇ (φ : ℒₜ.BoundedFormula (Fin 1) n) → 𝐏𝐀 ⊨ᵇ φ := by
+  --   intro n φ h M v xs
+  --   have realization := by
+  --     exact h M
 
-    induction φ with
-    | falsum =>
-
-
+  --   induction φ with
+  --   | falsum =>
 
 
 
-      sorry
-    | _ => sorry
 
-  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : ProofTree (to_alpha '' Th) s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
+
+  --     sorry
+  --   | _ => sorry
+
+  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof ℒₜ Th, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
     intro M
@@ -219,35 +220,35 @@ end Conservativity
     intro φ h
     exact h.choose
 
-  lemma lem4 : ∀n,∀φ,∀Th: Set (ℒₜ.BoundedFormula Empty n), φ ∈ Th → (@to_alpha ℕ _ _ φ) ∈ (to_alpha '' Th) := by
-    intro n φ Th h₁
-    simp
-    induction φ with
-    | falsum =>
-      apply Exists.intro
-      apply And.intro
-      exact h₁
-      rfl
-    | equal t₁ t₂ =>
-      apply Exists.intro
-      apply And.intro
-      exact h₁
-      rfl
-    | rel R ts =>
-      apply Exists.intro
-      apply And.intro
-      exact h₁
-      rfl
-    | imp φ₁ φ₂ ih₁ ih₂ =>
-      apply Exists.intro
-      apply And.intro
-      exact h₁
-      rfl
-    | all φ ih =>
-      apply Exists.intro
-      apply And.intro
-      exact h₁
-      rfl
+  -- lemma lem4 : ∀n,∀φ,∀Th: Set (ℒₜ.BoundedFormula Empty n), φ ∈ Th → (@to_alpha ℕ _ _ φ) ∈ (to_alpha '' Th) := by
+  --   intro n φ Th h₁
+  --   simp
+  --   induction φ with
+  --   | falsum =>
+  --     apply Exists.intro
+  --     apply And.intro
+  --     exact h₁
+  --     rfl
+  --   | equal t₁ t₂ =>
+  --     apply Exists.intro
+  --     apply And.intro
+  --     exact h₁
+  --     rfl
+  --   | rel R ts =>
+  --     apply Exists.intro
+  --     apply And.intro
+  --     exact h₁
+  --     rfl
+  --   | imp φ₁ φ₂ ih₁ ih₂ =>
+  --     apply Exists.intro
+  --     apply And.intro
+  --     exact h₁
+  --     rfl
+  --   | all φ ih =>
+  --     apply Exists.intro
+  --     apply And.intro
+  --     exact h₁
+  --     rfl
 
   #check BoundedFormula.subst
 
@@ -295,63 +296,62 @@ end Conservativity
     intro h₁
     exact h₁
 
-  lemma lem₈ {n} {ψ : ℒₜ.BoundedFormula Empty n} : contains_T ψ ↔ (contains_T (ψ.to_alpha : ℒₜ.BoundedFormula α n)) := by
-    apply Iff.intro
-    --mp
-    intro h
+  -- lemma lem₈ {n} {ψ : ℒₜ.BoundedFormula Empty n} : contains_T ψ ↔ (contains_T (ψ : ℒₜ.BoundedFormula α n)) := by
+  --   apply Iff.intro
+  --   --mp
+  --   intro h
 
-    induction ψ with
-    | rel R ts =>
-      cases R
-      simp only [to_alpha]
-      exact h
-    | imp f₁ f₂ ih₁ ih₂ =>
-      simp only [to_alpha,contains_T]
-      simp only [contains_T] at h
-      cases h with
-      | inl h =>
-        apply ih₁ at h
-        apply Or.intro_left
-        exact h
-      | inr h =>
-        apply ih₂ at h
-        apply Or.intro_right
-        exact h
-    | all f₁ ih₁ =>
-      simp only [to_alpha,contains_T]
-      simp only [contains_T] at h
-      apply ih₁ at h
-      exact h
-    | _ =>
-      cases h
+  --   induction ψ with
+  --   | rel R ts =>
+  --     cases R
+  --     exact h
+  --   | imp f₁ f₂ ih₁ ih₂ =>
+  --     simp only [contains_T]
+  --     simp only [contains_T] at h
+  --     cases h with
+  --     | inl h =>
+  --       apply ih₁ at h
+  --       apply Or.intro_left
+  --       exact h
+  --     | inr h =>
+  --       apply ih₂ at h
+  --       apply Or.intro_right
+  --       exact h
+  --   | all f₁ ih₁ =>
+  --     simp only [to_alpha,contains_T]
+  --     simp only [contains_T] at h
+  --     apply ih₁ at h
+  --     exact h
+  --   | _ =>
+  --     cases h
 
-    --mpr
-    intro h
+  --   --mpr
+  --   intro h
 
-    induction ψ with
-    | rel R ts =>
-      cases R
-      simp only [to_alpha] at h
-      exact h
-    | imp f₁ f₂ ih₁ ih₂ =>
-      simp only [to_alpha,contains_T] at h
-      simp only [contains_T]
-      cases h with
-      | inl h =>
-        apply ih₁ at h
-        apply Or.intro_left
-        exact h
-      | inr h =>
-        apply ih₂ at h
-        apply Or.intro_right
-        exact h
-    | all f₁ ih₁ =>
-      simp only [to_alpha,contains_T] at h
-      simp only [contains_T]
-      apply ih₁ at h
-      exact h
-    | _ =>
-      cases h
+  --   induction ψ with
+  --   | rel R ts =>
+  --     cases R
+  --     simp only [to_alpha] at h
+  --     exact h
+  --   | imp f₁ f₂ ih₁ ih₂ =>
+  --     simp only [to_alpha,contains_T] at h
+  --     simp only [contains_T]
+  --     cases h with
+  --     | inl h =>
+  --       apply ih₁ at h
+  --       apply Or.intro_left
+  --       exact h
+  --     | inr h =>
+  --       apply ih₂ at h
+  --       apply Or.intro_right
+  --       exact h
+  --   | all f₁ ih₁ =>
+  --     simp only [to_alpha,contains_T] at h
+  --     simp only [contains_T]
+  --     apply ih₁ at h
+  --     exact h
+  --   | _ =>
+  --     cases h
 
   lemma lem₉ {n} {φ : ℒₜ.BoundedFormula Empty n} {h : ¬ contains_T φ} : contains_T (TB.tarski_biconditional φ h) := by
     simp only [TB.tarski_biconditional,contains_T,BoundedFormula.iff]
@@ -360,7 +360,7 @@ end Conservativity
     apply Or.intro_left
     apply True.intro
 
-  /-- ↓ Write the translation function. The thing is that not all translations have to start with
+  /- ↓ Write the translation function. The thing is that not all translations have to start with
   a formula that should not contain a T-predicate. There should only be a reference proof on
   which the tau will be based, but that one has furthermore rather little to do with
   the translation currently taking place.
@@ -370,16 +370,18 @@ end Conservativity
   1. Construct the proof that there exists a PA proof of all tau equivalences from the semantic proof 'tau_equivalence'.
   2. Return the tau_equivalences in the case of tb axioms.
   3. Return a proof a the induction schema with a tau replacement of the T's, from the proof that the individual formula contains no T's and the induction schema does not add any T's (for that make lem₆ biconditional rather than the current conditional).
-  --/
+  -/
 
-  def proof_tb_to_proof_pa {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}{φ₁ : ℒₜ.Formula Nat}{φ₂ : ℒₜ.Formula Nat}{φ₃ : ℒₜ.Formula Nat}{h₁ : ¬ contains_T φ₁} (reference_p : ProofTree (to_alpha '' 𝐓𝐁) p φ₁)(h₁ : ¬ contains_T φ₁) : ProofTree (to_alpha '' 𝐓𝐁) p φ₂ → ProofTree (to_alpha '' 𝐏𝐀) p φ₃
-  | .ax φ₂ h₂ =>
-    match h₂ with
-    | .intro f g => sorry
+open Proof
+  def proof_tb_to_proof_pa {p : Proof ℒₜ Th}{sound : p.Sound (α := Nat)}{complete : p.Complete (α := Nat)}{φ₁ : ℒₜ.Sentence}{h₁ : ¬ contains_T φ₁}{h₂ : Th ⊢(p) φ₁} : Proof ℒₜ 𝐓𝐁 → Proof ℒₜ 𝐏𝐀
+  | .ax φ₂ h₂ => by
+
+
+    sorry
 
   | _ => sorry
 
-  lemma provable_tb_to_provable_pa  {p : @ProofSystem ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}(φ : ℒₜ.Formula Nat)(h₁ : ¬ contains_T φ): ((to_alpha '' 𝐓𝐁) ⊢(p) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p) (φ) := by
+  lemma provable_tb_to_provable_pa  {p : @Proof ℒₜ Nat 0}{sound : p.Sound}{complete : p.Complete}(φ : ℒₜ.Formula Nat)(h₁ : ¬ contains_T φ): ((to_alpha '' 𝐓𝐁) ⊢(p) (φ)) → (to_alpha '' 𝐏𝐀) ⊢(p) (φ) := by
     intro h₂
     apply Classical.choice at h₂
     -- let tau : ℒₜ.Formula (Fin 1) := tau h₂
@@ -477,7 +479,7 @@ end Conservativity
     --   --   | inr h₃ => sorry
     -- | _ => sorry
 
-  theorem conservativity_tb_pa {p₁ : @ProofSystem ℒₜ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
+  theorem conservativity_tb_pa {p₁ : @Proof ℒₜ Nat 0}{p₂ : @Proof ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
     intro φ h₁
     have tb_proof : ProofTree (to_alpha '' 𝐓𝐁) p₂ (φ) := by
       unfold Complete at complete₂
