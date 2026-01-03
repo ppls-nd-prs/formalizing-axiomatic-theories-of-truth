@@ -7,12 +7,11 @@ open FirstOrder
 open Language
 open BoundedFormula
 open Languages
-open LPA
 open Induction
 
 namespace Conservativity
-  open Languages LPA L_T FirstOrder.Language.BoundedFormula
-  variable {α : Type}{n : Nat}
+  open Languages L_T FirstOrder.Language.BoundedFormula
+  variable {α β : Type}{n : Nat}
   @[simp]
   def subs_t : {n : ℕ} →  ({m : Nat} → {β : Type} → ℒₜ.Term (β ⊕ Fin m) → ℒₜ.BoundedFormula β m) → ℒₜ.BoundedFormula α n → ℒₜ.BoundedFormula α n
   | _, _, .falsum  => .falsum
@@ -43,12 +42,10 @@ namespace Conservativity
 
   open BoundedFormula Classical
   variable {L : Language}{m : Nat}
-  instance : Coe (ℒₜ.Sentence) (ℒₜ.BoundedFormula (Fin 1) n) where
-  coe := relabel (fun _ => (.inl 0))
 
-  variable {Th : ℒₜ.Theory}{s : ProofSystem (L := ℒₜ) (α := α)}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
+  variable {Th : }{s : @ProofSystem α β ℒₜ n}[∀n,∀α, Encodable (ℒₜ.BoundedFormula α n)]
   @[simp]
-  noncomputable def get_disq_φs {φ : Fml} : (p : Proof Th s φ) → List (ℒₜ.Sentence)
+  noncomputable def get_disq_φs {φ : Fml} : (p : Proof Th s φ) → List (ℒₜ.BoundedFormula α n)
   | .ax φ h₁ => if th : ∃ψ,∃h, φ = (TB.tarski_biconditional ψ h)
     then
     [th.choose]
@@ -58,16 +55,16 @@ namespace Conservativity
   | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
   variable [Encodable (ℒₜ.Formula (Fin 1))]
-  -- instance : Coe (ℒₜ.Sentence) (ℒₜ.Formula (Fin 1)) where
-  -- coe := to_alpha
+  -- instance : Coe (ℒₜ.Sentence) (ℒₜ.BoundedFormula α n) where
+  -- coe := .to_alpha
 
   @[simp]
-  def make_tau_equivs (s : ℒₜ.Sentence) : ℒₜ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
+  def make_tau_equiv (s : ℒₜ.BoundedFormula α n) (t : ℒₜ.Term (α ⊕ Fin n)) : ℒₜ.BoundedFormula α n := t =' ⌜s⌝ ⊓ s
 
   open Proof
   @[simp]
-  noncomputable def tau {φ : Fml} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
-    fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
+  noncomputable def tau {φ : Fml} : @Proof Empty β ℒₜ 0 Th φ s → ℒₜ.Term (α ⊕ Fin n) → ℒₜ.BoundedFormula α n :=
+    fun p => fun t => BoundedFormula.iSup ((get_disq_φs p).map (fun s => make_tau_equiv s t)).get
 
 end Conservativity
 
@@ -119,8 +116,8 @@ end Conservativity
 
   --     sorry
   --   | _ => sorry
-
-  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s (.inr ψ), ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
+variable [∀α,∀n, Encodable (ℒₜ.BoundedFormula α n)]
+  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s (.inr ψ), ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p) (⌜φ⌝) ⇔ φ : ℒₜ.Sentence) := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
     intro M
@@ -128,15 +125,18 @@ end Conservativity
     apply Iff.intro
     -- mp
     intro h₂
-    have realizable : ↑M ⊨ subst (tau p) ![⌜φ⌝] := by
+    have realizable : ↑M ⊨ (tau p) (⌜φ⌝) := by
       exact h₂
     unfold Sentence.Realize Formula.Realize at realizable
-    apply realize_subst.mp at realizable
+    unfold tau at realizable
+    -- apply realize_subst.mp at realizable
     apply realize_iSup.mp at realizable
+
     have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
       apply List.mem_iff_get.mp
       exact h₁
-    let realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒₜ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
+
+    let realization : ((List.map (fun s ↦ make_tau_equiv s ⌜φ⌝) (get_disq_φs p)).get realizable.choose).Realize default default := by
       exact realizable.choose_spec
 
     rw[List.get_eq_getElem] at realization
@@ -145,15 +145,9 @@ end Conservativity
     if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
       rw[h₄] at realization
       simp at realization
-      apply And.right at realization
-
-      rw[Unique.default_eq]
-      rw[Unique.default_eq]
-
       exact realization
-
     else
-      simp only [make_tau_equivs,realize_inf] at realization
+      simp only [make_tau_equiv,realize_inf] at realization
       apply And.left at realization
 
       simp at realization
@@ -171,29 +165,31 @@ end Conservativity
 
       apply realize_not.mp at step1
       simp[realize_bdEqual _ _] at step1
+
       -- we hebben hier peano_arithmetic regels nodig
-      rw[lem1] at realization
-      simp[lem2] at realization
+      simp[lem1] at realization
+      -- simp[lem2] at realization
       rw[lem1] at step1
       simp[lem2] at step1
       symm at realization
       apply step1 at realization
       contradiction
 
-    --mpr
+    -- mpr
     intro h₂
-    apply realize_subst.mpr; apply realize_iSup.mpr
+    unfold tau
+    apply realize_iSup.mpr
     have ext : ∃ n, (get_disq_φs p).get n = φ := by
       apply List.mem_iff_get.mp h₁
 
     let n : Fin (get_disq_φs p).length := ext.choose
-    let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
+    let m : Fin ((get_disq_φs p).map (fun s => make_tau_equiv s ⌜φ⌝)).length := by
       rw[List.length_map]
       exact n
 
     apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
 
-    have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
+    have m_val_eq_n_val : @Fin.val (List.map (fun s => make_tau_equiv s ⌜φ⌝) (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
       simp[m,Fin.cast_eq_cast']
     simp only [m_val_eq_n_val]
     have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
@@ -202,11 +198,101 @@ end Conservativity
 
     -- left
     apply (realize_bdEqual _ _).mpr; simp
-    rw[num_all_v ((Sum.elim (fun a ↦ Term.realize _ ⌜φ⌝) _)) _]
     --right
-    simp
+
     rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
+    rw[Unique.default_eq]
     exact h₂
+
+
+
+
+
+    -- have realizable : ↑M ⊨ (tau p) (⌜φ⌝) := by
+    --   exact h₂
+    -- unfold Sentence.Realize Formula.Realize at realizable
+    -- unfold tau at realizable
+    -- -- apply realize_subst.mp at realizable
+    -- apply realize_iSup.mp at realizable
+
+    -- have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
+    --   apply List.mem_iff_get.mp
+    --   exact h₁
+
+    -- let realization : ((List.map (fun s ↦ make_tau_equiv s ⌜φ⌝) (get_disq_φs p)).get realizable.choose).Realize default default := by
+    --   exact realizable.choose_spec
+
+    -- rw[List.get_eq_getElem] at realization
+    -- rw[List.getElem_map] at realization
+
+
+    -- if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
+    --   rw[h₄] at realization
+    --   simp at realization
+
+    --   apply And.right at realization
+
+    --   rw[Unique.default_eq]
+    --   rw[Unique.default_eq]
+
+    --   exact realization
+
+    -- else
+    --   simp only [make_tau_equivs,realize_inf] at realization
+    --   apply And.left at realization
+
+    --   simp at realization
+
+    --   -- iets met injectief (bewezen in syntax voor ℒ)
+    --   -- de sleutel is dat de realization moet kloppen in elke M,
+    --   -- dus ook in die waar het de interpretatie van getallen krijgt
+    --   -- we moeten bewijzen dat Nat een ∅.ModelType is
+
+    --   simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
+
+    --   have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒₜ.Sentence) := by
+    --     apply PA.all_fs
+    --     exact h₄
+
+    --   apply realize_not.mp at step1
+    --   simp[realize_bdEqual _ _] at step1
+    --   -- we hebben hier peano_arithmetic regels nodig
+    --   rw[lem1] at realization
+    --   simp[lem2] at realization
+    --   rw[lem1] at step1
+    --   simp[lem2] at step1
+    --   symm at realization
+    --   apply step1 at realization
+    --   contradiction
+
+    -- --mpr
+    -- intro h₂
+    -- apply realize_subst.mpr; apply realize_iSup.mpr
+    -- have ext : ∃ n, (get_disq_φs p).get n = φ := by
+    --   apply List.mem_iff_get.mp h₁
+
+    -- let n : Fin (get_disq_φs p).length := ext.choose
+    -- let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
+    --   rw[List.length_map]
+    --   exact n
+    --   exact 0
+
+    -- apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
+
+    -- have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
+    --   simp[m,Fin.cast_eq_cast']
+    -- simp only [m_val_eq_n_val]
+    -- have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
+    --   apply ext.choose_spec
+    -- rw[is_phi]; apply BoundedFormula.realize_inf.mpr; apply And.intro
+
+    -- -- left
+    -- apply (realize_bdEqual _ _).mpr; simp
+    -- rw[num_all_v ((Sum.elim (fun a ↦ Term.realize _ ⌜φ⌝) _)) _]
+    -- --right
+    -- simp
+    -- rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
+    -- exact h₂
 
   variable {L : Language}
   @[simp]
@@ -377,15 +463,30 @@ end Conservativity
   | .inl a => L_T.contains_T a
   | .inr a => L_T.contains_T a
 
-  def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{φ₁ : Fml}{φ₂ : Fml}{φ₃ : Fml}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₁ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Nonempty (Proof 𝐏𝐀 p φ₃ (α := α)) := by
-  -- something weird is going on here
-  | .ax φ₆ h₂ => by
-    cases h₂ with
-    | first =>
+  /-First, we need the corresponding formula for a TB formula in PA wrt a reference_p-/
+  def replace_T : {n : Nat} → {ps: ProofSystem} → {φ₁ : Fml} → ℒₜ.BoundedFormula α n → (@Proof α β ℒₜ n 𝐓𝐁 ps φ₁) → ℒₜ.BoundedFormula α n
+  | _, _, _, .rel (l := 1) R ts, p_reference =>
+    match R, ts 0 with
+    | .t_symbol, t =>
+      (tau p_reference) t
+  | _, _, _, .imp φ ψ, p_reference => .imp (replace_T φ p_reference) (replace_T ψ p_reference)
+  | _, _, _, .all φ, p_reference => .all (replace_T φ p_reference)
+  | _, _, _, φ, _ => φ
 
-      sorry
-    | _ => sorry
-  | _ => sorry
+  /-Second, we need the prove that all such subsitutions contain no T-predicate-/
+
+  def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{φ₁ : Fml}{φ₂ : Fml}{φ₃ : Fml}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₂ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Proof 𝐏𝐀 p φ₃ (α := α) :=
+  -- something weird is going on here
+  -- | .ax φ₆ h₃ =>
+  --   match h₃ with
+  --   | .first => by
+  --     apply Nonempty.intro
+  --     apply Proof.ax _ (.inl TB.tb.first)
+
+
+  --   | _ => sorry
+  -- | _ => sorry
+    sorry
 
   lemma provable_tb_to_provable_pa  {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}(φ : Fml)(h₁ : ¬ Sum.contains_T φ): (𝐓𝐁 ⊢(p) (φ)) → (Nonempty (Provable 𝐏𝐀 p φ (α := α))) := by
     intro h₂
