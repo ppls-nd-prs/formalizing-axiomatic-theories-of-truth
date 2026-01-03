@@ -150,6 +150,7 @@ namespace TB
     (φ.zero_subst ⊓ ∀'(φ.bf_subst ⟹ φ.bf_succ_subst)) ⟹ ∀'φ.bf_subst
 
   variable [∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
+  @[simp]
   def tarski_biconditional {n} (ψ : ℒₜ.BoundedFormula Empty n) (_ : ¬ contains_T ψ) : ℒₜ.BoundedFormula Empty n := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
   inductive tb : ℒₜ.Theory where
     | first : tb (∀' ∼(null =' S(&0)))

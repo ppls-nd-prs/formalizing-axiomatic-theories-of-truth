@@ -46,14 +46,26 @@ namespace Conservativity
   instance : Coe (ℒₜ.Sentence) (ℒₜ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
-  variable {Th : ℒₜ.Theory}{s : ProofSystem (L := ℒₜ) (α := α)}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
+  variable {Th : ℒₜ.Theory}{s : ProofSystem (L := ℒₜ)}[∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
+
+  example (φ : ℒₜ.Sentence) (h : ¬ contains_T φ) : TB.tarski_biconditional φ h = BoundedFormula.falsum := by
+    unfold TB.tarski_biconditional BoundedFormula.iff min instMin
+    simp
+    unfold BoundedFormula.not
+
+    sorry
+
+
+-- ((rel Rel.t_symbol ![⌜φ⌝] ⟹ φ) ⟹ (φ ⟹ rel Rel.t_symbol ![⌜φ⌝]) ⟹ ⊥) ⟹ ⊥
   @[simp]
-  noncomputable def get_disq_φs {φ : Fml} : (p : Proof Th s φ) → List (ℒₜ.Sentence)
-  | .ax φ h₁ => if th : ∃ψ,∃h, φ = (TB.tarski_biconditional ψ h)
+  noncomputable def get_disq_φs {φ : ℒₜ.Sentence} : (p : Proof Th s φ) → List (ℒₜ.Sentence)
+  | .ax (((rel Rel.t_symbol ts₁ ⟹ φ₁) ⟹ (φ₂ ⟹ rel Rel.t_symbol ts₂) ⟹ ⊥) ⟹ ⊥) h₁ =>
+    if ts₁ = ![⌜φ₁⌝] ∧ ts₁ = ts₂ ∧ φ₁ = φ₂
     then
-    [th.choose]
+    [φ₁]
     else
     []
+  | .ax φ h₁ => []
   | .un p _ h₁ => get_disq_φs p
   | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
@@ -64,7 +76,7 @@ namespace Conservativity
 
   open Proof
   @[simp]
-  noncomputable def tau {φ : Fml} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
+  noncomputable def tau {φ : ℒₜ.Sentence} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
     fun p => Formula.iSup ((get_disq_φs p).map make_tau_equiv).get
 
 end Conservativity
@@ -117,8 +129,9 @@ end Conservativity
 
   --     sorry
   --   | _ => sorry
-variable [∀α, ∀n, Encodable (ℒₜ.BoundedFormula α n)]
-  lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s (.inr ψ), ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
+
+variable [∀α,∀n, Encodable (ℒₜ.BoundedFormula α n)]
+  lemma tau_equivalence : (ψ : ℒₜ.Sentence) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
     intro M
@@ -206,7 +219,7 @@ variable [∀α, ∀n, Encodable (ℒₜ.BoundedFormula α n)]
     rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
     exact h₂
 
-  variable {L : Language}
+variable {L : Language}
   @[simp]
   def bdEqual_iff {t₁ t₂ : L.Term (α ⊕ Fin n)} : t₁ =' t₂ = .equal t₁ t₂ := Eq.refl (t₁ =' t₂)
 
@@ -247,7 +260,6 @@ variable [∀α, ∀n, Encodable (ℒₜ.BoundedFormula α n)]
   --     exact h₁
   --     rfl
 
-  #check BoundedFormula.subst
 
   lemma lem₅ {ψ : ℒₜ.BoundedFormula (Fin 1) n}: contains_T ψ → contains_T ψ.zero_subst := by
     intro h
@@ -377,6 +389,7 @@ variable [∀α, ∀n, Encodable (ℒₜ.BoundedFormula α n)]
 
   variable [∀n, ∀α, Encodable (ℒₜ.BoundedFormula α n)]
   /-First, we need the corresponding formula for a TB formula in PA wrt a reference formula reference_f-/
+  @[simp]
   def replace_T (replace_f : ℒₜ.Formula (Fin 1)): {n : Nat} → ℒₜ.BoundedFormula α n → ℒₜ.BoundedFormula α n
   | n, .rel (l := 1) R ts =>
     match R, ts 0 with
@@ -388,10 +401,133 @@ variable [∀α, ∀n, Encodable (ℒₜ.BoundedFormula α n)]
   | _, .all φ => .all (replace_T replace_f φ)
   | _, φ => φ
 
-  /-Second, we need the prove that using (tau p) as reference_f for all p leads to ¬ contains_T-/
-  example : ∀p,∀φ, ¬ contains_T ((replace_T (tau p) φ) : ℒₜ.Formula α) := by sorry
 
-  def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{φ₁ : Fml}{φ₂ : Fml}{φ₃ : Fml}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₁ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Nonempty (Proof 𝐏𝐀 p φ₃ (α := α))
+/- Secondly, we need the following -/
+  lemma tau_equivalence₂ : (ψ : ℒₜ.Sentence) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (h : ¬ contains_T φ) → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ h) := by
+
+    sorry -- below serves as guidance; it's simply the proof of tau_equivalence
+    -- intro ψ p φ h₁ h₂
+    -- apply Theory.models_sentence_iff.mpr
+    -- intro M
+    -- simp
+    -- apply realize_iff.mpr
+    -- apply Iff.intro
+    -- -- mp
+    -- intro h₃
+    -- have realizable : ↑M ⊨ subst (tau p) ![⌜φ⌝] := by
+    --   exact h₂
+    -- unfold Sentence.Realize Formula.Realize at realizable
+    -- apply realize_subst.mp at realizable
+    -- apply realize_iSup.mp at realizable
+    -- have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
+    --   apply List.mem_iff_get.mp
+    --   exact h₁
+    -- let realization : Realize ((List.map make_tau_equiv (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒₜ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
+    --   exact realizable.choose_spec
+
+    -- rw[List.get_eq_getElem] at realization
+    -- rw[List.getElem_map] at realization
+
+    -- if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
+    --   rw[h₄] at realization
+    --   simp at realization
+    --   apply And.right at realization
+
+    --   rw[Unique.default_eq]
+    --   rw[Unique.default_eq]
+
+    --   exact realization
+
+    -- else
+    --   simp only [make_tau_equiv,realize_inf] at realization
+    --   apply And.left at realization
+
+    --   simp at realization
+
+    --   -- iets met injectief (bewezen in syntax voor ℒ)
+    --   -- de sleutel is dat de realization moet kloppen in elke M,
+    --   -- dus ook in die waar het de interpretatie van getallen krijgt
+    --   -- we moeten bewijzen dat Nat een ∅.ModelType is
+
+    --   simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
+
+    --   have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒₜ.Sentence) := by
+    --     apply PA.all_fs
+    --     exact h₄
+
+    --   apply realize_not.mp at step1
+    --   simp[realize_bdEqual _ _] at step1
+    --   -- we hebben hier peano_arithmetic regels nodig
+    --   rw[lem1] at realization
+    --   simp[lem2] at realization
+    --   rw[lem1] at step1
+    --   simp[lem2] at step1
+    --   symm at realization
+    --   apply step1 at realization
+    --   contradiction
+
+    -- --mpr
+    -- intro h₂
+    -- apply realize_subst.mpr; apply realize_iSup.mpr
+    -- have ext : ∃ n, (get_disq_φs p).get n = φ := by
+    --   apply List.mem_iff_get.mp h₁
+
+    -- let n : Fin (get_disq_φs p).length := ext.choose
+    -- let m : Fin ((get_disq_φs p).map make_tau_equiv).length := by
+    --   rw[List.length_map]
+    --   exact n
+
+    -- apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
+
+    -- have m_val_eq_n_val : @Fin.val (List.map make_tau_equiv (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
+    --   simp[m,Fin.cast_eq_cast']
+    -- simp only [m_val_eq_n_val]
+    -- have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
+    --   apply ext.choose_spec
+    -- rw[is_phi]; apply BoundedFormula.realize_inf.mpr; apply And.intro
+
+    -- -- left
+    -- apply (realize_bdEqual _ _).mpr; simp
+    -- rw[num_all_v ((Sum.elim (fun a ↦ Term.realize _ ⌜φ⌝) _)) _]
+    -- --right
+    -- simp
+    -- rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
+    -- exact h₂
+
+  /-Thirdly, we need the prove that replacing all T's yields a proof in 𝐏𝐀 -/
+  example {ps : ProofSystem} {sound : Sound ps} {complete : Complete ps} {φ₁} : ∀p : Proof 𝐓𝐁 ps φ₁, Nonempty (Proof 𝐏𝐀 ps (replace_T (tau p) φ₁)) := by
+    intro p
+    unfold Sound at sound
+    unfold Complete at complete
+
+    induction p with
+    | ax φ₂ h =>
+      cases h with
+      | bicon φ h =>
+        apply (complete _ _)
+        cases φ with
+        | falsum =>
+          -- we seem to need that ∀φ, ∀p, ¬ contains_T φ → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ), which is slightly different from our current tau_equivalences proof.
+          simp [BoundedFormula.iff]
+
+          sorry
+        | _ => sorry
+
+
+      -- | first =>
+      --   apply (complete _ _)
+      --   simp
+      --   apply Theory.models_sentence_of_mem
+      --   apply And.intro
+      --   -- left
+      --   apply TB.tb.first
+      --   -- right
+      --   simp
+      | _ => sorry
+    | _ => sorry
+
+
+  -- def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₁ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Nonempty (Proof 𝐏𝐀 p φ₃)
   | .ax φ₆ h₂ => by
     cases h₂ with
     | first =>
@@ -400,139 +536,139 @@ variable [∀α, ∀n, Encodable (ℒₜ.BoundedFormula α n)]
     | _ => sorry
   | _ => sorry
 
-  lemma provable_tb_to_provable_pa  {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}(φ : Fml)(h₁ : ¬ Sum.contains_T φ): (𝐓𝐁 ⊢(p) (φ)) → (Nonempty (Provable 𝐏𝐀 p φ (α := α))) := by
-    intro h₂
-    apply Classical.choice at h₂
-    -- let tau : ℒₜ.Formula (Fin 1) := tau h₂
-    induction h₂ with
-    | ax ψ h₃ =>
-      have step12 : ψ ∈ 𝐓𝐁 := h₃
-      apply Nonempty.intro
-      have step2 : ψ ∈ 𝐏𝐀 := by
-        cases h₃ with
-        | induction ψ₂ =>
-          simp at h₁
-          unfold PA.pa
-          apply And.intro
-          apply TB.tb.induction ψ₂
-          exact h₁
-        | bicon φ₂ h₂ =>
-          have step1 : contains_T (TB.tarski_biconditional φ₂ h₂) := by
-            exact lem₉
-          contradiction
-        | _ =>
-          unfold PA.pa
-          apply And.intro
-          exact step12
-          simp only [Sum.contains_T] at h₁
-          exact h₁
+  -- lemma provable_tb_to_provable_pa  {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}(φ : Fml)(h₁ : ¬ Sum.contains_T φ): (𝐓𝐁 ⊢(p) (φ)) → (Nonempty (Provable 𝐏𝐀 p φ (α := α))) := by
+  --   intro h₂
+  --   apply Classical.choice at h₂
+  --   -- let tau : ℒₜ.Formula (Fin 1) := tau h₂
+  --   induction h₂ with
+  --   | ax ψ h₃ =>
+  --     have step12 : ψ ∈ 𝐓𝐁 := h₃
+  --     apply Nonempty.intro
+  --     have step2 : ψ ∈ 𝐏𝐀 := by
+  --       cases h₃ with
+  --       | induction ψ₂ =>
+  --         simp at h₁
+  --         unfold PA.pa
+  --         apply And.intro
+  --         apply TB.tb.induction ψ₂
+  --         exact h₁
+  --       | bicon φ₂ h₂ =>
+  --         have step1 : contains_T (TB.tarski_biconditional φ₂ h₂) := by
+  --           exact lem₉
+  --         contradiction
+  --       | _ =>
+  --         unfold PA.pa
+  --         apply And.intro
+  --         exact step12
+  --         simp only [Sum.contains_T] at h₁
+  --         exact h₁
 
-        -- | intro w h =>
-        --   cases h.left with
-        --   | bicon φ₂ h₂ => -- this cases should still include the translation to PA proof
+  --       -- | intro w h =>
+  --       --   cases h.left with
+  --       --   | bicon φ₂ h₂ => -- this cases should still include the translation to PA proof
 
-        --     have step1 : contains_T (TB.tarski_biconditional φ₂ h₂) := by
-        --       exact lem₉
+  --       --     have step1 : contains_T (TB.tarski_biconditional φ₂ h₂) := by
+  --       --       exact lem₉
 
-        --     apply lem₈.mp at step1
-        --     rw[h.right] at step1
+  --       --     apply lem₈.mp at step1
+  --       --     rw[h.right] at step1
 
-        --     contradiction
-          -- | _ => sorry
-        -- TAKES LONG BUT DONE
-        -- cases step1 with
-        -- | intro w h =>
-        --   cases h.left with
-        --   | induction ψ₂ =>
-        --     if h₂ : contains_T ψ₂ then
-        --     have step1 : contains_T ψ := by
-        --       rw[h.right.symm]
-        --       simp[TB.ind₂]
-        --       apply Or.intro_left
-        --       apply Or.intro_left
-        --       apply lem₈.mp
-        --       apply lem₅
-        --       exact h₂
-        --     contradiction
-        --     -- use that contains_T perpetuates through TB.ind (see lem₆)
-        --     else
-        --     simp
-        --     apply Exists.intro
-        --     apply And.intro
-        --     unfold PA.pa
-        --     simp
-        --     apply And.intro
-        --     exact chosen_left
-        --     rw[chosen.right.symm] at h₁
-        --     exact lem₈.not.mpr h₁
-        --     exact chosen.right
-        --   | bicon φ₂ h₂ =>
-        --     have step1 : contains_T (TB.tarski_biconditional φ₂ h₂) := by
-        --       exact lem₉
-        --     apply lem₈.mp at step1
-        --     rw[h.right] at step1
-        --     contradiction
-        --   | _ =>
-        --     unfold PA.pa
-        --     simp
-        --     apply Exists.intro
-        --     apply And.intro
-        --     apply And.intro
-        --     exact h.left
-        --     simp
-        --     exact h.right
+  --       --     contradiction
+  --         -- | _ => sorry
+  --       -- TAKES LONG BUT DONE
+  --       -- cases step1 with
+  --       -- | intro w h =>
+  --       --   cases h.left with
+  --       --   | induction ψ₂ =>
+  --       --     if h₂ : contains_T ψ₂ then
+  --       --     have step1 : contains_T ψ := by
+  --       --       rw[h.right.symm]
+  --       --       simp[TB.ind₂]
+  --       --       apply Or.intro_left
+  --       --       apply Or.intro_left
+  --       --       apply lem₈.mp
+  --       --       apply lem₅
+  --       --       exact h₂
+  --       --     contradiction
+  --       --     -- use that contains_T perpetuates through TB.ind (see lem₆)
+  --       --     else
+  --       --     simp
+  --       --     apply Exists.intro
+  --       --     apply And.intro
+  --       --     unfold PA.pa
+  --       --     simp
+  --       --     apply And.intro
+  --       --     exact chosen_left
+  --       --     rw[chosen.right.symm] at h₁
+  --       --     exact lem₈.not.mpr h₁
+  --       --     exact chosen.right
+  --       --   | bicon φ₂ h₂ =>
+  --       --     have step1 : contains_T (TB.tarski_biconditional φ₂ h₂) := by
+  --       --       exact lem₉
+  --       --     apply lem₈.mp at step1
+  --       --     rw[h.right] at step1
+  --       --     contradiction
+  --       --   | _ =>
+  --       --     unfold PA.pa
+  --       --     simp
+  --       --     apply Exists.intro
+  --       --     apply And.intro
+  --       --     apply And.intro
+  --       --     exact h.left
+  --       --     simp
+  --       --     exact h.right
 
-      exact Nonempty.intro (Proof.ax ψ step2)
-    | un p₁ h₂ h₃ ih_p =>
-      /-Perhaps here we need to resort to some other form of translation as most is irrelevant -/
-      #check ih_p
-      sorry
-    | _ => sorry
-    -- let tau : ℒ.Formula (Fin 1) := tau h₁
-    -- cases h₁ with
-    -- | ax ψ h₂ =>
-    --   simp at h₂
-    --   have chosen := h₂.choose_spec
-    --   have chosen_left := chosen.left
-    --   unfold TB.tb at chosen_left
-    --   sorry
-    --   -- simp at chosen_left
-    --   -- cases chosen_left with
-    --   -- | inl h₃ =>
-    --   --   unfold PAT.pat at h₃
-    --   --   simp at h₃
-    --   --   cases h₃ with
-    --   --   | inl h₃ =>
-
-
-    --   --     #check Proof.ax (Th := (to_alpha '' 𝐏𝐀))
-    --   --     sorry
-    --   --   | inr h₃ => sorry
-    -- | _ => sorry
-
-  theorem conservativity_tb_pa {p₁ : @ProofSystem ℒₜ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
-    intro φ h₁
-    have tb_proof : Proof (to_alpha '' 𝐓𝐁) p₂ (φ) := by
-      unfold Complete at complete₂
-      #check complete₂ φ
-      apply Classical.choice
-      apply complete₂ φ
-      exact h₁
-    let tau : ℒₜ.Formula (Fin 1) := tau tb_proof
-
-    cases tb_proof with
-    | ax f h =>
-      sorry
-      -- | inl h =>
-      --   -- h ->(by soundness of p₂) {} ⊨ᵇ ϕ.onFormula φ ->(by completeness of p₁) {} ⊢(s₁) φ ->(by superset proves all subset) 𝐏𝐀 ⊨ᵇ φ
-
-      --   have proof := Nonempty.intro (Proof.ax (Th := (to_alpha '' {})) (s := p₂) (ϕ.onFormula φ) (by simp[h]))
-
-      --   have theo := sound₂ (ϕ.onFormula φ) {} proof
+  --     exact Nonempty.intro (Proof.ax ψ step2)
+  --   | un p₁ h₂ h₃ ih_p =>
+  --     /-Perhaps here we need to resort to some other form of translation as most is irrelevant -/
+  --     #check ih_p
+  --     sorry
+  --   | _ => sorry
+  --   -- let tau : ℒ.Formula (Fin 1) := tau h₁
+  --   -- cases h₁ with
+  --   -- | ax ψ h₂ =>
+  --   --   simp at h₂
+  --   --   have chosen := h₂.choose_spec
+  --   --   have chosen_left := chosen.left
+  --   --   unfold TB.tb at chosen_left
+  --   --   sorry
+  --   --   -- simp at chosen_left
+  --   --   -- cases chosen_left with
+  --   --   -- | inl h₃ =>
+  --   --   --   unfold PAT.pat at h₃
+  --   --   --   simp at h₃
+  --   --   --   cases h₃ with
+  --   --   --   | inl h₃ =>
 
 
-      --   sorry
-      -- | inr h => sorry
-    | _ => sorry
+  --   --   --     #check Proof.ax (Th := (to_alpha '' 𝐏𝐀))
+  --   --   --     sorry
+  --   --   --   | inr h₃ => sorry
+  --   -- | _ => sorry
+
+  -- theorem conservativity_tb_pa {p₁ : @ProofSystem ℒₜ Nat 0}{p₂ : @ProofSystem ℒₜ Nat 0}{sound₁ : p₁.Sound}{sound₂ : p₂.Sound}{complete₁ : p₁.Complete}{complete₂ : p₂.Complete} : Conservative 𝐓𝐁 𝐏𝐀 := by
+  --   intro φ h₁
+  --   have tb_proof : Proof (to_alpha '' 𝐓𝐁) p₂ (φ) := by
+  --     unfold Complete at complete₂
+  --     #check complete₂ φ
+  --     apply Classical.choice
+  --     apply complete₂ φ
+  --     exact h₁
+  --   let tau : ℒₜ.Formula (Fin 1) := tau tb_proof
+
+  --   cases tb_proof with
+  --   | ax f h =>
+  --     sorry
+  --     -- | inl h =>
+  --     --   -- h ->(by soundness of p₂) {} ⊨ᵇ ϕ.onFormula φ ->(by completeness of p₁) {} ⊢(s₁) φ ->(by superset proves all subset) 𝐏𝐀 ⊨ᵇ φ
+
+  --     --   have proof := Nonempty.intro (Proof.ax (Th := (to_alpha '' {})) (s := p₂) (ϕ.onFormula φ) (by simp[h]))
+
+  --     --   have theo := sound₂ (ϕ.onFormula φ) {} proof
+
+
+  --     --   sorry
+  --     -- | inr h => sorry
+  --   | _ => sorry
 
 end Conservativity

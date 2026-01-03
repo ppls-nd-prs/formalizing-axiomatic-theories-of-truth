@@ -11,28 +11,28 @@ open Sentence
 
 abbrev Fml := L.Sentence ⊕ L.Formula α
 structure ProofSystem : Type where
-  unary : Set (Fml (L := L) (α := α) → Fml (L := L) (α := α))
-  binary : Set (Fml (L := L) (α := α) → Fml (L := L) (α := α) → Fml (L := L) (α := α))
+  unary : Set (L.Sentence → L.Sentence)
+  binary : Set (L.Sentence → L.Sentence → L.Sentence)
 
--- @[simp]
--- def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
--- | .var (.inl v) => by contradiction
--- | .var (.inr v) => .var (.inr v)
--- | .func f ts => .func f (fun i => .to_alpha (ts i))
+@[simp]
+def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
+| .var (.inl v) => by contradiction
+| .var (.inr v) => .var (.inr v)
+| .func f ts => .func f (fun i => .to_alpha (ts i))
 
--- @[simp]
--- def BoundedFormula.to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
--- | _, .falsum => .falsum
--- | _, .equal t₁ t₂ => .equal t₁.to_alpha t₂.to_alpha
--- | _, .rel r ts => .rel r (fun i => (ts i).to_alpha)
--- | _, .imp φ₁ φ₂ => .imp φ₁.to_alpha φ₂.to_alpha
--- | _, .all φ => .all φ.to_alpha
+@[simp]
+def BoundedFormula.to_alpha : {n : Nat} → L.BoundedFormula Empty n → L.BoundedFormula α n
+| _, .falsum => .falsum
+| _, .equal t₁ t₂ => .equal t₁.to_alpha t₂.to_alpha
+| _, .rel r ts => .rel r (fun i => (ts i).to_alpha)
+| _, .imp φ₁ φ₂ => .imp φ₁.to_alpha φ₂.to_alpha
+| _, .all φ => .all φ.to_alpha
 
 open BoundedFormula
-inductive Proof : (Th : L.Theory) → (s : ProofSystem) → Fml (L := L) (α := α) → Type _
-| ax {Th s} (φ : L.Sentence) (h : φ ∈ Th) : Proof Th s (.inl φ)
-| un {Th s ψ φ} {r : Fml → Fml} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
-| bi {Th s ψ₁ ψ₂ φ} {r : Fml → Fml → Fml} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
+inductive Proof : (Th : L.Theory) → (s : ProofSystem) → L.Sentence → Type _
+| ax {Th s} (φ : L.Sentence) (h : Th φ) : Proof Th s φ
+| un {Th s ψ φ} {r : L.Sentence → L.Sentence} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
+| bi {Th s ψ₁ ψ₂ φ} {r : L.Sentence → L.Sentence → L.Sentence} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
 -- variable {L : Language}{α : Type}{n : Nat}{s : @ProofSystem L α n}{Th : Set (L.BoundedFormula α n)}
 -- def Proof.nr_axioms {φ : L.BoundedFormula α n} : Proof Th s φ → Nat
@@ -42,14 +42,14 @@ inductive Proof : (Th : L.Theory) → (s : ProofSystem) → Fml (L := L) (α := 
 
 namespace ProofSystem
 variable {α : Type}
-def Provable (Th : L.Theory) (s : ProofSystem (L := L) (α := α)) (φ : Fml (L := L) (α := α)) : Prop :=
+def Provable (Th : L.Theory) (s : ProofSystem (L := L)) (φ : L.Sentence) : Prop :=
   Nonempty (Proof Th s φ)
 notation Th " ⊢("s") " φ => Provable Th s φ
 
-def Sound (s : ProofSystem (L := L) (α := α)) : Prop :=
-  ∀φ : L.Sentence,∀ψ : L.Formula α, ∀Th, ((Th ⊢(s) .inl φ) → (Th ⊨ᵇ φ)) ∧ ((Th ⊢(s) .inr ψ) → (Th ⊨ᵇ ψ))
-def Complete (s : ProofSystem (L := L) (α := α)) : Prop :=
-  ∀φ : L.Sentence, ∀ψ : L.Formula α, ∀Th, ((Th ⊨ᵇ φ) → ((Th) ⊢(s) .inl φ)) ∧ ((Th ⊨ᵇ ψ) → (Th ⊢(s) .inr ψ))
+def Sound (s : ProofSystem (L := L) ) : Prop :=
+  ∀φ : L.Sentence, ∀Th, ((Th ⊢(s) φ) → (Th ⊨ᵇ φ))
+def Complete (s : ProofSystem (L := L)) : Prop :=
+  ∀φ : L.Sentence, ∀Th, ((Th ⊨ᵇ φ) → ((Th) ⊢(s) φ))
 
 open Theory BoundedFormula
 
