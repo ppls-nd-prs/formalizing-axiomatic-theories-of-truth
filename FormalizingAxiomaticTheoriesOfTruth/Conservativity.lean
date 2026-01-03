@@ -57,17 +57,15 @@ namespace Conservativity
   | .un p _ h₁ => get_disq_φs p
   | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
-  variable [Encodable (ℒₜ.Formula (Fin 1))]
-  -- instance : Coe (ℒₜ.Sentence) (ℒₜ.Formula (Fin 1)) where
-  -- coe := to_alpha
+  variable [∀n, ∀α, Encodable (ℒₜ.BoundedFormula α n)]
 
   @[simp]
-  def make_tau_equivs (s : ℒₜ.Sentence) : ℒₜ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
+  def make_tau_equiv (s : ℒₜ.Sentence) : ℒₜ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
 
   open Proof
   @[simp]
   noncomputable def tau {φ : Fml} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
-    fun p => Formula.iSup ((get_disq_φs p).map make_tau_equivs).get
+    fun p => Formula.iSup ((get_disq_φs p).map make_tau_equiv).get
 
 end Conservativity
 
@@ -119,7 +117,7 @@ end Conservativity
 
   --     sorry
   --   | _ => sorry
-
+variable [∀α, ∀n, Encodable (ℒₜ.BoundedFormula α n)]
   lemma tau_equivalence : (ψ : ℒₜ.Formula α) → ∀p : Proof Th s (.inr ψ), ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
@@ -136,7 +134,7 @@ end Conservativity
     have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
       apply List.mem_iff_get.mp
       exact h₁
-    let realization : Realize ((List.map make_tau_equivs (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒₜ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
+    let realization : Realize ((List.map make_tau_equiv (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒₜ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
       exact realizable.choose_spec
 
     rw[List.get_eq_getElem] at realization
@@ -153,7 +151,7 @@ end Conservativity
       exact realization
 
     else
-      simp only [make_tau_equivs,realize_inf] at realization
+      simp only [make_tau_equiv,realize_inf] at realization
       apply And.left at realization
 
       simp at realization
@@ -187,13 +185,13 @@ end Conservativity
       apply List.mem_iff_get.mp h₁
 
     let n : Fin (get_disq_φs p).length := ext.choose
-    let m : Fin ((get_disq_φs p).map make_tau_equivs).length := by
+    let m : Fin ((get_disq_φs p).map make_tau_equiv).length := by
       rw[List.length_map]
       exact n
 
     apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
 
-    have m_val_eq_n_val : @Fin.val (List.map make_tau_equivs (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
+    have m_val_eq_n_val : @Fin.val (List.map make_tau_equiv (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
       simp[m,Fin.cast_eq_cast']
     simp only [m_val_eq_n_val]
     have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
@@ -377,8 +375,23 @@ end Conservativity
   | .inl a => L_T.contains_T a
   | .inr a => L_T.contains_T a
 
-  def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{φ₁ : Fml}{φ₂ : Fml}{φ₃ : Fml}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₁ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Nonempty (Proof 𝐏𝐀 p φ₃ (α := α)) := by
-  -- something weird is going on here
+  variable [∀n, ∀α, Encodable (ℒₜ.BoundedFormula α n)]
+  /-First, we need the corresponding formula for a TB formula in PA wrt a reference formula reference_f-/
+  def replace_T (replace_f : ℒₜ.Formula (Fin 1)): {n : Nat} → ℒₜ.BoundedFormula α n → ℒₜ.BoundedFormula α n
+  | n, .rel (l := 1) R ts =>
+    match R, ts 0 with
+    | .t_symbol, t =>
+      .relabel (fun i : α ⊕ Fin n => match i with
+      | .inl a => .inl a
+      | .inr n => .inr n) (replace_f.subst ![t])
+  | _, .imp φ ψ => .imp (replace_T replace_f φ) (replace_T replace_f ψ)
+  | _, .all φ => .all (replace_T replace_f φ)
+  | _, φ => φ
+
+  /-Second, we need the prove that using (tau p) as reference_f for all p leads to ¬ contains_T-/
+  example : ∀p,∀φ, ¬ contains_T (replace_T (tau p) φ) := by sorry
+
+  def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{φ₁ : Fml}{φ₂ : Fml}{φ₃ : Fml}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₁ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Nonempty (Proof 𝐏𝐀 p φ₃ (α := α))
   | .ax φ₆ h₂ => by
     cases h₂ with
     | first =>
