@@ -5,14 +5,14 @@ import Mathlib.Data.Tree.Get
 import Mathlib.Data.Set.Basic
 
 namespace FirstOrder.Language
-variable {α β: Type} {L : Language} {n : Nat}
+variable {α : Type} {L : Language} {n : Nat}
 
 open Sentence
 
-abbrev Fml := L.BoundedFormula α n ⊕ L.BoundedFormula β n
+abbrev Fml := L.Sentence ⊕ L.Formula α
 structure ProofSystem : Type where
-  unary : Set (Fml (L := L) (α := α) (β := β) (n := n) → Fml (L := L) (α := α) (β := β) (n := n))
-  binary : Set (Fml (L := L) (α := α) (β := β) (n := n) → Fml (L := L) (α := α) (β := β) (n := n) → Fml (L := L) (α := α) (β := β) (n := n))
+  unary : Set (Fml (L := L) (α := α) → Fml (L := L) (α := α))
+  binary : Set (Fml (L := L) (α := α) → Fml (L := L) (α := α) → Fml (L := L) (α := α))
 
 -- @[simp]
 -- def Term.to_alpha : L.Term (Empty ⊕ Fin n) → L.Term (α ⊕ Fin n)
@@ -29,8 +29,8 @@ structure ProofSystem : Type where
 -- | _, .all φ => .all φ.to_alpha
 
 open BoundedFormula
-inductive Proof : (Th : Set (L.BoundedFormula α n)) → (s : ProofSystem) → Fml (L := L) (α := α) (β := β) → Type _
-| ax {Th s} (φ : L.BoundedFormula α n) (h : φ ∈ Th) : Proof Th s (.inl φ)
+inductive Proof : (Th : L.Theory) → (s : ProofSystem) → Fml (L := L) (α := α) → Type _
+| ax {Th s} (φ : L.Sentence) (h : φ ∈ Th) : Proof Th s (.inl φ)
 | un {Th s ψ φ} {r : Fml → Fml} (p : Proof Th s ψ) (h₁ : r ∈ s.unary) (h₂ : r ψ = φ) : Proof Th s φ
 | bi {Th s ψ₁ ψ₂ φ} {r : Fml → Fml → Fml} (p₁ : Proof Th s ψ₁) (p₂ : Proof Th s ψ₂) (h₁ : r ∈ s.binary) (h₂ : r ψ₁ ψ₂ = φ) : Proof Th s φ
 
@@ -42,14 +42,14 @@ inductive Proof : (Th : Set (L.BoundedFormula α n)) → (s : ProofSystem) → F
 
 namespace ProofSystem
 variable {α : Type}
-def Provable (Th : Set (L.BoundedFormula α n)) (s : @ProofSystem α β L n) (φ : @Fml α β L n) : Prop :=
+def Provable (Th : L.Theory) (s : ProofSystem (L := L) (α := α)) (φ : Fml (L := L) (α := α)) : Prop :=
   Nonempty (Proof Th s φ)
 notation Th " ⊢("s") " φ => Provable Th s φ
 
-def Sound (s : @ProofSystem Empty β L 0) : Prop :=
-  ∀φ : L.Sentence,∀ψ : L.Formula β, ∀Th, ((Th ⊢(s) .inl φ) → (Th ⊨ᵇ φ)) ∧ ((Th ⊢(s) .inr ψ) → (Th ⊨ᵇ ψ))
-def Complete (s : @ProofSystem Empty β L 0) : Prop :=
-  ∀φ : L.Sentence, ∀ψ : L.Formula β, ∀Th, ((Th ⊨ᵇ φ) → ((Th) ⊢(s) .inl φ)) ∧ ((Th ⊨ᵇ ψ) → (Th ⊢(s) .inr ψ))
+def Sound (s : ProofSystem (L := L) (α := α)) : Prop :=
+  ∀φ : L.Sentence,∀ψ : L.Formula α, ∀Th, ((Th ⊢(s) .inl φ) → (Th ⊨ᵇ φ)) ∧ ((Th ⊢(s) .inr ψ) → (Th ⊨ᵇ ψ))
+def Complete (s : ProofSystem (L := L) (α := α)) : Prop :=
+  ∀φ : L.Sentence, ∀ψ : L.Formula α, ∀Th, ((Th ⊨ᵇ φ) → ((Th) ⊢(s) .inl φ)) ∧ ((Th ⊨ᵇ ψ) → (Th ⊢(s) .inr ψ))
 
 open Theory BoundedFormula
 
