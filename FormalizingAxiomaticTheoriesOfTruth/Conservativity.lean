@@ -528,13 +528,13 @@ variable {L : Language}
 
 
   -- def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₁ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Nonempty (Proof 𝐏𝐀 p φ₃)
-  | .ax φ₆ h₂ => by
-    cases h₂ with
-    | first =>
+  -- | .ax φ₆ h₂ => by
+  --   cases h₂ with
+  --   | first =>
 
-      sorry
-    | _ => sorry
-  | _ => sorry
+  --     sorry
+  --   | _ => sorry
+  -- | _ => sorry
 
   -- lemma provable_tb_to_provable_pa  {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}(φ : Fml)(h₁ : ¬ Sum.contains_T φ): (𝐓𝐁 ⊢(p) (φ)) → (Nonempty (Provable 𝐏𝐀 p φ (α := α))) := by
   --   intro h₂
