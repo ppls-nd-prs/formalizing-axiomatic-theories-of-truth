@@ -84,89 +84,90 @@ notation "⌜"t"⌝" => numeral (Encodable.encode t)
 
 open BoundedFormula
 
-instance {n} : Coe (L.BoundedFormula (Fin 1) n) (L.BoundedFormula Empty (n + 1)) where
-coe := by
-  rw[Nat.add_comm]
-  apply (fun bf => relabel (fun i : Fin 1 => .inr i) bf)
-
 end Induction
 
 namespace TB
   open Languages L_T Induction BoundedFormula
 
-  def ind {n} (φ : ℒₜ.BoundedFormula (Fin 1) n) : ℒₜ.BoundedFormula Empty n :=
-  ((φ.subst ![null]) ⊓ (∀'(φ ⟹ (Coe.coe (@subst _ (Fin 1) (Fin 1) n φ (fun _ : Fin 1 => S(.var 0)))))) ⟹ ∀'φ)
+  instance : Coe (ℒₜ.BoundedFormula α (n + m)) (ℒₜ.BoundedFormula α (m + n)) where
+  coe := by
+    intro h
+    rw[Nat.add_comm] at h
+    exact h
+
+  def ind {α n} (φ : {α : Type} → {n : Nat} → ℒₜ.Term (α ⊕ Fin n) → ℒₜ.BoundedFormula α n) : ℒₜ.BoundedFormula α n :=
+  (φ null) ⊓ ∀'((φ (&0)) ⟹ (φ (S(&0)))) ⟹ ∀'(φ (&0))
 
 end TB
 
-namespace FirstOrder.Language.Term
-@[simp]
-def zero_subst {n} : ℒₜ.Term ((Fin 1) ⊕ Fin n) → ℒₜ.Term (Empty ⊕ Fin n)
-| .var (.inl _) => null
-| .var (.inr f) => .var (.inr f)
-| .func f ts => .func f (fun i => (zero_subst (ts i)))
+-- namespace FirstOrder.Language.Term
+-- @[simp]
+-- def zero_subst {n} : ℒₜ.Term ((Fin 1) ⊕ Fin n) → ℒₜ.Term (Empty ⊕ Fin n)
+-- | .var (.inl _) => null
+-- | .var (.inr f) => .var (.inr f)
+-- | .func f ts => .func f (fun i => (zero_subst (ts i)))
 
-@[simp]
-def bf_subst {n} : ℒₜ.Term ((Fin 1) ⊕ Fin n) → ℒₜ.Term (Empty ⊕ (Fin (n + 1)))
-| .var (.inl _) => .var (.inr (.mk 0 (by simp)))
-| .var (.inr f) => .var (.inr (f.addNat 1))
-| .func f ts => .func f (fun i => (ts i).bf_subst)
+-- @[simp]
+-- def bf_subst {n} : ℒₜ.Term ((Fin 1) ⊕ Fin n) → ℒₜ.Term (Empty ⊕ (Fin (n + 1)))
+-- | .var (.inl _) => .var (.inr (.mk 0 (by simp)))
+-- | .var (.inr f) => .var (.inr (f.addNat 1))
+-- | .func f ts => .func f (fun i => (ts i).bf_subst)
 
-@[simp]
-def bf_succ_subst {n} : ℒₜ.Term ((Fin 1) ⊕ Fin n) → ℒₜ.Term (Empty ⊕ (Fin (n + 1)))
-| .var (.inl _) => .func .succ_symbol ![.var (.inr (.mk 0 (by simp)))]
-| .var (.inr f) => .var (.inr (f.addNat 1))
-| .func f ts => .func f (fun i => (ts i).bf_subst)
-end FirstOrder.Language.Term
+-- @[simp]
+-- def bf_succ_subst {n} : ℒₜ.Term ((Fin 1) ⊕ Fin n) → ℒₜ.Term (Empty ⊕ (Fin (n + 1)))
+-- | .var (.inl _) => .func .succ_symbol ![.var (.inr (.mk 0 (by simp)))]
+-- | .var (.inr f) => .var (.inr (f.addNat 1))
+-- | .func f ts => .func f (fun i => (ts i).bf_subst)
+-- end FirstOrder.Language.Term
 
-namespace FirstOrder.Language.BoundedFormula
-@[simp]
-def zero_subst : {n : Nat} → (ℒₜ.BoundedFormula (Fin 1) n) → ℒₜ.BoundedFormula Empty n
-  | _, .falsum => .falsum
-  | _, .equal t₁ t₂ => .equal t₁.zero_subst t₂.zero_subst
-  | _, .rel R ts => .rel R (fun i => (ts i).zero_subst)
-  | _, .imp f₁ f₂ => .imp f₁.zero_subst f₂.zero_subst
-  | _, .all f₁ => .all f₁.zero_subst
+-- namespace FirstOrder.Language.BoundedFormula
+-- @[simp]
+-- def zero_subst : {n : Nat} → (ℒₜ.BoundedFormula (Fin 1) n) → ℒₜ.BoundedFormula Empty n
+--   | _, .falsum => .falsum
+--   | _, .equal t₁ t₂ => .equal t₁.zero_subst t₂.zero_subst
+--   | _, .rel R ts => .rel R (fun i => (ts i).zero_subst)
+--   | _, .imp f₁ f₂ => .imp f₁.zero_subst f₂.zero_subst
+--   | _, .all f₁ => .all f₁.zero_subst
 
-@[simp]
-def bf_subst : {n : Nat} → (ℒₜ.BoundedFormula (Fin 1) n) → ℒₜ.BoundedFormula Empty (n + 1)
-| _, .falsum => .falsum
-| _, .equal t₁ t₂ => .equal t₁.bf_subst t₂.bf_subst
-| _, .rel R ts => .rel R (fun i => (ts i).bf_subst)
-| _, .imp f₁ f₂ => .imp f₁.bf_subst f₂.bf_subst
-| _, .all f₁ => .all f₁.bf_subst
+-- @[simp]
+-- def bf_subst : {n : Nat} → (ℒₜ.BoundedFormula (Fin 1) n) → ℒₜ.BoundedFormula Empty (n + 1)
+-- | _, .falsum => .falsum
+-- | _, .equal t₁ t₂ => .equal t₁.bf_subst t₂.bf_subst
+-- | _, .rel R ts => .rel R (fun i => (ts i).bf_subst)
+-- | _, .imp f₁ f₂ => .imp f₁.bf_subst f₂.bf_subst
+-- | _, .all f₁ => .all f₁.bf_subst
 
-@[simp]
-def bf_succ_subst : {n : Nat} → (ℒₜ.BoundedFormula (Fin 1) n) → ℒₜ.BoundedFormula Empty (n + 1)
-| _, .falsum => .falsum
-| _, .equal t₁ t₂ => .equal t₁.bf_succ_subst t₂.bf_succ_subst
-| _, .rel R ts => .rel R (fun i => (ts i).bf_succ_subst)
-| _, .imp f₁ f₂ => .imp f₁.bf_succ_subst f₂.bf_succ_subst
-| _, .all f₁ => .all f₁.bf_succ_subst
-end FirstOrder.Language.BoundedFormula
+-- @[simp]
+-- def bf_succ_subst : {n : Nat} → (ℒₜ.BoundedFormula (Fin 1) n) → ℒₜ.BoundedFormula Empty (n + 1)
+-- | _, .falsum => .falsum
+-- | _, .equal t₁ t₂ => .equal t₁.bf_succ_subst t₂.bf_succ_subst
+-- | _, .rel R ts => .rel R (fun i => (ts i).bf_succ_subst)
+-- | _, .imp f₁ f₂ => .imp f₁.bf_succ_subst f₂.bf_succ_subst
+-- | _, .all f₁ => .all f₁.bf_succ_subst
+-- end FirstOrder.Language.BoundedFormula
 
 namespace TB
-  def ind₂ {n : Nat} (φ : ℒₜ.BoundedFormula (Fin 1) n) : ℒₜ.BoundedFormula Empty n :=
-    (φ.zero_subst ⊓ ∀'(φ.bf_subst ⟹ φ.bf_succ_subst)) ⟹ ∀'φ.bf_subst
+  -- def ind₂ {n : Nat} (φ : ℒₜ.BoundedFormula (Fin 1) n) : ℒₜ.BoundedFormula Empty n :=
+  --   (φ.zero_subst ⊓ ∀'(φ.bf_subst ⟹ φ.bf_succ_subst)) ⟹ ∀'φ.bf_subst
 
-  variable [∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
-  def tarski_biconditional {n} (ψ : ℒₜ.BoundedFormula Empty n) (_ : ¬ contains_T ψ) : ℒₜ.BoundedFormula Empty n := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
-  inductive tb : ℒₜ.Theory where
+  variable [∀n,∀α, Encodable (ℒₜ.BoundedFormula α n)]
+  def tarski_biconditional {α} {n} (ψ : ℒₜ.BoundedFormula α n) (_ : ¬ contains_T ψ) : ℒₜ.BoundedFormula α n := .rel L_T.Rel.t_symbol ![⌜ψ⌝] ⇔ ψ
+  inductive tb {α n} : Set (ℒₜ.BoundedFormula α n) where
     | first : tb (∀' ∼(null =' S(&0)))
     | second :tb (∀' ∀' ((S(&1) =' S(&0)) ⟹ (&1 =' &0)))
     | third : tb (∀' ((&0 add null) =' &0))
     | fourth : tb (∀' ∀' ((&1 add S(&0)) =' S(&1 add &0)))
     | fifth : tb (∀' ((&0 mult null) =' null))
     | sixth : tb (∀' ∀' ((&1 mult S(&0)) =' ((&1 mult &0)) add &1))
-    | induction (ψ : ℒₜ.Formula (Fin 1)) : tb (ind₂ ψ)
-    | bicon (φ : ℒₜ.Sentence) (h : ¬ contains_T φ) : tb (tarski_biconditional φ h)
+    | induction (ψ : {α : Type} → {n : Nat} → ℒₜ.Term (α ⊕ Fin n) → ℒₜ.BoundedFormula α n) : tb (ind ψ)
+    | bicon (φ : ℒₜ.BoundedFormula α n) (h : ¬ contains_T φ) : tb (tarski_biconditional φ h)
 
     notation "𝐓𝐁" => tb
 end TB
 
 namespace PA
   open TB Languages L_T
-  variable [∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
+  variable [∀n,∀α, Encodable (ℒₜ.BoundedFormula α n)]
   def pa : ℒₜ.Theory := {φ | φ ∈ tb ∧ ¬contains_T φ}
 
   notation "𝐏𝐀" => pa
@@ -318,7 +319,7 @@ end PA
 -- notation "𝐏𝐀" => alt_PA
 
 open Theory BoundedFormula PA Languages L_T
-  variable [∀n, Encodable (ℒₜ.BoundedFormula Empty n)]
+  variable [∀n,∀α, Encodable (ℒₜ.BoundedFormula α n)]
   lemma eq_symm : ∀{t₁ t₂ : ℒₜ.Term (Empty ⊕ Fin 0)}, 𝐏𝐀 ⊨ᵇ (t₁ =' t₂) ↔ 𝐏𝐀 ⊨ᵇ (t₂ =' t₁) := by
     intro t₁ t₂
     apply Iff.intro
