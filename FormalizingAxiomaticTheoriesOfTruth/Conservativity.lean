@@ -389,7 +389,7 @@ variable [∀α, ∀n, Encodable (ℒₜ.BoundedFormula α n)]
   | _, φ => φ
 
   /-Second, we need the prove that using (tau p) as reference_f for all p leads to ¬ contains_T-/
-  example : ∀p,∀φ, ¬ contains_T (replace_T (tau p) φ) := by sorry
+  example : ∀p,∀φ, ¬ contains_T ((replace_T (tau p) φ) : ℒₜ.Formula α) := by sorry
 
   def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{φ₁ : Fml}{φ₂ : Fml}{φ₃ : Fml}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₁ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Nonempty (Proof 𝐏𝐀 p φ₃ (α := α))
   | .ax φ₆ h₂ => by
