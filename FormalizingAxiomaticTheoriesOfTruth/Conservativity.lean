@@ -500,10 +500,17 @@ variable {L : Language}
     -- rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
     -- exact h₂
 
-  open Classical
+  example : ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence) := by
+
+
+    sorry
+
+  open Classical Language
   /-Thirdly, we need the prove that replacing all T's yields a proof in 𝐏𝐀 -/
+  #check ℒₜ.Constants
+  #check Constants.term (L := ℒₜ) (α := Nat) L_T.Func.zero_symbol
   variable   [∀φ : ℒₜ.Sentence,∀ψ,∀ts₁,∀ts₂, Decidable (ts₁ = ![(⌜φ⌝ : ℒₜ.Term (Empty ⊕ Fin 0))] ∧ ts₁ = ts₂ ∧ φ = ψ)]
-  variable [DecidableEq (ℒₜ.Term (Empty ⊕ Fin 0))][∀φ : ℒₜ.Sentence, DecidableEq (⌜φ⌝ : ℒₜ.Term (Empty ⊕ Fin 0))]
+  variable [DecidableEq (ℒₜ.Term (Empty ⊕ Fin 0))]
   example {ps : ProofSystem} {sound : Sound ps} {complete : Complete ps} {φ₁} : ∀p : Proof 𝐓𝐁 ps φ₁, Nonempty (Proof 𝐏𝐀 ps (replace_T (tau p) φ₁)) := by
     intro p
     unfold Sound at sound
@@ -545,6 +552,16 @@ variable {L : Language}
       | _ => sorry
     | _ => sorry
 
+  example {φ : ℒₜ.BoundedFormula α n} {h : ¬ contains_T φ} : 𝐓𝐁 ⊨ᵇ φ → 𝐏𝐀 ⊨ᵇ φ := by
+    intro h
+    induction φ with
+    | falsum =>
+      unfold Theory.ModelsBoundedFormula at h
+      unfold Theory.ModelsBoundedFormula
+      intro M v xs
+      have step1 : 𝐓𝐁.ModelType := default
+      sorry
+    | _ => sorry
 
   -- def proof_tb_to_proof_pa {p : ProofSystem}{sound : p.Sound}{complete : p.Complete}{h₁ : ¬ Sum.contains_T φ₁} (reference_p : Proof 𝐓𝐁 p φ₁)(h₁ : ¬ Sum.contains_T φ₁) : Proof 𝐓𝐁 p φ₂ → Nonempty (Proof 𝐏𝐀 p φ₃)
   -- | .ax φ₆ h₂ => by
