@@ -244,7 +244,7 @@ variable {L : Language}
   noncomputable def back_to_l: (φ : ℒₜ.Formula Nat) → (∃ψ: ℒₜ.Formula Nat, φ = (ψ)) → ℒₜ.Formula Nat := by
     intro φ h
     exact h.choose
-
+ --
   -- lemma lem4 : ∀φ,∀Th: ℒₜ.Theory, φ ∈ Th → φ ∈ Th := by
   --   intro φ Th h₁
   --   simp
