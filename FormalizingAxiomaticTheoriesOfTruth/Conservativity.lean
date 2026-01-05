@@ -64,12 +64,8 @@ namespace Conservativity
   @[simp]
   noncomputable def get_disq_φs {φ : ℒₜ.Sentence} : (p : Proof Th s φ) → List (ℒₜ.Sentence)
   | .ax (((rel Rel.t_symbol ts₁ ⟹ φ₁) ⟹ (φ₂ ⟹ rel Rel.t_symbol ts₂) ⟹ ⊥) ⟹ ⊥) h₁ =>
-    if ts₁ 0 = ⌜φ₁⌝ ∧ ts₁ 0 = ts₂ 0 ∧ φ₁ = φ₂
-    then
-    [φ₁]
-    else
-    []
-  | .ax φ h₁ => []
+    (if ts₁ 0 = ⌜φ₁⌝ ∧ ts₁ 0 = ts₂ 0 ∧ φ₁ = φ₂ then [φ₁] else [⊥] )
+  | .ax φ h₁ => [⊥]
   | .un p _ h₁ => get_disq_φs p
   | .bi p₁ p₂ _ h₁ => (get_disq_φs p₁) ∪ (get_disq_φs p₂)
 
@@ -78,10 +74,23 @@ namespace Conservativity
   @[simp]
   def make_tau_equiv (s : ℒₜ.Sentence) : ℒₜ.Formula (Fin 1) := #0 =' ⌜s⌝ ⊓ s
 
+  @[simp]
+  def tau_equiv_list (l : List (ℒₜ.Sentence)) : List (ℒₜ.Formula (Fin 1)) := (l.map make_tau_equiv)
+
+  @[simp]
+  noncomputable def proof_tau_equiv_list {φ : ℒₜ.Sentence} (p : Proof Th s φ) : List (ℒₜ.Formula (Fin 1)) := (tau_equiv_list (get_disq_φs p))
+
   open Proof
   @[simp]
+  lemma all_list_fin : ∀l : List α, Finite (Fin l.length) := by
+    intro l
+    apply Finite.intro _
+    apply l.length
+    rfl
+
+  @[simp]
   noncomputable def tau {φ : ℒₜ.Sentence} : Proof Th s φ → ℒₜ.Formula (Fin 1) :=
-    fun p => Formula.iSup ((get_disq_φs p).map make_tau_equiv).get
+    fun p => (fun h_fin => @Formula.iSup _ _ _ h_fin (proof_tau_equiv_list p).get) ((all_list_fin (proof_tau_equiv_list p)))
 
 end Conservativity
 
@@ -500,12 +509,19 @@ variable {L : Language}
     -- rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
     -- exact h₂
 
-  example : ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence) := by
 
+  instance : Decidable (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence)) := by
+    simp
+    apply Decidable.isTrue
+    exact True.intro
 
-    sorry
+  lemma merp {ps : ProofSystem}: (get_disq_φs (s := ps) ((Proof.ax (.rel L_T.Rel.t_symbol ![⌜falsum⌝] ⇔ falsum)) (TB.tb.bicon (falsum) (by simp)))) = [falsum] := by
+    simp [BoundedFormula.iff]
 
-  open Classical Language
+  lemma de_pemma : ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence) := by
+    simp
+
+  open Classical Language BoundedFormula
   /-Thirdly, we need the prove that replacing all T's yields a proof in 𝐏𝐀 -/
   #check ℒₜ.Constants
   #check Constants.term (L := ℒₜ) (α := Nat) L_T.Func.zero_symbol
@@ -516,27 +532,77 @@ variable {L : Language}
     unfold Sound at sound
     unfold Complete at complete
 
+    unfold tau
+
     induction p with
     | ax φ₂ h =>
       cases h with
       | bicon φ h =>
         apply (complete _ _)
-        cases φ with
+
+
+        match φ with
         | falsum =>
           -- we seem to need that ∀φ, ∀p, ¬ contains_T φ → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ), which is slightly different from our current tau_equivalences proof.
-          simp only [tau, replace_T, make_tau_equiv, BoundedFormula.iff, TB.tarski_biconditional]
+
           apply Theory.models_sentence_iff.mpr
           intro M
           apply realize_imp.mpr
-          intro h
-          apply realize_imp.mp at h
+          intro h₁
+          apply realize_imp.mp at h₁
+
+          have step2 {_ : Decidable (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence))}: (if (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence))) then ([falsum] : List (ℒₜ.Sentence)) else [falsum]) = ([falsum] : List (ℒₜ.Sentence)) := by
+            simp
+
+          conv at h₁ =>
+            lhs
+            arg 1
+            arg 1
+            arg 1
+
+
+
+
+
+
+
+
+
+
+
           -- have step1 : ![⌜(falsum : ℒₜ.Sentence)⌝] = ![(⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0))] ∧ ![(⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0))] = ![(⌜(falsum : ℒₜ.Sentence)⌝: ℒₜ.Term (Empty ⊕ Fin 0))] ∧ (falsum : ℒₜ.Sentence) = falsum := by
           --   sorry
-          simp at h
+          have step1 : (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence)) := de_pemma
+
+          #check step2
+          have step3 : (proof_tau_equiv_list (s := ps) (Proof.ax (TB.tarski_biconditional falsum h) (TB.tb.bicon falsum h))) = [(#0 =' (⌜(falsum : ℒₜ.Sentence)⌝) ⊓ falsum)] := by
+            simp
+            apply Exists.intro (BoundedFormula.falsum )
+            apply And.intro
+            simp [BoundedFormula.iff ]
+
+
+
+
+            simp
+          rw[step3] at h₁
+          simp only [proof_tau_equiv_list, tau_equiv_list] at h₁
+          -- unfold get_disq_φs at h₁
+          -- rw[step2] at h
+
+
+
+
+          -- rw[step2] at h
+
+
+
+
 
 
 
           sorry
+
         | _ => sorry
 
 
@@ -556,6 +622,7 @@ variable {L : Language}
     intro h
     induction φ with
     | falsum =>
+
       unfold Theory.ModelsBoundedFormula at h
       unfold Theory.ModelsBoundedFormula
       intro M v xs
