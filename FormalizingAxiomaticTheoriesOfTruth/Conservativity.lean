@@ -89,8 +89,8 @@ namespace Conservativity
     rfl
 
   @[simp]
-  noncomputable def tau {φ : ℒₜ.Sentence} (p : Proof Th s φ) {a : Finite (Fin (proof_tau_equiv_list p).length)}: ℒₜ.Formula (Fin 1) :=
-    Formula.iSup (proof_tau_equiv_list p).get
+  noncomputable def tau {φ : ℒₜ.Sentence} (p : Proof Th s φ) : ℒₜ.Formula (Fin 1) :=
+    (proof_tau_equiv_list p).foldr (· ⊔ ·) ⊥
 
 end Conservativity
 
@@ -145,94 +145,63 @@ end Conservativity
 
 variable [∀α,∀n, Encodable (ℒₜ.BoundedFormula α n)] [∀φ : ℒₜ.Sentence,∀ψ,∀ts₁,∀ts₂, Decidable (ts₁ = ![(⌜φ⌝ : ℒₜ.Term (Empty ⊕ Fin 0))] ∧ ts₁ = ts₂ ∧ φ = ψ)]
 
-  -- lemma tau_equivalence : (ψ : ℒₜ.Sentence) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
-  --   intro ψ p φ h₁
-  --   apply Theory.models_sentence_iff.mpr
-  --   intro M
-  --   apply realize_iff.mpr
-  --   apply Iff.intro
-  --   -- mp
-  --   intro h₂
-  --   have realizable : ↑M ⊨ subst (tau p) ![⌜φ⌝] := by
-  --     exact h₂
-  --   unfold Sentence.Realize Formula.Realize at realizable
-  --   apply realize_subst.mp at realizable
-  --   apply realize_iSup.mp at realizable
-  --   have ext₁ : ∃n, (get_disq_φs p).get n = φ := by
-  --     apply List.mem_iff_get.mp
-  --     exact h₁
+  lemma tau_equivalence : (ψ : ℒₜ.Sentence) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
+    intro ψ p φ h₁
+    apply Theory.models_sentence_iff.mpr
+    intro M
+    apply realize_iff.mpr
+    apply Iff.intro
+    -- mp
+    intro h₂
+    have realizable : ↑M ⊨ subst (tau p) ![⌜φ⌝] := by
+      exact h₂
+    unfold Sentence.Realize Formula.Realize at realizable
+    apply realize_subst.mp at realizable
 
-  --   let realization : Realize ((List.map make_tau_equiv (get_disq_φs p)).get realizable.choose) (fun a ↦ @Term.realize ℒₜ M _ _ (@default (Empty → ↑M) _) (![⌜φ⌝] a)) default := by
-  --     exact realizable.choose_spec
+    have ext₁ : ∃n, ((get_disq_φs p).get n) = φ := by
+      apply List.mem_iff_get.mp
+      exact h₁
 
-  --   rw[List.get_eq_getElem] at realization
-  --   rw[List.getElem_map] at realization
+    simp at realizable
+    let a : ℒₜ.Sentence := realizable.choose
 
-  --   if h₄ : (get_disq_φs p)[Fin.val realizable.choose] = φ then
-  --     rw[h₄] at realization
-  --     simp at realization
-  --     apply And.right at realization
+    have step1 := realizable.choose_spec
 
-  --     rw[Unique.default_eq]
-  --     rw[Unique.default_eq]
+    if h₄ : realizable.choose = φ then
+      rw[h₄] at step1
+      rw[Unique.default_eq]
+      exact step1.right.right
+    else
+      have step2 := step1.right.left
+      rw[lem1] at step2
+      have step3 : ↑M ⊨ ∼(⌜realizable.choose⌝ =' ⌜φ⌝):= by
+        apply PA.all_fs (realizable.choose) φ h₄
 
-  --     exact realization
+      apply realize_not.mp at step3
+      simp[realize_bdEqual _ _] at step3
 
-  --   else
-  --     simp only [make_tau_equiv,realize_inf] at realization
-  --     apply And.left at realization
+      simp[lem2] at step2
+      rw[lem1] at step3
+      simp[lem2] at step3
+      symm at step2
+      contradiction
 
-  --     simp at realization
-
-  --     -- iets met injectief (bewezen in syntax voor ℒ)
-  --     -- de sleutel is dat de realization moet kloppen in elke M,
-  --     -- dus ook in die waar het de interpretatie van getallen krijgt
-  --     -- we moeten bewijzen dat Nat een ∅.ModelType is
-
-  --     simp[Matrix.empty_eq,Matrix.vec_single_eq_const] at realization
-
-  --     have step1 : ↑M ⊨ (∼(⌜(get_disq_φs p)[↑realizable.choose]⌝ =' ⌜φ⌝) : ℒₜ.Sentence) := by
-  --       apply PA.all_fs
-  --       exact h₄
-
-  --     apply realize_not.mp at step1
-  --     simp[realize_bdEqual _ _] at step1
-  --     -- we hebben hier peano_arithmetic regels nodig
-  --     rw[lem1] at realization
-  --     simp[lem2] at realization
-  --     rw[lem1] at step1
-  --     simp[lem2] at step1
-  --     symm at realization
-  --     apply step1 at realization
-  --     contradiction
-
-  --   --mpr
-  --   intro h₂
-  --   apply realize_subst.mpr; apply realize_iSup.mpr
-  --   have ext : ∃ n, (get_disq_φs p).get n = φ := by
-  --     apply List.mem_iff_get.mp h₁
-
-  --   let n : Fin (get_disq_φs p).length := ext.choose
-  --   let m : Fin ((get_disq_φs p).map make_tau_equiv).length := by
-  --     rw[List.length_map]
-  --     exact n
-
-  --   apply Exists.intro m; rw[List.get_eq_getElem]; rw[List.getElem_map]
-
-  --   have m_val_eq_n_val : @Fin.val (List.map make_tau_equiv (get_disq_φs p)).length m = @Fin.val (get_disq_φs p).length n := by
-  --     simp[m,Fin.cast_eq_cast']
-  --   simp only [m_val_eq_n_val]
-  --   have is_phi : (get_disq_φs p)[(Fin.val n)] = φ := by
-  --     apply ext.choose_spec
-  --   rw[is_phi]; apply BoundedFormula.realize_inf.mpr; apply And.intro
-
-  --   -- left
-  --   apply (realize_bdEqual _ _).mpr; simp
-  --   rw[num_all_v ((Sum.elim (fun a ↦ Term.realize _ ⌜φ⌝) _)) _]
-  --   --right
-  --   simp
-  --   rw[Unique.default_eq ((Sum.elim (fun a ↦ Term.realize default (⌜φ⌝: ℒₜ.Term Empty)) (default: Fin 0 → ↑M) ∘ fun x ↦ Sum.inl 0))] at h₂
-  --   exact h₂
+    --mpr
+    intro h₂
+    apply realize_subst.mpr
+    simp
+    apply Exists.intro φ
+    apply And.intro
+    --left
+    exact h₁
+    --right
+    apply And.intro
+    --right.left
+    rw[lem1]
+    rw[num_all_v]
+    --right.right
+    rw[Unique.default_eq] at h₂
+    exact h₂
 
 variable {L : Language}
   @[simp]
@@ -419,7 +388,7 @@ variable {L : Language}
 
 /- Secondly, we need the following -/
 variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
-  lemma tau_equivalence₂ : (ψ : ℒₜ.Sentence) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (h : ¬ contains_T φ) → {a : Finite (Fin (proof_tau_equiv_list p).length)} → 𝐏𝐀 ⊨ᵇ replace_T (tau (a := a) p) (TB.tarski_biconditional φ h) := by
+  lemma tau_equivalence₂ : (ψ : ℒₜ.Sentence) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, (h : ¬ contains_T φ) → {a : Finite (Fin (proof_tau_equiv_list p).length)} → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ h) := by
 
     sorry -- below serves as guidance; it's simply the proof of tau_equivalence
     -- intro ψ p φ h₁ h₂
@@ -528,8 +497,8 @@ variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
   #check Constants.term (L := ℒₜ) (α := Nat) L_T.Func.zero_symbol
   variable   [∀φ : ℒₜ.Sentence,∀ψ,∀ts₁,∀ts₂, Decidable (ts₁ = ![(⌜φ⌝ : ℒₜ.Term (Empty ⊕ Fin 0))] ∧ ts₁ = ts₂ ∧ φ = ψ)]
   variable [DecidableEq (ℒₜ.Term (Empty ⊕ Fin 0))]
-  example {ps : ProofSystem} {sound : Sound ps} {complete : Complete ps} {φ₁} : ∀p : Proof 𝐓𝐁 ps φ₁, {a : Finite (Fin (proof_tau_equiv_list p).length)} → Nonempty (Proof 𝐏𝐀 ps (replace_T (tau (a := a) p) φ₁)) := by
-    intro p a
+  example {ps : ProofSystem} {sound : Sound ps} {complete : Complete ps} {φ₁} : ∀p : Proof 𝐓𝐁 ps φ₁, Nonempty (Proof 𝐏𝐀 ps (replace_T (tau p) φ₁)) := by
+    intro p
     unfold Sound at sound
     unfold Complete at complete
 
@@ -540,83 +509,23 @@ variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
       cases h with
       | bicon φ h =>
         apply (complete _ _)
+        apply Theory.models_sentence_iff.mpr
+        intro M
+        apply realize_imp.mpr
+        simp[BoundedFormula.iff]
 
 
         match φ with
-        | falsum =>
-          -- we seem to need that ∀φ, ∀p, ¬ contains_T φ → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ), which is slightly different from our current tau_equivalences proof.
+        | ⊥ =>
+          -- we seemed to need that ∀φ, ∀p, ¬ contains_T φ → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ), which is slightly different from our current tau_equivalences proof, but solved it with a different notion of tau instead.
+          simp
 
-          -- apply Theory.models_sentence_iff.mpr
-          -- intro M
-          -- apply realize_imp.mpr
-          -- intro h₁
-          -- apply realize_imp.mp at h₁
-
-
-
-          have step3 : (proof_tau_equiv_list (s := ps) (Proof.ax (TB.tarski_biconditional falsum h) (TB.tb.bicon falsum h))) = [(#0 =' (⌜(falsum : ℒₜ.Sentence)⌝) ⊓ falsum)] := by
-            simp
-            apply Exists.intro (BoundedFormula.falsum )
-            apply And.intro
-            simp [BoundedFormula.iff ]
-
-
-            simp
-
-          -- rw[step3]
-
-
-          have step4 : Finite (Fin (proof_tau_equiv_list (s := ps) (Proof.ax (TB.tarski_biconditional falsum h) (TB.tb.bicon falsum h))).length) = Finite (Fin ([(#0 =' (⌜(falsum : ℒₜ.Sentence)⌝) ⊓ falsum)] : List (ℒₜ.Formula (Fin 1))).length) := by
-            rw[step3]
-
-
-
-
-
-
-
-
-          have step2 {_ : Decidable (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence))}: (if (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence))) then ([falsum] : List (ℒₜ.Sentence)) else [falsum]) = ([falsum] : List (ℒₜ.Sentence)) := by
-            simp
-
-          -- conv at h₁ =>
-          --   lhs
-          --   arg 1
-          --   arg 1
-          --   arg 1
-
-          -- rw[step2] at h₁
-
-
-
-
-
-
-
-
-
-          -- have step1 : ![⌜(falsum : ℒₜ.Sentence)⌝] = ![(⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0))] ∧ ![(⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0))] = ![(⌜(falsum : ℒₜ.Sentence)⌝: ℒₜ.Term (Empty ⊕ Fin 0))] ∧ (falsum : ℒₜ.Sentence) = falsum := by
-          --   sorry
-          have step1 : (⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ ⌜(falsum : ℒₜ.Sentence)⌝ = (⌜(falsum : ℒₜ.Sentence)⌝ : ℒₜ.Term (Empty ⊕ Fin 0)) ∧ falsum = (falsum : ℒₜ.Sentence)) := de_pemma
-
-          #check step2
-
-
-          -- rw[step3] at h₁
-          -- simp only [proof_tau_equiv_list, tau_equiv_list] at h₁
-          -- unfold get_disq_φs at h₁
-          -- rw[step2] at h
-
-
-
-
-          -- rw[step2] at h
-
-
-
-
-
-
+        | all φ₁ =>
+          simp
+          /-𝐏𝐀 ⊨ᵇ
+  replace_T (List.foldr (fun x1 x2 ↦ x1 ⊔ x2) ⊥ (proof_tau_equiv_list (Proof.ax (TB.tarski_biconditional φ h) ⋯)))
+    (TB.tarski_biconditional φ h)-/
+          /- here, we encounter induction problems again. We need that ∀φ : BoundedFormula α n, (h : ¬ contains_T φ) → 𝐏𝐀 ⊨ᵇ replace_T (List.foldr (fun x1 x2 ↦ x1 ⊔ x2) ⊥ (proof_tau_equiv_list (Proof.ax (TB.tarski_biconditional φ h) ⋯))) (TB.tarski_biconditional φ h)-/
 
           sorry
 
@@ -643,7 +552,7 @@ variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
       unfold Theory.ModelsBoundedFormula at h
       unfold Theory.ModelsBoundedFormula
       intro M v xs
-      have step1 : 𝐓𝐁.ModelType := default
+      -- have step1 : 𝐓𝐁.ModelType := default
       sorry
     | _ => sorry
 
