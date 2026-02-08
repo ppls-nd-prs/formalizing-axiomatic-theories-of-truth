@@ -43,7 +43,6 @@ namespace Conservativity
 
   open BoundedFormula Classical
   variable {L : Language}{m : Nat}
-
   instance : Coe (ℒₜ.Sentence) (ℒₜ.BoundedFormula (Fin 1) n) where
   coe := relabel (fun _ => (.inl 0))
 
@@ -145,7 +144,7 @@ end Conservativity
   --   | _ => sorry
 
 variable [∀α,∀n, Encodable (ℒₜ.BoundedFormula α n)] [∀φ : ℒₜ.Sentence,∀ψ,∀ts₁,∀ts₂, Decidable (ts₁ = ![(⌜φ⌝ : ℒₜ.Term (Empty ⊕ Fin 0))] ∧ ts₁ = ts₂ ∧ φ = ψ)]
--- tau
+
   lemma tau_equivalence : (ψ : ℒₜ.Sentence) → ∀p : Proof Th s ψ, ∀φ ∈ get_disq_φs p, 𝐏𝐀 ⊨ᵇ ((tau p).subst ![⌜φ⌝] ⇔ φ) := by
     intro ψ p φ h₁
     apply Theory.models_sentence_iff.mpr
@@ -504,29 +503,22 @@ variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
     unfold Complete at complete
 
     unfold tau
-    apply (complete _ _)
-    #check tau_equivalence φ₁ p
-    have step1 := tau_equivalence φ₁ p
 
     induction p with
     | ax φ₂ h =>
       cases h with
       | bicon φ h =>
+        apply (complete _ _)
+        apply Theory.models_sentence_iff.mpr
+        intro M
+        apply realize_imp.mpr
+        simp[BoundedFormula.iff]
+
+
         match φ with
-        | falsum =>
+        | ⊥ =>
           -- we seemed to need that ∀φ, ∀p, ¬ contains_T φ → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ), which is slightly different from our current tau_equivalences proof, but solved it with a different notion of tau instead.
-
-          simp[BoundedFormula.iff]
-          apply Theory.models_formula_iff.mpr
-          intro M₂ v
-          apply realize_imp.mpr
-          intro h₅
-          rw[Unique.default_eq] at h₅
-          simp at h₅
-
-          sorry
-
-
+          simp
 
         | all φ₁ =>
           simp
