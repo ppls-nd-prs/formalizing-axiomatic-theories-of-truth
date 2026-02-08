@@ -502,34 +502,65 @@ variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
     unfold Sound at sound
     unfold Complete at complete
 
-    unfold tau
+    let tau_eq := tau_equivalence φ₁ p
+    let dingetje (φ) := φ ∈ (get_disq_φs p)
+
 
     induction p with
     | ax φ₂ h =>
       cases h with
-      | bicon φ h =>
-        apply (complete _ _)
-        apply Theory.models_sentence_iff.mpr
-        intro M
-        apply realize_imp.mpr
-        simp[BoundedFormula.iff]
+      | bicon φ₃ h =>
 
+        have tau_eq_inst := tau_eq φ₃
+        let ψ₂ := φ₃
+        have h₉ : ψ₂ = φ₃ := by rfl
 
-        match φ with
-        | ⊥ =>
+        cases φ₃ with
+        | falsum =>
           -- we seemed to need that ∀φ, ∀p, ¬ contains_T φ → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ), which is slightly different from our current tau_equivalences proof, but solved it with a different notion of tau instead.
+          have falsum_is_bot : (⊥ : ℒₜ.Sentence) = (.falsum :
+          ℒₜ.Sentence) := by rfl
 
+          apply (complete _ _)
+          simp only [TB.tarski_biconditional]
+          simp only [tau,proof_tau_equiv_list,tau_equiv_list]
+          simp only [BoundedFormula.iff]
+          apply Theory.models_sentence_iff.mpr
+          intro M
+          apply realize_imp.mpr
+          simp[falsum_is_bot.symm]
+
+        | all φ₄ =>
+          apply (complete _ _)
+          conv =>
+            rhs
+            simp[BoundedFormula.iff,-replace_T]
+          apply Theory.models_sentence_iff.mpr
+          intro M
+          apply realize_imp.mpr
           simp
+          apply And.intro
+          intro h₅ h₆ a
+          have h₇ := h₆ a
+          have h₈ : dingetje (∀' φ₄) := by
+            unfold dingetje
+
+            simp[BoundedFormula.iff]
+          unfold dingetje at h₈
+          #check tau_eq_inst h₈
 
 
-        | all φ₁ =>
-          simp
+          -- simp[tau_equivalence]
+
+
+
+
           /-𝐏𝐀 ⊨ᵇ
   replace_T (List.foldr (fun x1 x2 ↦ x1 ⊔ x2) ⊥ (proof_tau_equiv_list (Proof.ax (TB.tarski_biconditional φ h) ⋯)))
     (TB.tarski_biconditional φ h)-/
           /- here, we encounter induction problems again. We need that ∀φ : BoundedFormula α n, (h : ¬ contains_T φ) → 𝐏𝐀 ⊨ᵇ replace_T (List.foldr (fun x1 x2 ↦ x1 ⊔ x2) ⊥ (proof_tau_equiv_list (Proof.ax (TB.tarski_biconditional φ h) ⋯))) (TB.tarski_biconditional φ h)-/
-          apply And.intro
-          intro h₅ h₆
+
+
 
 
           sorry
