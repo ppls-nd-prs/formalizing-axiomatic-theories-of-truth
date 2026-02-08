@@ -518,7 +518,9 @@ variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
         match φ with
         | ⊥ =>
           -- we seemed to need that ∀φ, ∀p, ¬ contains_T φ → 𝐏𝐀 ⊨ᵇ replace_T (tau p) (TB.tarski_biconditional φ), which is slightly different from our current tau_equivalences proof, but solved it with a different notion of tau instead.
+
           simp
+
 
         | all φ₁ =>
           simp
@@ -526,7 +528,11 @@ variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
   replace_T (List.foldr (fun x1 x2 ↦ x1 ⊔ x2) ⊥ (proof_tau_equiv_list (Proof.ax (TB.tarski_biconditional φ h) ⋯)))
     (TB.tarski_biconditional φ h)-/
           /- here, we encounter induction problems again. We need that ∀φ : BoundedFormula α n, (h : ¬ contains_T φ) → 𝐏𝐀 ⊨ᵇ replace_T (List.foldr (fun x1 x2 ↦ x1 ⊔ x2) ⊥ (proof_tau_equiv_list (Proof.ax (TB.tarski_biconditional φ h) ⋯))) (TB.tarski_biconditional φ h)-/
+          apply And.intro
+          intro h₅ h₆
 
+
+          sorry
           sorry
 
         | _ => sorry
