@@ -547,8 +547,12 @@ variable {a : ∀p, Finite (Fin (proof_tau_equiv_list p).length)}
 
             simp[BoundedFormula.iff]
           unfold dingetje at h₈
-          #check tau_eq_inst h₈
-
+          #check tau_equivalence _ _ _ h₈
+          /- the above check's result is useful. However, it's in the wrong format, because tau_equivalence is in the wrong format. It needs to be formulated using:
+          - replace_T and
+          - TB.tarski_biconditional.
+          That is not impossible.
+          -/
 
           -- simp[tau_equivalence]
 
